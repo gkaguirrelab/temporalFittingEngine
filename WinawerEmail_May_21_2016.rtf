@@ -1,0 +1,113 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf460
+{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Italic;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;\red56\green110\blue255;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 From: Jonathan A Winawer <jonathan.winawer@nyu.edu>\
+Subject: Re: Temporal Integration\
+Date: May 21, 2016 at 4:49:09 PM EDT\
+To: Geoffrey K Aguirre <aguirreg@mail.med.upenn.edu>\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1 \cf2 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 Hi Geoff,\
+\
+Thanks for the paper. Will read it this weekend. Answers below.\
+\
+On Sat, May 21, 2016 at 9:51 AM, Geoffrey K Aguirre \uc0\u8234 <{\field{\*\fldinst{HYPERLINK "mailto:aguirreg@mail.med.upenn.edu"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 aguirreg@mail.med.upenn.edu}}>\uc0\u8236  wrote:\
+Jon \'97\
+\
+\'a0 \'a0 \'a0 \'a0 Thanks for sending this along! I\'92ve looked over the poster and now have a couple of questions that I wish I had asked in Florida. Could you answer these for me?\
+\
+- In lower left panel (\'93Three possible models\'94) the output of the delayed normalization filter is depicted as producing a neural response that extends longer in time than shown for the earlier stages (the linear and CTS). This does not seem to be the case for the depiction of the model output shown in the next panel over (\'93ECoG design and predictions\'94). My interpretation is that the x-axis has been expanded in the first instance to show the form of the output. Is this correct?\
+\
+That's a good point and may be correct. On the other hand, it might just be just poor scaling of the image in the lower panel of the section 'Three possible models', but I am not 100% sure the three simulations are even done with the same stimulus (I'll check with Jing). On the other hand, for the panel "ECoG design and predictions", the three simulations use the same stimulus (single pulse of 500 ms) and the three plots are the same duration (1 s each). So that panel shows the clearest comparison of the outputs of the three models.\
+\'a0\
+- What is the form you assume for the neural IRF? For the fMRI data analysis, was tau1 fixed to some value? It strikes me that it would be difficult to measure this for your stimuli in fMRI data (although it is nicely measured in the ECoG).\
+\
+The IRF is assumed to be a gamma function: 
+\f2\i t .* exp(-t/tau1)
+\f1\i0 \
+You are right that it is hard to infer tau1 from the fMRI experiment. I believe we assumed 50 ms for the fMRI data. Jing solved the fMRI models using many different fixed tau1s, and the pattern of results for the exponents is always the same - e.g., highest in V1, lowest in TO. But the numerical value of the exponents changes a little when you change tau1.\'a0 It is not impossible to fit with fMRI data but it is noisy. It would be impossible to fit with the fMRI data alone if the neural responses were linear, but the nonlinearity gives you a little power to fit the time constant. When do fit it, we get something non-crazy - shortest in V1 and longer in extrastriate areas. But it is quite noisy and not very reliable.\
+\
+\
+- In the fMRI section (\'93CTS model accounts for temporal nonlinearities in fMRI data\'94) the fit of the CTS model is shown. It is sensible to me that the DN stage would not contribute much to the fits here given the brief duration of the stimuli with regard to the temporal scale of the HRF. Does this intuition match yours?\
+\
+Yes, that intuition matches mine. There is also another way to frame it that makes the differences between the models more explicit. The CTS model has the form X^n, with n less than 1 and X equal to the convolution of the stimulus time series with the IRF. This nonlinearity is pretty similar to X/(sigma + X) for appropriate values of sigma. In this sense, the CTS is really a normalization model with instantaneous normalization, and the DN model is the same but with a delay in the normalization. Since the fMRI response is slow, the exact timing of when the normalization kicks in doesn't have a big effect on the BOLD amplitude. I think this is similar to your point. For the manuscript, we might rewrite the CTS model in the form of instantaneous divisive normalization rather than a power law just for compatibility with the other model. (On the other hand, the power law is nice because it is similar to our compressive spatial summation power law). We'll see.\
+\
+\'a0\
+\'a0 \'a0 \'a0 \'a0 Thanks! I think the approach is very exciting and I\'92m eager to apply it to some of our data.\
+\
+\'a0 \'a0 \'a0 \'a0 I\'92ve also attached our manuscript on measuring temporal integration in fMRI data. This paper is targeting quite a different stimulus and temporal regime from your poster. We examine the claim that extrastriate cortex contains immutable \'93norm\'94 representations of stimuli (particularly, faces). We present a continuous stream of face stimuli that vary in similarity, and then measure the modulatory effect of stimulus history upon the response to the current stimulus. Specifically, we derive the time constant of a a decaying exponential integration of the positions of prior stimuli within the stimulus space. We show that responses vary across the cortex from very short periods of temporal integration near the occipital pole to rather long periods as one moves antereo-laterally.\
+\
+\'a0 \'a0 \'a0 \'a0 For future work I\'92m transitioning to measuring such things for more elementary stimuli at even briefer timescales, so your model seems like just the thing to use.\
+\
+\
+Interesting. I will get back to you after I've had a chance to read through the ms.\'a0\
+\
+Jon\
+\
+\'a0\
+Best,\
+\
+Geoff\
+\
+\
+\
+\
+\
+> On May 20, 2016, at 4:47 PM, Jonathan A Winawer <{\field{\*\fldinst{HYPERLINK "mailto:jonathan.winawer@nyu.edu"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 jonathan.winawer@nyu.edu}}> wrote:\
+>\
+> Hi Geoff,\
+>\
+> Great seeing you at VSS, as always. Please find our poster, attached. If you don't mind sharing your CB paper in press, we would love to see it.\
+>\
+> Thanks,\
+> Jon\
+> \
+>\'a0 VSS_2016_Zhou_temporalRF.pdf\
+> \
+>\
+> --\
+> Jonathan Winawer\
+> Assistant Professor of Psychology and Neural Science\
+>\
+> New York University\
+> 6 Washington Place\
+> New York, NY, 10003\
+> {\field{\*\fldinst{HYPERLINK "tel:%28212%29%20998-7922"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 (212) 998-7922}} (phone)\
+> {\field{\*\fldinst{HYPERLINK "tel:%28212%29%20995-4018"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 (212) 995-4018}} (fax)\
+> {\field{\*\fldinst{HYPERLINK "mailto:jonathan.winawer@nyu.edu"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 jonathan.winawer@nyu.edu}}\
+> {\field{\*\fldinst{HYPERLINK "http://psych.nyu.edu/winawer/"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 http://psych.nyu.edu/winawer/}}\
+\
+--\
+\
+Geoffrey Karl Aguirre, M.D., Ph.D.\
+\pard\pardeftab720\sl280\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "https://cfn.upenn.edu/aguirre"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 https://cfn.upenn.edu/aguirre}}\
+Associate Professor of Neurology\
+University of Pennsylvania\
+Philadelphia, PA\
+\
+\
+\
+\
+\
+-- \
+Jonathan Winawer\
+Assistant Professor of Psychology and Neural Science\
+\
+New York University\
+6 Washington Place\
+New York, NY, 10003\
+(212) 998-7922 (phone)\
+(212) 995-4018 (fax)\
+\pard\pardeftab720\sl280\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "mailto:jonathan.winawer@nyu.edu"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 jonathan.winawer@nyu.edu}}\
+\pard\pardeftab720\sl280\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "http://psych.nyu.edu/winawer/"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 http://psych.nyu.edu/winawer/}}\
+}
