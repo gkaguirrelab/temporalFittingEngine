@@ -1,10 +1,10 @@
-function [watsonFitToData, fitParams] = FitWatsonToTTF(frequenciesHz, data, displayFitPlotIn, initialParamsIn)
+function [watsonFitToData, fitParams] = fitWatsonToTTF(frequenciesHz, data, displayFitPlotIn, initialParamsIn)
 
 % Here is an example set of frequencies and data to test out the routine:
 %
 %  frequenciesHz = [2,4,8,16,32,64];
 %  data = [0.4, 0.75, 0.80, 0.37, 0, 0.1]
-%  [watsonFitToData, pfit] = FitWatsonToTTF(frequenciesHz, data, true)
+%  [watsonFitToData, pfit] = fitWatsonToTTF(frequenciesHz, data, true)
 %
 
 % Assume that we do not want to plot the fit unless we receive a
