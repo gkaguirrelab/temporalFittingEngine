@@ -1,97 +1,184 @@
+function [yBOLD] = fitWinawerModelToBOLD(t, yStimulus, displayFitPlotIn, paramIn)
 
-% NEED TO IMPLEMENT AN ADJUSTMENT OF PARAMETERS IN EQUATIONS TO ACCOUNT FOR
-% SAMPLING RESOLUTION OF MODEL
+%% fitWinawerModelToBOLD
+%
+% This function produces a predicted BOLD fMRI response given a vector of
+% stimulus input, a vector of time points, and a set of parameters.
+%
+% The model includes the following stages:
+%
+%  ? a neural impulse response function (modeled as a gamma function)
+%  ? a compressive non-linearity
+%  ? a delayed, divisive normalization stage
+%  ? convolution with a hemodynamic response function
+%
+% The approach is inspired by:
+%
+%   Zhou, Benson, Kay, Winawer (2016) VSS annual meeting
+%   Temporal Summation and Adaptation in Human Visual Cortex
+%
+% 05-30-2016    -  gka wrote it
+%
 
-close all;
+
+%% Deal with the passed parameters and flags
+
+% The user passed nothing, so just demo the code
+if nargin==0
+
+    fprintf('A demonstration of the model for a 12 second stimulus step\n\n');
+        
+    % parameters of the stimulus simulation
+    modelDuration=40; % total duration of the modeled period, in seconds
+    modelResolution=1; % temporal sampling frequency of model, in Hz
+    stimulusDuration=12; % duration of the modeled step of neural activity, in seconds
+    
+    % Create a stimulus model, which is a simple step function of input
+    t = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain of the model
+    yStimulus = t*0; % the stimulus vector
+    yStimulus(2:(stimulusDuration*modelResolution)+1) = 1; % implement the step function of input
+end
+
+% The user just passed a stimulus or a time vector, return an error
+if nargin==1
+    msg = 'Please provide both a vector of time points and a stimulus vector.';
+    error(msg)
+end
+
+% Sanity check the input and derive the modelLength
+if length(yStimulus)~=length(t)
+    msg = 'The vector of time points and stimulus vector are different lengths.';
+    error(msg)
+end
+
+modelLength = length(t);
+
+% Assume that we do not want to plot the fit unless we receive a
+% corresponding flag, or if no arguments were passed, in which case we will
+% set display to true as we are in demo mode.
+
+displayFitPlot=false;
+if nargin==0
+    displayFitPlot=true;
+end
+if nargin==3
+    displayFitPlot=displayFitPlotIn;
+end
+
+%% define default parameters
 
 % parameters of the neural filters
-
-param.tau1 = 5/1000; % time constant of the neural IRF (in seconds)
+param.tau1 = 0.005;   % time constant of the neural IRF (in seconds)
 param.epsilon = 0.35; % compressive non-linearity parameter
-param.tau2 = 0.5; % time constant of the low-pass component of delayed normalization
-param.sigma = 1; % parameter of the delayed normalization
-param.n = 2; % the order of the delayed normalization
+param.tau2 = 0.1;     % time constant of the low-pass (exponential decay) component of delayed normalization
+param.sigma = 0.13;   % constant scaling factor of the divisive normalization
+param.n = 0.5;        % the order of the delayed normalization
 
-% parameters of the hemodynamic filters
+% parameters of the double-gamma hemodynamic filter (HRF)
+param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
+param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
+param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
 
-param.gamma1 = 6;
-param.gamma2 = 9;
-param.surround = 4;
+if nargin==4
+    param=paramIn;
+end
 
-% parameters of the stimulus simulation
 
-modelDuration=40; % total duration of the modeled period, in seconds
-modelResolution=1; % temporal sampling frequency of model, in Hz
-modelLength=modelDuration*modelResolution; % duh
-stimulusDuration=12; % duration of the modeled step of neural activity, in seconds
 
-% Create a stimulus model, which is a simple step function of input
-
-t = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain
-yStimulus = t*0; % the stimulus vector
-yStimulus(2:(stimulusDuration*modelResolution)+1) = 1; % implement the step function of input
-
+%% Implement the neural stage
 % Define the neuralIRF, which is a gamma function that transforms the
 % stimulus input into a profile of neural activity (e.g., LFP)
 
-neuralIRF = t .* exp(-t/param.tau1); 
+neuralIRF = t .* exp(-t/param.tau1);
 neuralIRF=neuralIRF/sum(neuralIRF); % scale to unit sum to preserve
-                                    % amplitude of y following convolution
+% amplitude of y following convolution
 
 % Obtain first stage, linear model, which is the stimulus vector convolved
 % by the neural IRF
 
 yLinear = conv(yStimulus,neuralIRF);
 yLinear = yLinear(1:modelLength); % Need to explore why I have to truncate
-                                  % what is returned by the conv function
-                                  
+% what is returned by the conv function
+
+%% Implement the compressive non-linearity stage
 % Obtain second stage, CTS model, which is the output of the linear stage
-% subjected to a compressive non-linearity
+% subjected to a compressive non-linearity. While this is implemented here
+% as a power law function, it is worth noting that very similar functions
+% are produced by implementing this as an instantaneous divisive
+% normalization.
 
 yCTS = yLinear.^param.epsilon;
 
-% Implement the delayed normalization
+
+%% Implement the delayed, divisive normalization stage.
+% (Instantaneous) divisive normalization is described by:
+%
+%   yResponse = Input^n / (sigma^n + Input^n)
+%
+% The computation is implemented over time by weighting the input by a
+% temporal decay function:
+%
+%   yResponseDN(t) = Input(t)^n / (sigma^n + (Input(t) * decay(t))^n)
+%
+% where '*' indicates here convolution and decay is a decaying exponential
+% that is defined by the parameter tau2
 
 % Create the exponential low-pass function that defines the time-domain
 % properties of the normalization
 
 decayingExponential=(exp(-1*param.tau2*t));
-decayingExponential=decayingExponential/sum(decayingExponential);
-lowpassNeuralFilter=conv(yCTS,decayingExponential);
-lowpassNeuralFilter=lowpassNeuralFilter(1:modelLength); % Need to explore why I have to truncate
-                                  % what is returned by the conv function
-                                  
-% Assemble the delayed normalization response
 
-yDN = (yCTS.^(param.n)) ./ ... % the numerator 
-      ( param.sigma^param.n + lowpassNeuralFilter.^param.n );
+% scale to have unit sum to preserve amplitude after convolution
+decayingExponential=decayingExponential/sum(decayingExponential);
+
+% convolved the neural response by the decaying exponential
+yCTSDecayed=conv(yCTS,decayingExponential);
+yCTSDecayed=yCTSDecayed(1:modelLength); % Need to explore why I have to truncate
+% what is returned by the conv function
+
+% Assemble the delayed, divisive normalization response
+yDN = (yCTS.^param.n) ./ ... % the numerator
+    ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
+
+
+%% Convolve the neural model by the BOLD HRF
 
 % Create a double-gamma model of the hemodynamic response function (HRF)
+BOLDHRF = gampdf(t, param.gamma1, 1) - ...
+    gampdf(t, param.gamma2, 1)/param.gammaScale;
 
-BOLDHRF = gampdf(t, param.gamma1, 1) - gampdf(t, param.gamma2, 1)/param.surround;
 BOLDHRF = BOLDHRF/sum(BOLDHRF);  % scale to unit sum to preserve
-                                 % amplitude of y following convolution
+% amplitude of y following convolution
 
-% Convolve the neural model by the BOLD HRF model
-
+% Perform the convolution
 yBOLD = conv(yDN,BOLDHRF);
 yBOLD = yBOLD(1:modelLength); % NEED TO DETERMINE WHY THIS IS NECESSARY
 
-% Plot the model stages
 
-figure
-hold on;
-plot(neuralIRF);
-plot(decayingExponential);
-plot(BOLDHRF);
-plot(BOLDHRF,'.');
-hold off;
+%% Plot the model
 
-figure;
-hold on;
-plot(yStimulus);
-plot(yLinear);
-plot(yCTS);
-plot(yDN);
-plot(yBOLD);
-hold off;
+if displayFitPlot
+    figure;
+    subplot(1,2,1);
+    hold on;
+    r1 = plot(neuralIRF);
+    r2 = plot(decayingExponential);
+    r3 = plot(BOLDHRF);
+    plot(BOLDHRF,'.');
+    title('Convolution functions used in the model');
+    legend([r1 r2 r3], 'neuralIRF', 'decayingExponential', 'BOLDHRF');
+    legend boxoff
+    hold off;
+    
+    subplot(1,2,2);
+    hold on;
+    r1 = plot(yStimulus);
+    r2 = plot(yLinear);
+    r3 = plot(yCTS);
+    r4 = plot(yDN);
+    r5 = plot(yBOLD);
+    legend([r1 r2 r3 r4 r5], 'yStimulus', 'yLinear', 'yCTS', 'yDN', 'yBOLD');
+    title('Responses at sequential filter stages');
+    legend boxoff
+    hold off;
+end
