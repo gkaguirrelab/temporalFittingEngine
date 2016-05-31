@@ -7,15 +7,24 @@ function [yBOLD] = fitWinawerModelToBOLD(t, yStimulus, displayFitPlotIn, paramIn
 %
 % The model includes the following stages:
 %
-%  ? a neural impulse response function (modeled as a gamma function)
-%  ? a compressive non-linearity
-%  ? a delayed, divisive normalization stage
-%  ? convolution with a hemodynamic response function
+%  - a neural impulse response function (modeled as a gamma function)
+%  - a compressive non-linearity
+%  - a delayed, divisive normalization stage
+%  - convolution with a hemodynamic response function
 %
 % The approach is inspired by:
 %
 %   Zhou, Benson, Kay, Winawer (2016) VSS annual meeting
 %   Temporal Summation and Adaptation in Human Visual Cortex
+%
+% Input properties:
+%
+%   t - a vector of time points, in seconds
+%   yStimulus - a vector of stimulus amplitude. The length must be the same
+%               as t. The absolute amplitude is arbitraty.
+%   displayFitPlotIn - Boolean flag indicating if you want a plot. Optional.
+%   paramIn - a structure of parameters that define the model. These are
+%             described below. Optional.
 %
 % 05-30-2016    -  gka wrote it
 %
@@ -25,7 +34,7 @@ function [yBOLD] = fitWinawerModelToBOLD(t, yStimulus, displayFitPlotIn, paramIn
 
 % The user passed nothing, so just demo the code
 if nargin==0
-
+    % let the user know we are in demo mode
     fprintf('A demonstration of the model for a 12 second stimulus step\n\n');
         
     % parameters of the stimulus simulation
@@ -47,7 +56,7 @@ end
 
 % Sanity check the input and derive the modelLength
 if length(yStimulus)~=length(t)
-    msg = 'The vector of time points and stimulus vector are different lengths.';
+    msg = 'The vector of time points and the stimulus vector are different lengths.';
     error(msg)
 end
 
@@ -79,6 +88,7 @@ param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds
 param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
 param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
 
+% if no parameters were passed in, use the defaults
 if nargin==4
     param=paramIn;
 end
@@ -88,17 +98,18 @@ end
 %% Implement the neural stage
 % Define the neuralIRF, which is a gamma function that transforms the
 % stimulus input into a profile of neural activity (e.g., LFP)
-
 neuralIRF = t .* exp(-t/param.tau1);
-neuralIRF=neuralIRF/sum(neuralIRF); % scale to unit sum to preserve
-% amplitude of y following convolution
+
+% scale to unit sum to preserve amplitude of y following convolution
+neuralIRF=neuralIRF/sum(neuralIRF);
 
 % Obtain first stage, linear model, which is the stimulus vector convolved
 % by the neural IRF
-
 yLinear = conv(yStimulus,neuralIRF);
-yLinear = yLinear(1:modelLength); % Need to explore why I have to truncate
-% what is returned by the conv function
+
+% Truncate the convolved vector to the input length. Not sure why I have to
+% do this. Probably mis-using the conv function.
+yLinear = yLinear(1:modelLength);
 
 %% Implement the compressive non-linearity stage
 % Obtain second stage, CTS model, which is the output of the linear stage
@@ -106,9 +117,7 @@ yLinear = yLinear(1:modelLength); % Need to explore why I have to truncate
 % as a power law function, it is worth noting that very similar functions
 % are produced by implementing this as an instantaneous divisive
 % normalization.
-
 yCTS = yLinear.^param.epsilon;
-
 
 %% Implement the delayed, divisive normalization stage.
 % (Instantaneous) divisive normalization is described by:
@@ -125,20 +134,21 @@ yCTS = yLinear.^param.epsilon;
 
 % Create the exponential low-pass function that defines the time-domain
 % properties of the normalization
-
 decayingExponential=(exp(-1*param.tau2*t));
 
 % scale to have unit sum to preserve amplitude after convolution
 decayingExponential=decayingExponential/sum(decayingExponential);
 
-% convolved the neural response by the decaying exponential
+% convolve the neural response by the decaying exponential
 yCTSDecayed=conv(yCTS,decayingExponential);
-yCTSDecayed=yCTSDecayed(1:modelLength); % Need to explore why I have to truncate
-% what is returned by the conv function
+
+% Truncate the convolved vector to the input length. Not sure why I have to
+% do this. Probably mis-using the conv function.
+yCTSDecayed=yCTSDecayed(1:modelLength);
 
 % Assemble the delayed, divisive normalization response
 yDN = (yCTS.^param.n) ./ ... % the numerator
-    ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
+      ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
 
 
 %% Convolve the neural model by the BOLD HRF
@@ -147,16 +157,17 @@ yDN = (yCTS.^param.n) ./ ... % the numerator
 BOLDHRF = gampdf(t, param.gamma1, 1) - ...
     gampdf(t, param.gamma2, 1)/param.gammaScale;
 
-BOLDHRF = BOLDHRF/sum(BOLDHRF);  % scale to unit sum to preserve
-% amplitude of y following convolution
+% scale to unit sum to preserve amplitude of y following convolution
+BOLDHRF = BOLDHRF/sum(BOLDHRF);
 
 % Perform the convolution
 yBOLD = conv(yDN,BOLDHRF);
-yBOLD = yBOLD(1:modelLength); % NEED TO DETERMINE WHY THIS IS NECESSARY
 
+% Truncate the convolved vector to the input length. Not sure why I have to
+% do this. Probably mis-using the conv function.
+yBOLD = yBOLD(1:modelLength);
 
 %% Plot the model
-
 if displayFitPlot
     figure;
     subplot(1,2,1);
@@ -182,3 +193,10 @@ if displayFitPlot
     legend boxoff
     hold off;
 end
+
+%% Return yBOLD
+% For some fitting applications, it is useful to scale yBOLD to have unit
+% amplitude
+
+yBOLD=yBOLD/max(yBOLD);
+

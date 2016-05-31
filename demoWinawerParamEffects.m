@@ -1,10 +1,12 @@
 %% Demo the effects of parameter choices in Winawer model
 %
+%
+%  05-31-2016 -- gka wrote it
 
 % parameters of the stimulus simulation
 modelDuration=40; % total duration of the modeled period, in seconds
 modelResolution=1; % temporal sampling frequency of model, in Hz
-stimulusDuration=24; % duration of the modeled step of neural activity, in seconds
+stimulusDuration=12; % duration of the modeled step of neural activity, in seconds
 
 % Create a stimulus model, which is a simple step function of input
 t = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain of the model
@@ -14,9 +16,9 @@ yStimulus(2:(stimulusDuration*modelResolution)+1) = 1; % implement the step func
 % parameters of the neural filters
 param.tau1 = 0.005;   % time constant of the neural IRF (in seconds)
 param.epsilon = 0.35; % compressive non-linearity parameter
-param.tau2 = 0.1;     % time constant of the low-pass (exponential decay) component of delayed normalization
+param.tau2 = .01;     % time constant of the low-pass (exponential decay) component of delayed normalization
 param.sigma = 0.13;   % constant scaling factor of the divisive normalization
-param.n = .5;          % the order of the delayed normalization
+param.n = 2;          % the order of the delayed normalization
 
 % parameters of the double-gamma hemodynamic filter (HRF)
 param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
@@ -36,6 +38,7 @@ for i=0.1:.1:.5
     yBOLD=fitWinawerModelToBOLD(t,yStimulus,false,param);
     plot(yBOLD);
 end
+plot(yStimulus);
 title('Vary sigma, 0.1:0.1:0.5');
 hold off;
 param.sigma=holdParam;
@@ -44,12 +47,13 @@ param.sigma=holdParam;
 holdParam=param.n;
 subplot(1,3,2);
 hold on;
-for i=0.5:.1:1
+for i=.5:.5:3
     param.n=i;
     yBOLD=fitWinawerModelToBOLD(t,yStimulus,false,param);
     plot(yBOLD);
 end
-title('Vary n, 0.5:0.1:1');
+plot(yStimulus);
+title('Vary n, 0.5:0.5:3');
 hold off;
 param.n=holdParam;
 
@@ -62,6 +66,7 @@ for i=-2:1:0
     yBOLD=fitWinawerModelToBOLD(t,yStimulus,false,param);
     plot(yBOLD);
 end
+plot(yStimulus);
 title('Vary tau2, 0.01, 0.1, 1');
 hold off;
 param.tau2=holdParam;

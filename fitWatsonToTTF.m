@@ -1,16 +1,52 @@
 function [watsonFitToData, fitParams] = fitWatsonToTTF(frequenciesHz, data, displayFitPlotIn, initialParamsIn)
 
-% Here is an example set of frequencies and data to test out the routine:
+%% fitWatsonToTTF
 %
-%  frequenciesHz = [2,4,8,16,32,64];
-%  data = [0.4, 0.75, 0.80, 0.37, 0, 0.1]
-%  [watsonFitToData, pfit] = fitWatsonToTTF(frequenciesHz, data, true)
+% This function fits Andrew Watson's two-component linear filter temporal
+% sensitivity model to the amplitude components of temporal transfer
+% function data. Details of the model are in the functions below.
+%
+% Input properties:
+%
+%   frequenciesHz - a vector of frequencies for which the TTF was measured.
+%                   Typically, these are log spaced.
+%   data - a vector of amplitudes
+%   displayFitPlotIn - Boolean flag indicating if you want a plot
+%   initialParamsIn - a vector of parameter values, corresponding to:
+%      tau              -- time constant of the center filter (in seconds)
+%      kappa            -- multiplier of the time-constant for the surround
+%      centerAmplitude  -- amplitude of the center filter
+%      zeta             -- multiplier that scales the amplitude of the surround filter
+%
+% 05-30-2016    -  gka wrote it
 %
 
-% Assume that we do not want to plot the fit unless we receive a
-% corresponding flag
-
+% Assume that we do not want to plot the fit unless we hear otherwise
 displayFitPlot = false;
+
+% The user passed nothing, so just demo the code
+if nargin==0
+    fprintf('A demonstration of the model for an example TTF\n\n');
+
+    frequenciesHz = [2,4,8,16,32,64];
+    data = [0.4, 0.75, 0.80, 0.37, 0.1, 0.0];
+
+    displayFitPlot=true;
+end
+
+% The user just passed just frequencies or data; return an error
+if nargin==1
+    msg = 'Please provide both a vector of frequencies and amplitudes.';
+    error(msg)
+end
+
+% Sanity check the input and derive the modelLength
+if length(frequenciesHz)~=length(data)
+    msg = 'The vectors of frequencies and data are of different lengths.';
+    error(msg)
+end
+
+% Check the setting of the displayFitPlot flag
 if nargin==3
     displayFitPlot=displayFitPlotIn;
 end
