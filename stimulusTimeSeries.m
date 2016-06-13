@@ -1,22 +1,36 @@
 %%
 
 % PLOTS TIME SERIES AND STIMULUS TOGETHER AS FUNCTIONS. SPECIFY THE SUBJECT 
-% AND DATE BELOW. THE dirPath AND dirPathTimeSeries VARIABLES WILL ALSO NEED
+% AND DATE BELOW. THE dirPathStim AND dirPathTimeSeries VARIABLES WILL ALSO NEED
 % TO BE CHANGED TO RUN THIS ON CLUSTER. MAKES PLOTS ONE BY ONE--PRESS ANY 
 % KEY TO CYCLE THROUGH THEM
-%% SPECIFY SUBJECT AND SESSION
-subj_name = 'HERO_asb1';
+%% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
+
+subj_name = 'HERO_gka1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
 
-session = '041416';
+session = '041516';
 %     '041416' ...
 %     '041516' ...
+
+% PATH TO LOCAL DROPBOX
+localDropboxDir = '/Users/benchin/Dropbox-Aguirre-Brainard-Lab/';
+
 %%
+
+% DEFINE PATH TO FOLDER FOR ONE SUBJECT ON ONE DATE
+dirPathStim = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_data/' ...
+           subj_name '/' session '/' 'Stimuli/'];
+
+% DEFINE PATH TO TIME SERIES DATA
+dirPathTimeSeries = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_data/' ...
+                      subj_name '/' 'TimeSeries/'];
+
 % ORDER IN WHICH TIME SERIES DATA WAS COLLECTED, FOR FIGURING OUT WHICH
 % TIME SERIES' TO PLOT WITH WHICH STIMULUS
-tsFolderNamesASB1_DAY1 = { ...
+tsFileNamesASB1_DAY1 = { ...
     'bold_1.6_P2_mb5_LightFlux_A_run1' ...
     'bold_1.6_P2_mb5_L_minus_M_A_run1' ...
     'bold_1.6_P2_mb5_S_A_run1' ...
@@ -29,7 +43,7 @@ tsFolderNamesASB1_DAY1 = { ...
     'bold_1.6_P2_mb5_LightFlux_B_run2'
 };
 
-tsFolderNamesASB1_DAY2 = { ...    
+tsFileNamesASB1_DAY2 = { ...    
     'bold_1.6_P2_mb5_LightFlux_A_run3' ...
     'bold_1.6_P2_mb5_L_minus_M_A_run3' ...
     'bold_1.6_P2_mb5_S_A_run3' ...
@@ -58,7 +72,7 @@ tsFolderNamesASB1_DAY2 = { ...
     'bold_1.6_P2_mb5_S_A_run2' ...
 };
 
-tsFolderNamesGKA1_DAY1 = { ...
+tsFileNamesGKA1_DAY1 = { ...
     'bold_1.6_P2_mb5_LightFlux_A_run1' ...
     'bold_1.6_P2_mb5_L_minus_M_A_run1' ...
     'bold_1.6_P2_mb5_S_A_run1' ...
@@ -82,7 +96,7 @@ tsFolderNamesGKA1_DAY1 = { ...
     'bold_1.6_P2_mb5_S_A_run4' ...
 };
 
-tsFolderNamesGKA1_DAY2 = { ...
+tsFileNamesGKA1_DAY2 = { ...
     'bold_1.6_P2_mb5_S_B_run4' ...
     'bold_1.6_P2_mb5_L_minus_M_B_run4' ...
     'bold_1.6_P2_mb5_LightFlux_B_run4' ...
@@ -97,46 +111,19 @@ tsFolderNamesGKA1_DAY2 = { ...
     'bold_1.6_P2_mb5_S_A_run6' ...
     'bold_1.6_P2_mb5_S_B_run6' ...
     'bold_1.6_P2_mb5_L_minus_M_B_run6' ...
-    'bold_1.6_P2_mb5_LightFlux_B_run6 ' ...
+    'bold_1.6_P2_mb5_LightFlux_B_run6' ...
 };
-
-% DEFINE PATH TO FOLDER FOR ONE SUBJECT ON ONE DATE
-dirPath = ['/Users/benchin/Desktop/MELA_data/' subj_name '/' session '/' 'Stimuli/'];
-
-% LOAD ALL CONTENTS OF DIRECTORY
-files1 = dir(dirPath);
-
-% NUMBER OF STIMULUS FOLDERS
-numberOfFolders = length(files1);
-
-% INITIALIZE CELL CONTAINING ALL STIMULUS FOLDER NAMES
-folderNameCell = {};
-
-% DURATION OF STIMULUS (ALWAYS THE SAME)
-stimTime = 12;
-
-% LOOP OVER NUMBER OF STIMULUS FOLDERS, AND CREATE CELL WITH ALL THEIR
-% NAMES
-for i = 1:numberOfFolders
-   miniFolderName = files1(i).name;
-   if length(miniFolderName)>4 & strcmp(miniFolderName(1:4),'HERO');
-       folderNameCell{length(folderNameCell)+1} = miniFolderName;
-   end
-end
-
-% DEFINE PATH TO TIME SERIES DATA
-dirPathTimeSeries = ['/Users/benchin/Desktop/MELA_data/' subj_name '/' 'TimeSeries/'];
 
 % SUBJECT AND DATE DETERMINE WHICH TIME SERIES FILES WE LOAD, AND THE ORDER
 % THEY ARE PLOTTED IN
 if strcmp(subj_name,'HERO_asb1') & strcmp(session,'041416')
-    currentTimeSeriesFolder = tsFolderNamesASB1_DAY1;
+    currentTimeSeriesFolder = tsFileNamesASB1_DAY1;
 elseif strcmp(subj_name,'HERO_asb1') & strcmp(session,'041516')
-    currentTimeSeriesFolder = tsFolderNamesASB1_DAY2;
+    currentTimeSeriesFolder = tsFileNamesASB1_DAY2;
 elseif strcmp(subj_name,'HERO_gka1') & strcmp(session,'041416')
-    currentTimeSeriesFolder = tsFolderNamesGKA1_DAY1;
+    currentTimeSeriesFolder = tsFileNamesGKA1_DAY1;
 elseif strcmp(subj_name,'HERO_gka1') & strcmp(session,'041516')
-    currentTimeSeriesFolder = tsFolderNamesGKA1_DAY2;
+    currentTimeSeriesFolder = tsFileNamesGKA1_DAY2;
 else
     error('stimulusTimeSeries ERROR: INPUT SUBJECT / DATE DOES NOT EXIST');
 end
@@ -176,14 +163,31 @@ for i = 1:length(currentTimeSeriesFolder)
     RHtsMat(i,:) = RHts;
 end
 
-% INITIALIZE ARRAYS FOR STORING STIMULUS PLOT DATA
-timeValuesAllPlots = [];
-stimValuesAllPlots = [];
+% LOAD ALL CONTENTS OF STIMULUS DIRECTORY
+files1 = dir(dirPathStim);
+
+% NUMBER OF STIMULUS FOLDERS
+numberOfFolders = length(files1);
+
+% INITIALIZE CELL CONTAINING ALL STIMULUS FOLDER NAMES
+folderNameCell = {};
+
+% DURATION OF STIMULUS (ALWAYS THE SAME)
+stimTime = 12;
+
+% LOOP OVER NUMBER OF STIMULUS FOLDERS, AND CREATE CELL WITH ALL THEIR
+% NAMES
+for i = 1:numberOfFolders
+   miniFolderName = files1(i).name;
+   if length(miniFolderName)>4 & strcmp(miniFolderName(1:4),'HERO');
+       folderNameCell{length(folderNameCell)+1} = miniFolderName;
+   end
+end
 
 % LOOP OVER STIMULUS FOLDER NAMES
 for i = 1:length(folderNameCell)
    % LOOK IN EACH RUN'S FOLDER 
-   currentDirPath = [dirPath char(folderNameCell(i))]; 
+   currentDirPath = [dirPathStim char(folderNameCell(i))]; 
    % GET ALL THEIR CONTENTS
    runFiles = dir(currentDirPath);
    
@@ -246,23 +250,23 @@ for i = 1:length(folderNameCell)
        end
        
    end
-%    timeValuesAllPlots(i,:) = timeValuesMat;
-%    stimValuesAllPlots(i,:) = stimValuesMat;
-%   display(num2str(length(timeValuesMat)));
-%    display(num2str(length(stimValuesMat)));
+
    figure;
    set(gcf,'Position',[439 222 1029 876]);
    subplot(3,1,3);
    plot(timeValuesMat,stimValuesMat); hold on
    plot(attnTimeValues,attnStimValues);
+   xlabel('Time(s)'); ylabel('Stimulus frequency (Hz)');
+   title('Stimulus');
+   set(gca,'FontSize',15);
    subplot(3,1,2);
    plot(LHtsMat(i,:));
+   title('Left hemisphere BOLD response');
+   set(gca,'FontSize',15);
    subplot(3,1,1);
    plot(RHtsMat(i,:));
+   title('Right hemisphere BOLD response');
+   set(gca,'FontSize',15);
    pause;
    close;
 end
-
-[sortedTimeValues, indSortedTimeValues] = sort(timeValuesMat);
-
-sortedStimValues = stimValuesMat(indSortedTimeValues);
