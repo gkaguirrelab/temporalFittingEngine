@@ -4,6 +4,18 @@
 % AND DATE BELOW. THE dirPathStim AND dirPathTimeSeries VARIABLES WILL ALSO NEED
 % TO BE CHANGED TO RUN THIS ON CLUSTER. MAKES PLOTS ONE BY ONE--PRESS ANY 
 % KEY TO CYCLE THROUGH THEM
+
+
+%% Identify the user
+ if isunix
+    [~, user_name] = system('whoami') % exists on every unix that I know of
+    % on my mac, isunix == 1
+elseif ispc
+    [~, user_name] = system('echo %USERDOMAIN%\%USERNAME%') % Not as familiar with windows,
+                            % found it on the net elsewhere, you might want to verify
+ end
+
+
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
 subj_name = 'HERO_gka1';
@@ -16,8 +28,9 @@ session = '041516';
 %     '041516' ...
 
 % PATH TO LOCAL DROPBOX
-localDropboxDir = '/Users/benchin/Dropbox-Aguirre-Brainard-Lab/';
+localDropboxDir = ['/Users/',strtrim(user_name),'/Dropbox-Aguirre-Brainard-Lab/'];
 
+        
 %%
 
 % DEFINE PATH TO FOLDER FOR ONE SUBJECT ON ONE DATE
