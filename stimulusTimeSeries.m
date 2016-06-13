@@ -8,10 +8,10 @@
 
 %% Identify the user
  if isunix
-    [~, user_name] = system('whoami') % exists on every unix that I know of
+    [~, user_name] = system('whoami'); % exists on every unix that I know of
     % on my mac, isunix == 1
 elseif ispc
-    [~, user_name] = system('echo %USERDOMAIN%\%USERNAME%') % Not as familiar with windows,
+    [~, user_name] = system('echo %USERDOMAIN%\%USERNAME%'); % Not as familiar with windows,
                             % found it on the net elsewhere, you might want to verify
  end
 
