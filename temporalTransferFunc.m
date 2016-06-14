@@ -253,7 +253,7 @@ for i = 1:length(folderNameCell)
            for k = 1:size(attnFile,1)
                 curTimeValue = attnFile(k,1);
                 attnTimeValues = [attnTimeValues [curTimeValue curTimeValue+1e-10 curTimeValue+1e-8]]; 
-                attnStimValues = [attnStimValues [0 96 0]];
+                attnStimValues = [attnStimValues [-1 96 -1]];
            end
        end
        
@@ -268,6 +268,12 @@ for i = 1:length(folderNameCell)
    timeValuesMatFinal = [];
    stimValuesMatFinal = [];
    
+   % MAKE SURE PLOT STARTS AT 0--SO CONVOLUTION WON'T RETURN NANS
+   if abs(startTimesMatSorted(1)) > 0.001;
+      stimValuesMatSorted = [0 stimValuesMatSorted];
+      startTimesMatSorted = [0 startTimesMatSorted];
+   end
+   
    % LOOP OVER ALL THE START TIMES
    for j = 1:length(startTimesMatSorted)
        % GRAB EACH INDIVIDUAL START TIME
@@ -276,17 +282,11 @@ for i = 1:length(folderNameCell)
        % MAKE 'BOX'--ADD TINY OFFSET TO MAKE SURE INTERPOLATION WORKS
        % PROPERLY
        timeValues = [curTimeValueFinal curTimeValueFinal+1e-7 ...
-                    curTimeValueFinal+stimTime-1e-3 curTimeValueFinal-1e-7]; 
-       stimValues = [0 curStimValueFinal curStimValueFinal 0];
+                    curTimeValueFinal+stimTime-1e-3 curTimeValueFinal+stimTime-1e-7]; 
+       stimValues = [-1 curStimValueFinal curStimValueFinal -1];
        % STICK IN MATRICES DEFINED BEFORE THE LOOP
        timeValuesMatFinal = [timeValuesMatFinal timeValues];
        stimValuesMatFinal = [stimValuesMatFinal stimValues];
-   end
-   
-   % MAKE SURE PLOT STARTS AT 0--SO CONVOLUTION WON'T RETURN NANS
-   if timeValuesMatFinal(1) ~= 0
-      stimValuesMatFinal = [0 stimValuesMatFinal];
-      timeValuesMatFinal = [0 timeValuesMatFinal];
    end
    
    % ALL POSSIBLE STIMULI (SANS ATTENTION TASK)
