@@ -26,7 +26,7 @@ subj_name = 'HERO_asb1';
 %     'HERO_gka1'
 
 
-session = '041416';
+session = '041516';
 %     '041416' ...
 %     '041516' ...
 
@@ -364,10 +364,16 @@ for i = 1:length(folderNameCell)
    % OBTAIN BETA WEIGHTS AND PLOT
    betaWeights = regMatrix\LHtsUpsampled'; 
    
+   startingPointOfConeName = 17;
+   currentFullFolderNameCell = currentTimeSeriesFolder(i);
+   currentFullFolderName = char(currentFullFolderNameCell);
+   currentFullFolderName(currentFullFolderName == '_') = ' ';
+   coneName = currentFullFolderName(startingPointOfConeName:length(currentFullFolderName));
+   
    figure;
    plot(stimHz,betaWeights(1:length(betaWeights)-1),'-o'); 
    xlabel('Frequency');
-   title('Beta weights');
+   title(['Beta weights for ' coneName]);
    pause;
    close;
 
