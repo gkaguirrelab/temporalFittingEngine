@@ -1,7 +1,7 @@
 %%
 
-% CREATES TEMPORAL TRANSFER FUNCTIONS. CODE STILL HAS SOME NUMERIC ISSUES.
-% ATTENTION TASK NOT YET ACCOUNTED FOR. 
+% CREATES TEMPORAL TRANSFER FUNCTIONS. CODE MIGHT HAVE SOME NUMERIC ISSUES,
+% BUT I THINK I TOOK CARE OF THEM. ATTENTION TASK NOT YET ACCOUNTED FOR. 
 
 % SPECIFY THE SUBJECT AND DATE BELOW. 
 
@@ -137,6 +137,8 @@ tsFileNamesGKA1_DAY2 = { ...
     'bold_1.6_P2_mb5_LightFlux_B_run6' ...
 };
 
+%% GET TIME SERIES DATA
+
 % SUBJECT AND DATE DETERMINE WHICH TIME SERIES FILES WE LOAD, AND THE ORDER
 % THEY ARE PLOTTED IN
 if strcmp(subj_name,'HERO_asb1') & strcmp(session,'041416')
@@ -185,6 +187,8 @@ for i = 1:length(currentTimeSeriesFolder)
     LHtsMat(i,:) = LHts;
     RHtsMat(i,:) = RHts;
 end
+
+%% LOAD AND PLOT STIMULUS STEP FUNCTIONS
 
 % LOAD ALL CONTENTS OF STIMULUS DIRECTORY
 files1 = dir(dirPathStim);
@@ -302,7 +306,7 @@ for i = 1:length(folderNameCell)
    end
    
    % ALL POSSIBLE STIMULI (SANS ATTENTION TASK)
-   stimHz = [0 2 4 8 16 32 64];
+   stimHz = [2 4 8 16 32 64];
    
    % INITIALIZE MATRIX OF COVARIATES
    regMatrix = [];
@@ -327,41 +331,44 @@ for i = 1:length(folderNameCell)
       stimPositions = stimValuesMatFinal == stimHz(j); 
       stimPositions = double(stimPositions);
       % SAMPLE AT POINTS t
-      stimulusCovariate = interp1(timeValuesMatFinal,stimPositions,t,'linear','extrap');
-      stimulusCovariate(stimulusCovariate>0.00001) = 1;
+      stimulusUpsampled = interp1(timeValuesMatFinal,stimPositions,t,'linear','extrap');
+      stimulusUpsampled(stimulusUpsampled>0.00001) = 1;
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
-      regressorPreCut = conv(stimulusCovariate,BOLDHRF);
+      regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
       display(num2str(length(regressorPreCut)));
       % CUT OFF THE EXTRA CONV VALUES--NEED TO LOOK MORE INTO THIS. CONV IS
       % WEIRD IN MATLAB
-      regressor = regressorPreCut(1:length(stimulusCovariate));
+      regressor = regressorPreCut(1:length(stimulusUpsampled));
       % STORE THE REGRESSOR
       regMatrix(:,j) = regressor'; 
       % STORE THE COVARIATES
- %      SCmat(:,j) = stimulusCovariate';
+ %      SCmat(:,j) = stimulusUpsampled';
        figure;
-       set(gcf,'Position',[389 642 1231 420])
-       subplot(1,2,1)
  %      plot(timeValuesMatFinal,stimPositions); % hold on
-       plot(t,stimulusCovariate); hold on 
-       xlabel('time/s'); title('Stimulus step function');
-       subplot(1,2,2)
-       plot(t,regressor); title('Convolved covariate');
+       plot(t,stimulusUpsampled); hold on 
+       xlabel('time/s');
+       plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
        xlabel('time/s');
        pause;
        close;
    end
    
+   % ADD A COVARIATE OF ONES TO THE END
+   regMatrix(:,size(regMatrix,2)+1) = 1;
+   
+   % GET THE STEP FUNCTION FOR THE ATTENTION TASK
    attnPositions = attnStimValues == attnCode;
    attnPositions = double(attnPositions);
+   % SAMPLE IT EVENLY
    attmCovariate = interp1(attnTimeValues,attnStimValues,t);
    
+   % UPSAMPLE THE LEFT HEMISPHERE DATA
    LHtsUpsampled = interp1(1:length(LHtsMat(i,:)),LHtsMat(i,:),t,'linear','extrap');
    % OBTAIN BETA WEIGHTS AND PLOT
    betaWeights = regMatrix\LHtsUpsampled'; 
    
    figure;
-   plot(stimHz,betaWeights,'-o'); 
+   plot(stimHz,betaWeights(1:length(betaWeights)-1),'-o'); 
    xlabel('Frequency');
    title('Beta weights');
    pause;
