@@ -323,7 +323,7 @@ for i = 1:length(folderNameCell)
     
    % LOOP OVER POSSIBLE STIMULUS VALUES 
    for j = 1:length(stimHz)
-      % GET ALL INSIXWA WITH A GIVEN STIMULUS VALUE
+      % GET ALL POSITIONS WITH A GIVEN STIMULUS VALUE
       stimPositions = stimValuesMatFinal == stimHz(j); 
       stimPositions = double(stimPositions);
       % SAMPLE AT POINTS t
@@ -343,10 +343,11 @@ for i = 1:length(folderNameCell)
        set(gcf,'Position',[389 642 1231 420])
        subplot(1,2,1)
  %      plot(timeValuesMatFinal,stimPositions); % hold on
-       plot(t,stimulusCovariate); hold on
-       
+       plot(t,stimulusCovariate); hold on 
+       xlabel('time/s'); title('Stimulus step function');
        subplot(1,2,2)
-       plot(t,regressor);
+       plot(t,regressor); title('Convolved covariate');
+       xlabel('time/s');
        pause;
        close;
    end
@@ -357,10 +358,12 @@ for i = 1:length(folderNameCell)
    
    LHtsUpsampled = interp1(1:length(LHtsMat(i,:)),LHtsMat(i,:),t,'linear','extrap');
    % OBTAIN BETA WEIGHTS AND PLOT
-   betaWeights = regMatrix\LHtsUpsampled';
+   betaWeights = regMatrix\LHtsUpsampled'; 
    
    figure;
-   plot(stimHz,betaWeights);
+   plot(stimHz,betaWeights,'-o'); 
+   xlabel('Frequency');
+   title('Beta weights');
    pause;
    close;
 
