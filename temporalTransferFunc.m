@@ -314,8 +314,6 @@ for i = 1:length(folderNameCell)
    % MAKE HRF (TAKEN FROM GEOFF'S WINAWER MODEL CODE)
    % TOTAL DURATION IS SIMPLY LARGEST TIME VALUE
    modelDuration=max(timeValuesMatFinal);
-   % I HAVE INFERRED THAT THE TEMPORAL RESOLUTION IS 1 FROM THE TIME SERIES, 
-   % BUT IS IT ACTUALLY 0.8?
    modelResolution=10; 
    % TIME SAMPLES TO INTERPOLATE
    t = linspace(1,modelDuration,modelDuration.*modelResolution);
@@ -335,7 +333,6 @@ for i = 1:length(folderNameCell)
       stimulusUpsampled(stimulusUpsampled>0.00001) = 1;
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
       regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
-      display(num2str(length(regressorPreCut)));
       % CUT OFF THE EXTRA CONV VALUES--NEED TO LOOK MORE INTO THIS. CONV IS
       % WEIRD IN MATLAB
       regressor = regressorPreCut(1:length(stimulusUpsampled));
