@@ -214,6 +214,7 @@ for i = 1:length(currentTimeSeriesFolder)
     % STORE FOR PLOTTING LATER
     LHtsMat(i,:) = LHts;
     RHtsMat(i,:) = RHts;
+    % MEAN OF LEFT AND RIGHT HEMISPHERE
     AVGts(i,:) = (LHts+RHts)./2;
 end
 
@@ -362,6 +363,7 @@ for i = 1:length(folderNameCell)
       stimPositions = double(stimPositions);
       % SAMPLE AT POINTS t
       stimulusUpsampled = interp1(timeValuesMatFinal,stimPositions,t,'linear','extrap');
+      % INTERPOLATION HAS SOME NUMERIC ERROR--THIS CORRECTS OF THE ERROR
       stimulusUpsampled(stimulusUpsampled>0.00001) = 1;
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
       regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
@@ -392,7 +394,7 @@ for i = 1:length(folderNameCell)
    % SAMPLE IT EVENLY
    attmCovariate = interp1(attnTimeValues,attnStimValues,t);
    
-   % UPSAMPLE THE LEFT HEMISPHERE DATA
+   % UPSAMPLE THE TIME SERIES DATA
    AVGtsUpsampled = interp1(1:length(AVGts(i,:)),AVGts(i,:),t,'linear','extrap');
    % OBTAIN BETA WEIGHTS AND PLOT
    betaWeights = regMatrix\AVGtsUpsampled'; 
