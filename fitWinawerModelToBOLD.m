@@ -35,17 +35,22 @@ function [yBOLD] = fitWinawerModelToBOLD(t, yStimulus, displayFitPlotIn, paramIn
 % The user passed nothing, so just demo the code
 if nargin==0
     % let the user know we are in demo mode
-    fprintf('A demonstration of the model for a 12 second stimulus step\n\n');
+    fprintf('A demonstration of the model for a 12 second stimulus step (cosine ramped)\n\n');
         
     % parameters of the stimulus simulation
     modelDuration=40; % total duration of the modeled period, in seconds
     modelResolution=1; % temporal sampling frequency of model, in Hz
     stimulusDuration=12; % duration of the modeled step of neural activity, in seconds
+    rampDuration=3; % duration of the half-cosine ramp on and off
     
-    % Create a stimulus model, which is a simple step function of input
+    % Create a stimulus model, which is a simple step function of input,
+    % with a half cosine ramp on and off, 
     t = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain of the model
     yStimulus = t*0; % the stimulus vector
-    yStimulus(2:(stimulusDuration*modelResolution)+1) = 1; % implement the step function of input
+    yStimulus(1:(stimulusDuration*modelResolution)) = 1; % implement the step function of input
+    halfCosine=(cos(linspace(0,pi,rampDuration*modelResolution))+1)/2;
+    yStimulus(1:(rampDuration*modelResolution))=fliplr(halfCosine);
+    yStimulus(1+(stimulusDuration*modelResolution)-(rampDuration*modelResolution):(stimulusDuration*modelResolution))=halfCosine;
 end
 
 % The user just passed a stimulus or a time vector, return an error
