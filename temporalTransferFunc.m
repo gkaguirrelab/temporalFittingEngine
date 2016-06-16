@@ -1,4 +1,4 @@
-%%
+%% temporalTransferFunc
 
 % CREATES TEMPORAL TRANSFER FUNCTIONS. CODE MIGHT HAVE SOME NUMERIC ISSUES,
 % BUT I THINK I TOOK CARE OF THEM. ATTENTION TASK NOT YET ACCOUNTED FOR. 
@@ -7,8 +7,17 @@
 
 % MAKES PLOTS ONE BY ONE--PRESS ANY KEY TO CYCLE THROUGH THEM
 
-%%
-addpath('/Users/Shared/MRklar/');
+%% Variable name legend (will clean these up if there is time)
+
+% ts = time series
+% LH and RH = left and right hemisphere
+% stim = stimulus
+% AVG = average
+% Arr = array (superfluous--one of Ben's coding habit)
+% Mat = matrix
+% cur = current
+% position = index
+
 %% Identify the user
  if isunix
     [~, user_name] = system('whoami'); % exists on every unix that I know of
@@ -21,7 +30,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_gka1';
+subj_name = 'HERO_asb1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -41,7 +50,7 @@ param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds
 param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
 param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
         
-%%
+%% DEFINING PATHS, ORDER, ETC.
 
 % DEFINE PATH TO FOLDER FOR ONE SUBJECT ON ONE DATE
 dirPathStim = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_data/' ...
@@ -170,17 +179,19 @@ for i = 1:length(timeSeriesDir)
    end
 end
 
-% INITIALIZE MATRICES FOR STORING TIME SERIES 
+% INITIALIZE MATRICES FOR STORING TIME SERIES
 LHtsMat = [];
 RHtsMat = [];
 AVGts = [];
 
+% NOTE STIMULUS TYPE FOR FUTURE INDEXING
 stimTypeArr = [];
 
 % LOOK AT EACH FILE IN THE TIME SERIES FOLDER
 for i = 1:length(currentTimeSeriesFolder)
     % CURRENT TIME SERIES FILE
     currentTSfileName = char(currentTimeSeriesFolder(i));
+    % TAKE NOTE OF CONE STIMULUS TYPE
     if strfind(currentTSfileName,'LightFlux')
         stimTypeArr(length(stimTypeArr)+1) = 1;
     elseif strfind(currentTSfileName,'L_minus_M')
@@ -231,6 +242,7 @@ for i = 1:numberOfFolders
    end
 end
 
+% INITIALIZE MATRIX FOR STORING BETA VALUES
 betaMatrix = [];
 
 % LOOP OVER STIMULUS FOLDER NAMES
@@ -328,7 +340,7 @@ for i = 1:length(folderNameCell)
    % ALL POSSIBLE STIMULI (SANS ATTENTION TASK)
    stimHz = [2 4 8 16 32 64];
    
-   % INITIALIZE MATRIX OF COVARIATES
+   % INITIALIZE MATRIX OF REGRESSORS
    regMatrix = [];
    
    % MAKE HRF (TAKEN FROM GEOFF'S WINAWER MODEL CODE)
@@ -414,6 +426,7 @@ for i = 1:length(folderNameCell)
 %    close;
 end
 
+% CONVERT MEAN-SUBTRACTED BETA VALUES TO PERCENTAGES
 LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
 L_minus_M_Beta = mean(betaMatrix(stimTypeArr == 2,:)).*100;
 S_Beta = mean(betaMatrix(stimTypeArr == 3,:)).*100;
