@@ -21,12 +21,12 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_asb1';
+subj_name = 'HERO_gka1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
 
-session = '041516';
+session = 'all';
 %     '041416' ...
 %     '041516' ...
 
@@ -145,10 +145,14 @@ if strcmp(subj_name,'HERO_asb1') & strcmp(session,'041416')
     currentTimeSeriesFolder = tsFileNamesASB1_DAY1;
 elseif strcmp(subj_name,'HERO_asb1') & strcmp(session,'041516')
     currentTimeSeriesFolder = tsFileNamesASB1_DAY2;
+elseif strcmp(subj_name,'HERO_asb1') & strcmp(session,'all')
+    currentTimeSeriesFolder = {tsFileNamesASB1_DAY1{:},tsFileNamesASB1_DAY2{:}};
 elseif strcmp(subj_name,'HERO_gka1') & strcmp(session,'041416')
     currentTimeSeriesFolder = tsFileNamesGKA1_DAY1;
 elseif strcmp(subj_name,'HERO_gka1') & strcmp(session,'041516')
     currentTimeSeriesFolder = tsFileNamesGKA1_DAY2;
+elseif strcmp(subj_name,'HERO_gka1') & strcmp(session,'all')
+    currentTimeSeriesFolder = {tsFileNamesGKA1_DAY1{:},tsFileNamesGKA1_DAY2{:}};
 else
     error('stimulusTimeSeries ERROR: INPUT SUBJECT / DATE DOES NOT EXIST');
 end
@@ -169,15 +173,28 @@ end
 % INITIALIZE MATRICES FOR STORING TIME SERIES 
 LHtsMat = [];
 RHtsMat = [];
+AVGts = [];
+
+stimTypeArr = [];
 
 % LOOK AT EACH FILE IN THE TIME SERIES FOLDER
 for i = 1:length(currentTimeSeriesFolder)
     % CURRENT TIME SERIES FILE
     currentTSfileName = char(currentTimeSeriesFolder(i));
+    if strfind(currentTSfileName,'LightFlux')
+        stimTypeArr(length(stimTypeArr)+1) = 1;
+    elseif strfind(currentTSfileName,'L_minus_M')
+        stimTypeArr(length(stimTypeArr)+1) = 2;
+    elseif strfind(currentTSfileName,'_S_')
+        stimTypeArr(length(stimTypeArr)+1) = 3;
+    else
+       stimType = []; 
+    end
     % FIND ALL FILES CONTAINING THE FILE NAME WE WANT, AS DETERMINED BY THE
     % README FILE--GET THEIR LOCATIONS IN THE FOLDER
     tsFilesLHRH = strfind(timeSeriesDirNames,currentTSfileName);
     locationsInTSfolder = find(~cellfun(@isempty,tsFilesLHRH));
+%    display(num2str(length(locationsInTSfolder)));
     % LOAD THE LEFT HEMISPHERE DATA, THEN THE RIGHT HEMISPHERE
     LHtsStruct = load([dirPathTimeSeries char(timeSeriesDirNames(locationsInTSfolder(1)))]);
     RHtsStruct = load([dirPathTimeSeries char(timeSeriesDirNames(locationsInTSfolder(2)))]);
@@ -186,6 +203,7 @@ for i = 1:length(currentTimeSeriesFolder)
     % STORE FOR PLOTTING LATER
     LHtsMat(i,:) = LHts;
     RHtsMat(i,:) = RHts;
+    AVGts(i,:) = (LHts+RHts)./2;
 end
 
 %% LOAD AND PLOT STIMULUS STEP FUNCTIONS
@@ -212,6 +230,8 @@ for i = 1:numberOfFolders
        folderNameCell{length(folderNameCell)+1} = miniFolderName;
    end
 end
+
+betaMatrix = [];
 
 % LOOP OVER STIMULUS FOLDER NAMES
 for i = 1:length(folderNameCell)
@@ -337,21 +357,22 @@ for i = 1:length(folderNameCell)
       % WEIRD IN MATLAB
       regressor = regressorPreCut(1:length(stimulusUpsampled));
       % STORE THE REGRESSOR
-      regMatrix(:,j) = regressor'; 
+      regMatrix(:,j) = regressor'-mean(regressor); 
       % STORE THE COVARIATES
  %      SCmat(:,j) = stimulusUpsampled';
-       figure;
+%       figure;
  %      plot(timeValuesMatFinal,stimPositions); % hold on
-       plot(t,stimulusUpsampled); hold on 
-       xlabel('time/s');
-       plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
-       xlabel('time/s');
-       pause;
-       close;
+%        plot(t,stimulusUpsampled); hold on 
+%        xlabel('time/s');
+%        plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
+%        xlabel('time/s');
+%        pause;
+%        close;
    end
    
    % ADD A COVARIATE OF ONES TO THE END
-   regMatrix(:,size(regMatrix,2)+1) = 1;
+%   regMatrix(:,size(regMatrix,2)+1) = 1;
+   regMatrix = [ones([size(regMatrix,1) 1]) regMatrix];
    
    % GET THE STEP FUNCTION FOR THE ATTENTION TASK
    attnPositions = attnStimValues == attnCode;
@@ -360,22 +381,18 @@ for i = 1:length(folderNameCell)
    attmCovariate = interp1(attnTimeValues,attnStimValues,t);
    
    % UPSAMPLE THE LEFT HEMISPHERE DATA
-   LHtsUpsampled = interp1(1:length(LHtsMat(i,:)),LHtsMat(i,:),t,'linear','extrap');
+   AVGtsUpsampled = interp1(1:length(AVGts(i,:)),AVGts(i,:),t,'linear','extrap');
    % OBTAIN BETA WEIGHTS AND PLOT
-   betaWeights = regMatrix\LHtsUpsampled'; 
+   betaWeights = regMatrix\AVGtsUpsampled'; 
    
-   startingPointOfConeName = 17;
-   currentFullFolderNameCell = currentTimeSeriesFolder(i);
-   currentFullFolderName = char(currentFullFolderNameCell);
-   currentFullFolderName(currentFullFolderName == '_') = ' ';
-   coneName = currentFullFolderName(startingPointOfConeName:length(currentFullFolderName));
+   betaMatrix(i,:) = betaWeights(2:length(betaWeights))./mean(AVGts(i,:));
    
-   figure;
-   plot(stimHz,betaWeights(1:length(betaWeights)-1),'-o'); 
-   xlabel('Frequency');
-   title(['Beta weights for ' coneName]);
-   pause;
-   close;
+%    figure;
+%    plot(stimHz,betaWeights(2:length(betaWeights)),'-o'); 
+%    xlabel('Frequency');
+%    title(['Beta weights for ' coneName]);
+%    pause;
+%    close;
 
 %    figure;
 %    set(gcf,'Position',[439 222 1029 876]);
@@ -396,3 +413,25 @@ for i = 1:length(folderNameCell)
 %    pause;
 %    close;
 end
+
+LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
+L_minus_M_Beta = mean(betaMatrix(stimTypeArr == 2,:)).*100;
+S_Beta = mean(betaMatrix(stimTypeArr == 3,:)).*100;
+
+yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])];
+
+figure;
+set(gcf,'Position',[441 557 1116 420])
+subplot(1,3,1)
+semilogx(stimHz,LightFluxBeta,'-ko','LineWidth',2,'MarkerSize',10); axis square;
+set(gca,'FontSize',15);
+set(gca,'Xtick',stimHz);
+xlabel('Stimulus frequency'); ylabel('% signal change');
+ylim(yLimits);
+title('Light flux');
+subplot(1,3,2)
+semilogx(stimHz,L_minus_M_Beta,'-ro','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
+title('L-M'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
+subplot(1,3,3)
+semilogx(stimHz,S_Beta,'-bo','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
+title('S'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
