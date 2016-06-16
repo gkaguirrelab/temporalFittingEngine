@@ -30,7 +30,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_asb1';
+subj_name = 'HERO_gka1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -186,6 +186,8 @@ AVGts = [];
 
 % NOTE STIMULUS TYPE FOR FUTURE INDEXING
 stimTypeArr = [];
+runOrder = '';
+timeSeriesMat = [];
 
 % LOOK AT EACH FILE IN THE TIME SERIES FOLDER
 for i = 1:length(currentTimeSeriesFolder)
@@ -200,6 +202,14 @@ for i = 1:length(currentTimeSeriesFolder)
         stimTypeArr(length(stimTypeArr)+1) = 3;
     else
        stimType = []; 
+    end
+    
+    if strfind(currentTSfileName,'_A_')
+        runOrder(length(runOrder)+1) = 'A';
+    elseif strfind(currentTSfileName,'_B_')
+        runOrder(length(runOrder)+1) = 'B';
+    else
+       runOrderJunk = []; 
     end
     % FIND ALL FILES CONTAINING THE FILE NAME WE WANT, AS DETERMINED BY THE
     % README FILE--GET THEIR LOCATIONS IN THE FOLDER
@@ -216,6 +226,7 @@ for i = 1:length(currentTimeSeriesFolder)
     RHtsMat(i,:) = RHts;
     % MEAN OF LEFT AND RIGHT HEMISPHERE
     AVGts(i,:) = (LHts+RHts)./2;
+    timeSeriesMat(size(timeSeriesMat,1)+1,:) = AVGts(i,:);
 end
 
 %% LOAD AND PLOT STIMULUS STEP FUNCTIONS
@@ -401,6 +412,8 @@ for i = 1:length(folderNameCell)
    
    betaMatrix(i,:) = betaWeights(2:length(betaWeights))./mean(AVGts(i,:));
    
+   reconstructedTS(i,:) = sum(repmat(betaWeights',[size(regMatrix,1) 1]).*regMatrix,2);
+   
 %    figure;
 %    plot(stimHz,betaWeights(2:length(betaWeights)),'-o'); 
 %    xlabel('Frequency');
@@ -428,25 +441,90 @@ for i = 1:length(folderNameCell)
 %    close;
 end
 
+numberOfRuns = 12;
+
 % CONVERT MEAN-SUBTRACTED BETA VALUES TO PERCENTAGES
 LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
 L_minus_M_Beta = mean(betaMatrix(stimTypeArr == 2,:)).*100;
 S_Beta = mean(betaMatrix(stimTypeArr == 3,:)).*100;
 
+LightFluxBetaSE = ((std(betaMatrix(stimTypeArr == 1,:)))./sqrt(numberOfRuns)).*100;
+L_minus_M_BetaSE = ((std(betaMatrix(stimTypeArr == 2,:)))./sqrt(numberOfRuns)).*100;
+S_BetaSE = ((std(betaMatrix(stimTypeArr == 3,:)))./sqrt(numberOfRuns)).*100;
+
+LightFluxAvgTS_A = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'A',:));
+L_minus_M_AvgTS_A = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'A',:));
+S_AvgTS_A = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'A',:));
+
+LightFluxAvgTS_B = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:));
+L_minus_M_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:));
+S_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:));
+
+LightFluxAvgTS_Model_A = mean(reconstructedTS(stimTypeArr == 1 & runOrder == 'A',:));
+L_minus_M_AvgTS_Model_A = mean(reconstructedTS(stimTypeArr == 2 & runOrder == 'A',:));
+S_AvgTS_Model_A = mean(reconstructedTS(stimTypeArr == 3 & runOrder == 'A',:));
+
+LightFluxAvgTS_Model_B = mean(reconstructedTS(stimTypeArr == 1 & runOrder == 'B',:));
+L_minus_M_AvgTS_Model_B = mean(reconstructedTS(stimTypeArr == 2 & runOrder == 'B',:));
+S_AvgTS_Model_B = mean(reconstructedTS(stimTypeArr == 3 & runOrder == 'B',:));
+
 yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])];
 
-figure;
-set(gcf,'Position',[441 557 1116 420])
-subplot(1,3,1)
-semilogx(stimHz,LightFluxBeta,'-ko','LineWidth',2,'MarkerSize',10); axis square;
+[wftd1, fp1] = fitWatsonToTTF(stimHz,LightFluxBeta,1); hold on
+errorbar(stimHz,LightFluxBeta,LightFluxBetaSE,'ko');
 set(gca,'FontSize',15);
 set(gca,'Xtick',stimHz);
-xlabel('Stimulus frequency'); ylabel('% signal change');
-ylim(yLimits);
 title('Light flux');
-subplot(1,3,2)
-semilogx(stimHz,L_minus_M_Beta,'-ro','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-title('L-M'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
-subplot(1,3,3)
-semilogx(stimHz,S_Beta,'-bo','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-title('S'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
+[wftd2, fp2] = fitWatsonToTTF(stimHz,L_minus_M_Beta,1);
+errorbar(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,'ko');
+set(gca,'FontSize',15);
+set(gca,'Xtick',stimHz);
+title('L - M');
+[wftd3, fp3] = fitWatsonToTTF(stimHz,S_Beta,1);
+errorbar(stimHz,S_Beta,S_BetaSE,'ko');
+set(gca,'FontSize',15);
+set(gca,'Xtick',stimHz);
+title('S');
+
+figure;
+set(gcf,'Position',[156 372 1522 641])
+subplot(3,2,1)
+plot(1:length(LightFluxAvgTS_A),LightFluxAvgTS_A); hold on
+plot(1:length(LightFluxAvgTS_A),interp1(t,LightFluxAvgTS_Model_A,1:length(LightFluxAvgTS_A)));
+title('Light flux A'); xlabel('Time / s');
+subplot(3,2,3)
+plot(1:length(L_minus_M_AvgTS_A),L_minus_M_AvgTS_A); hold on
+plot(1:length(L_minus_M_AvgTS_A),interp1(t,L_minus_M_AvgTS_Model_A,1:length(L_minus_M_AvgTS_A)));
+title('L - M A');
+subplot(3,2,5)
+plot(1:length(S_AvgTS_A),S_AvgTS_A); hold on
+plot(1:length(S_AvgTS_A),interp1(t,S_AvgTS_Model_A,1:length(S_AvgTS_A)));
+title('S A');
+subplot(3,2,2)
+plot(1:length(LightFluxAvgTS_B),LightFluxAvgTS_B); hold on
+plot(1:length(LightFluxAvgTS_B),interp1(t,LightFluxAvgTS_Model_B,1:length(LightFluxAvgTS_B)));
+title('Light flux B');
+subplot(3,2,4)
+plot(1:length(L_minus_M_AvgTS_B),L_minus_M_AvgTS_B); hold on
+plot(1:length(L_minus_M_AvgTS_B),interp1(t,L_minus_M_AvgTS_Model_B,1:length(L_minus_M_AvgTS_B)));
+title('L - M B');
+subplot(3,2,6)
+plot(1:length(S_AvgTS_B),S_AvgTS_B); hold on
+plot(1:length(S_AvgTS_B),interp1(t,S_AvgTS_Model_B,1:length(S_AvgTS_B)));
+title('S B');
+
+% figure;
+% set(gcf,'Position',[441 557 1116 420])
+% subplot(1,3,1)
+% semilogx(stimHz,LightFluxBeta,'-ko','LineWidth',2,'MarkerSize',10); axis square;
+% set(gca,'FontSize',15);
+% set(gca,'Xtick',stimHz);
+% xlabel('Stimulus frequency'); ylabel('% signal change');
+% ylim(yLimits);
+% title('Light flux');
+% subplot(1,3,2)
+% semilogx(stimHz,L_minus_M_Beta,'-ro','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
+% title('L-M'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
+% subplot(1,3,3)
+% semilogx(stimHz,S_Beta,'-bo','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
+% title('S'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
