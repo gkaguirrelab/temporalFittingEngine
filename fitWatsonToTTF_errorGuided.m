@@ -126,7 +126,7 @@ yhat = abs(WatsonLinearModel(frequenciesHz, params));
 
 errorPreSumSquared = (y - yhat).^2;
 
-% errorPreSumSquared = errorPreSumSquared.*(1./stdError).^3;
+errorPreSumSquared = errorPreSumSquared.*(1./stdError).^3;
 
 E = sum(errorPreSumSquared);
 
