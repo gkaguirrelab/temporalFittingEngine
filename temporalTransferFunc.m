@@ -257,6 +257,10 @@ end
 % INITIALIZE MATRIX FOR STORING BETA VALUES
 betaMatrix = [];
 
+stimValuesMatSorted_A = [];
+
+stimValuesMatSorted_B = [];
+
 % LOOP OVER STIMULUS FOLDER NAMES
 for i = 1:length(folderNameCell)
    % LOOK IN EACH RUN'S FOLDER 
@@ -334,6 +338,21 @@ for i = 1:length(folderNameCell)
       startTimesMatSorted = [0 startTimesMatSorted];
    end
    
+   display(char(timeSeriesDirNames(j)));
+   display(num2str(stimValuesMatSorted));
+   
+   if strfind(char(timeSeriesDirNames(i)),'_A_') & isempty(stimValuesMatSorted_A)
+      startTimesMatSorted_A = startTimesMatSorted;   
+      stimValuesMatSorted_A = stimValuesMatSorted;
+      display(['A' num2str(i)]); % display(num2str(stimValuesMatSorted));
+   elseif strfind(char(timeSeriesDirNames(i)),'_B_') & isempty(stimValuesMatSorted_B)
+      startTimesMatSorted_B = startTimesMatSorted;
+      stimValuesMatSorted_B = stimValuesMatSorted;
+      display(['B' num2str(i)]); % display(num2str(stimValuesMatSorted));
+   else
+      stimOrderMarker = []; 
+   end
+   
    % LOOP OVER ALL THE START TIMES
    for j = 1:length(startTimesMatSorted)
        % GRAB EACH INDIVIDUAL START TIME
@@ -386,8 +405,8 @@ for i = 1:length(folderNameCell)
       regMatrix(:,j) = regressor'-mean(regressor); 
       % STORE THE COVARIATES
  %      SCmat(:,j) = stimulusUpsampled';
-%       figure;
-%       plot(timeValuesMatFinal,stimPositions); % hold on
+%      figure;
+ %     plot(timeValuesMatFinal,stimPositions); % hold on
 %        plot(t,stimulusUpsampled); hold on 
 %        xlabel('time/s');
 %        plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
@@ -448,6 +467,16 @@ numberOfRuns = 12;
 
 numRunsPerStimOrder = 6;
 
+stimValuesMatSorted_A_cell = {};
+for i = 1:length(stimValuesMatSorted_A)
+   stimValuesMatSorted_A_cell{i} = num2str(stimValuesMatSorted_A(i)); 
+end
+
+stimValuesMatSorted_B_cell = {};
+for i = 1:length(stimValuesMatSorted_B)
+   stimValuesMatSorted_B_cell{i} = num2str(stimValuesMatSorted_B(i)); 
+end
+
 % CONVERT MEAN-SUBTRACTED BETA VALUES TO PERCENTAGES
 LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
 L_minus_M_Beta = mean(betaMatrix(stimTypeArr == 2,:)).*100;
@@ -467,13 +496,13 @@ LightFluxAvgTS_B = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:));
 L_minus_M_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:));
 S_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:));
 
-LightFluxStdTS_A = (std(meanTS(stimTypeArr == 1 & runOrder == 'A')))./sqrt(numRunsPerStimOrder);
-L_minus_M_StdTS_A = (std(meanTS(stimTypeArr == 2 & runOrder == 'A')))./sqrt(numRunsPerStimOrder);
-S_StdTS_A = (std(meanTS(stimTypeArr == 3 & runOrder == 'A')))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_A = (std(timeSeriesMat(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+L_minus_M_StdTS_A = (std(timeSeriesMat(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_A = (std(timeSeriesMat(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 
-LightFluxStdTS_B = (std(meanTS(stimTypeArr == 1 & runOrder == 'B')))./sqrt(numRunsPerStimOrder);
-L_minus_M_StdTS_B = (std(meanTS(stimTypeArr == 2 & runOrder == 'B')))./sqrt(numRunsPerStimOrder);
-S_StdTS_B = (std(meanTS(stimTypeArr == 3 & runOrder == 'B')))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_B = (std(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+L_minus_M_StdTS_B = (std(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_B = (std(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
 
 % DO THE SAME FOR THE 'RECONSTRUCTED' TIME SERIES'
 LightFluxAvgTS_Model_A = mean(reconstructedTS(stimTypeArr == 1 & runOrder == 'A',:));
@@ -504,48 +533,54 @@ title('S');
 
 figure;
 set(gcf,'Position',[156 372 1522 641])
+
 subplot(3,2,1)
 plot(1:length(LightFluxAvgTS_A),LightFluxAvgTS_A); hold on
 plot(1:length(LightFluxAvgTS_A),interp1(t,LightFluxAvgTS_Model_A,1:length(LightFluxAvgTS_A)));
+text(startTimesMatSorted_A,repmat(max(LightFluxAvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('Light flux A'); xlabel('Time / s');
-fill([1 length(LightFluxAvgTS_A) length(LightFluxAvgTS_A) 1], ...
-     [mean(LightFluxAvgTS_A)-LightFluxStdTS_A mean(LightFluxAvgTS_A)-LightFluxStdTS_A, ...
-     mean(LightFluxAvgTS_A)+LightFluxStdTS_A mean(LightFluxAvgTS_A)+LightFluxStdTS_A],'k','FaceAlpha',0.2,'EdgeColor','none');
-subplot(3,2,3)
+fill([1:length(LightFluxAvgTS_A) fliplr(1:length(LightFluxAvgTS_A))], ...
+     [LightFluxAvgTS_A+LightFluxStdTS_A fliplr(LightFluxAvgTS_A-LightFluxStdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
+
+ subplot(3,2,3)
 plot(1:length(L_minus_M_AvgTS_A),L_minus_M_AvgTS_A); hold on
 plot(1:length(L_minus_M_AvgTS_A),interp1(t,L_minus_M_AvgTS_Model_A,1:length(L_minus_M_AvgTS_A)));
+text(startTimesMatSorted_A,repmat(max(L_minus_M_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('L - M A'); xlabel('Time / s');
-fill([1 length(L_minus_M_AvgTS_A) length(L_minus_M_AvgTS_A) 1], ...
-     [mean(L_minus_M_AvgTS_A)-L_minus_M_StdTS_A mean(L_minus_M_AvgTS_A)-L_minus_M_StdTS_A, ...
-     mean(L_minus_M_AvgTS_A)+L_minus_M_StdTS_A mean(L_minus_M_AvgTS_A)+L_minus_M_StdTS_A],'k','FaceAlpha',0.2,'EdgeColor','none');
+fill([1:length(L_minus_M_AvgTS_A) fliplr(1:length(L_minus_M_AvgTS_A))], ...
+     [L_minus_M_AvgTS_A-L_minus_M_StdTS_A fliplr(L_minus_M_AvgTS_A+L_minus_M_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
+
 subplot(3,2,5)
 plot(1:length(S_AvgTS_A),S_AvgTS_A); hold on
 plot(1:length(S_AvgTS_A),interp1(t,S_AvgTS_Model_A,1:length(S_AvgTS_A)));
+text(startTimesMatSorted_A,repmat(max(S_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('S A'); xlabel('Time / s');
-fill([1 length(S_AvgTS_A) length(S_AvgTS_A) 1], ...
-     [mean(S_AvgTS_A)-S_StdTS_A mean(S_AvgTS_A)-S_StdTS_A, ...
-     mean(S_AvgTS_A)+S_StdTS_A mean(S_AvgTS_A)+S_StdTS_A],'k','FaceAlpha',0.2,'EdgeColor','none');
+fill([1:length(S_AvgTS_A) fliplr(1:length(S_AvgTS_A))], ...
+     [S_AvgTS_A-S_StdTS_A fliplr(S_AvgTS_A+S_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
+ 
 subplot(3,2,2)
 plot(1:length(LightFluxAvgTS_B),LightFluxAvgTS_B); hold on
 plot(1:length(LightFluxAvgTS_B),interp1(t,LightFluxAvgTS_Model_B,1:length(LightFluxAvgTS_B)));
 title('Light flux B');
-fill([1 length(LightFluxAvgTS_B) length(LightFluxAvgTS_B) 1], ...
-     [mean(LightFluxAvgTS_B)-LightFluxStdTS_B mean(LightFluxAvgTS_B)-LightFluxStdTS_B, ...
-     mean(LightFluxAvgTS_B)+LightFluxStdTS_B mean(LightFluxAvgTS_B)+LightFluxStdTS_B],'k','FaceAlpha',0.2,'EdgeColor','none');
-subplot(3,2,4)
+fill([1:length(LightFluxAvgTS_B) fliplr(1:length(LightFluxAvgTS_B))], ...
+     [LightFluxAvgTS_B+LightFluxStdTS_B fliplr(LightFluxAvgTS_B-LightFluxStdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
+text(startTimesMatSorted_B,repmat(max(LightFluxAvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
+ 
+ subplot(3,2,4)
 plot(1:length(L_minus_M_AvgTS_B),L_minus_M_AvgTS_B); hold on
 plot(1:length(L_minus_M_AvgTS_B),interp1(t,L_minus_M_AvgTS_Model_B,1:length(L_minus_M_AvgTS_B)));
+text(startTimesMatSorted_B,repmat(max(L_minus_M_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
 title('L - M B');
-fill([1 length(L_minus_M_AvgTS_B) length(L_minus_M_AvgTS_B) 1], ...
-     [mean(L_minus_M_AvgTS_B)-L_minus_M_StdTS_B mean(L_minus_M_AvgTS_B)-L_minus_M_StdTS_B, ...
-     mean(L_minus_M_AvgTS_B)+L_minus_M_StdTS_B mean(L_minus_M_AvgTS_B)+L_minus_M_StdTS_B],'k','FaceAlpha',0.2,'EdgeColor','none');
+fill([1:length(L_minus_M_AvgTS_B) fliplr(1:length(L_minus_M_AvgTS_B))], ...
+     [L_minus_M_AvgTS_B-L_minus_M_StdTS_B fliplr(L_minus_M_AvgTS_B+L_minus_M_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
+
 subplot(3,2,6)
 plot(1:length(S_AvgTS_B),S_AvgTS_B); hold on
 plot(1:length(S_AvgTS_B),interp1(t,S_AvgTS_Model_B,1:length(S_AvgTS_B)));
+text(startTimesMatSorted_B,repmat(max(S_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
 title('S B');
-fill([1 length(S_AvgTS_B) length(S_AvgTS_B) 1], ...
-     [mean(S_AvgTS_B)-S_StdTS_B mean(S_AvgTS_B)-S_StdTS_B, ...
-     mean(S_AvgTS_B)+S_StdTS_B mean(S_AvgTS_B)+S_StdTS_B],'k','FaceAlpha',0.2,'EdgeColor','none');
+fill([1:length(S_AvgTS_B) fliplr(1:length(S_AvgTS_B))], ...
+     [S_AvgTS_B-S_StdTS_B fliplr(S_AvgTS_B+S_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
 
 % figure;
 % set(gcf,'Position',[441 557 1116 420])
