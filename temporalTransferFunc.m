@@ -1,7 +1,6 @@
 %% temporalTransferFunc
 
-% CREATES TEMPORAL TRANSFER FUNCTIONS. CODE MIGHT HAVE SOME NUMERIC ISSUES,
-% BUT I THINK I TOOK CARE OF THEM. ATTENTION TASK NOT YET ACCOUNTED FOR. 
+% CREATES TEMPORAL TRANSFER FUNCTIONS. ATTENTION TASK NOT YET ACCOUNTED FOR. 
 
 % SPECIFY THE SUBJECT AND DATE BELOW. 
 
@@ -335,7 +334,9 @@ for i = 1:length(folderNameCell)
    
    % INITIALIZE MATRICES FOR STORING ACTUAL STIMULUS PLOTS
    timeValuesMatFinal = [];
+   % MARKS WHAT STIMULUS THERE WAS AT EACH TIME POINT
    stimValuesMatFinal = [];
+   % STORES THE COSINE-WINDOWED STIMULUS
    cosStimValuesMatFinal = [];
    
    % MAKE SURE PLOT STARTS AT 0--SO CONVOLUTION WON'T RETURN NANS
@@ -344,6 +345,8 @@ for i = 1:length(folderNameCell)
       startTimesMatSorted = [0 startTimesMatSorted];
    end
    
+   % STORES THE A AND B SEQUENCES--FOR LABELING TIME SERIES BY STIMULUS
+   % PERIOD LATER
    if strfind(char(currentTimeSeriesFolder(i)),'_A_') & isempty(stimValuesMatSorted_A)
       startTimesMatSorted_A = startTimesMatSorted;   
       stimValuesMatSorted_A = stimValuesMatSorted;
@@ -354,8 +357,10 @@ for i = 1:length(folderNameCell)
       stimOrderMarker = []; 
    end
    
+   % HOW MANY POINTS TO SAMPLE BETWEEN STIMULUS ONSET AND OFFSET
    stepFunctionRes = 50;
    
+   % DURATION OF COSINE RAMP IN SECONDS
    cosRamp = 3;
    
    % LOOP OVER ALL THE START TIMES
@@ -368,16 +373,20 @@ for i = 1:length(folderNameCell)
        timeValues = [curTimeValueFinal linspace(curTimeValueFinal+1e-7,curTimeValueFinal+stimTime-1e-5,stepFunctionRes) ...
                      curTimeValueFinal+stimTime-1e-7]; 
        stimValues = [-1 repmat(curStimValueFinal,[1 length(timeValues)-2]) -1];
-       
+       % SHIFT TIME VALUES SO THAT STIMULUS ONSET BECOMES TIME 0
        timeForCos = timeValues - curTimeValueFinal;
+       % REMOVE STIMULUS ONSET MARKERS FOR NOW
        timeForCos = timeForCos(2:length(timeForCos)-1);
+       % DEFINE POSITIONS FOR THE LEFT RAMP AND RIGHT RAMP
        leftRampInd = timeForCos <= cosRamp;
        rightRampInd = timeForCos >= stimTime - cosRamp;
+       % CREATE THE HALF COSINE
        halfCosine = ones([1 length(timeForCos)]);
        halfCosine(leftRampInd) = fliplr((cos(linspace(0,pi,sum(leftRampInd)))+1)/2);
        halfCosine(rightRampInd) = (cos(linspace(0,pi,sum(rightRampInd)))+1)/2;
+       % PUT IN POINTS CORRESPONDING TO STIMULUS START AND END
        halfCosine = [-1 halfCosine -1];
-       % STICK IN MATRICES DEFINED BEFORE THE LOOP
+       % STICK ALL THE ABOVE IN MATRICES DEFINED BEFORE THE LOOP
        timeValuesMatFinal = [timeValuesMatFinal timeValues];
        stimValuesMatFinal = [stimValuesMatFinal stimValues];
        cosStimValuesMatFinal = [cosStimValuesMatFinal halfCosine];
@@ -404,7 +413,8 @@ for i = 1:length(folderNameCell)
    % LOOP OVER POSSIBLE STIMULUS VALUES 
    for j = 1:length(stimHz)
       % GET ALL POSITIONS WITH A GIVEN STIMULUS VALUE
-      stimPositions = stimValuesMatFinal == stimHz(j); 
+      stimPositions = stimValuesMatFinal == stimHz(j);
+      % PUT IN COSINE-WINDOWED STIMULI
       stimPreUps = zeros([1 length(stimPositions)]);
       stimPreUps(stimPositions) = cosStimValuesMatFinal(stimPositions);
       % SAMPLE AT POINTS t
@@ -445,15 +455,15 @@ for i = 1:length(folderNameCell)
    % OBTAIN BETA WEIGHTS AND PLOT
    betaWeights = regMatrix\AVGtsUpsampled'; 
    
+   % BETA WEIGHTS SANS WEIGHT FOR THE FIRST REGRESSOR
    betaMatrix(i,:) = betaWeights(2:length(betaWeights))./mean(AVGts(i,:));
    
+   % RECONSTRUCT THE TIME SERIES ACCORDING TO MODEL, CONVERT TO %
    reconstructedTS = sum(repmat(betaWeights',[size(regMatrix,1) 1]).*regMatrix,2);
-   
    reconstructedTS = ((reconstructedTS - mean(reconstructedTS))./mean(reconstructedTS)).*100;
    
+   % STORE ALL RECONSTRUCTED TIME SERIES
    reconstructedTSmat(i,:) = reconstructedTS;
-   
-   meanTS(i) = mean(AVGtsUpsampled);
    
 %    figure;
 %    plot(stimHz,betaWeights(2:length(betaWeights)),'-o'); 
@@ -482,10 +492,11 @@ for i = 1:length(folderNameCell)
 %    close;
 end
 
+% SELF-EXPLANATORY VARIABLE NAMES
 numberOfRuns = 12;
-
 numRunsPerStimOrder = 6;
 
+% CREATE CELLS FOR LABELLING PLOTS
 stimValuesMatSorted_A_cell = {};
 for i = 1:length(stimValuesMatSorted_A)
    stimValuesMatSorted_A_cell{i} = num2str(stimValuesMatSorted_A(i)); 
@@ -515,7 +526,7 @@ LightFluxAvgTS_B = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:));
 L_minus_M_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:));
 S_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:));
 
-% STANDARD ERROR OF TIMES SERIES
+% STANDARD ERROR OF TIME SERIES
 LightFluxStdTS_A = (std(timeSeriesMat(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 L_minus_M_StdTS_A = (std(timeSeriesMat(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 S_StdTS_A = (std(timeSeriesMat(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
@@ -535,6 +546,7 @@ S_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:))
 
 yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])];
 
+%% PLOTS UPON PLOTS
 [wftd1, fp1] = fitWatsonToTTF_errorGuided(stimHz,LightFluxBeta,LightFluxBetaSE,1); hold on
 errorbar(stimHz,LightFluxBeta,LightFluxBetaSE,'ko');
 set(gca,'FontSize',15);
