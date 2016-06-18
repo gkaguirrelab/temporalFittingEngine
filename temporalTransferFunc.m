@@ -30,7 +30,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_asb1';
+subj_name = 'HERO_gka1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -204,6 +204,7 @@ for i = 1:length(currentTimeSeriesFolder)
        stimType = []; 
     end
     
+    % TAKE NOTE OF THE RUN ORDER: A OR B
     if strfind(currentTSfileName,'_A_')
         runOrder(length(runOrder)+1) = 'A';
     elseif strfind(currentTSfileName,'_B_')
@@ -243,7 +244,9 @@ folderNameCell = {};
 
 % DURATION OF STIMULUS (ALWAYS THE SAME)
 stimTime = 12;
+% DURATION OF ATTENTION TASK
 attnTime = 0.25;
+% THE ATTENTION TASK HAS NO FREQUENCY, BUT IT GETS A 'CODE'
 attnCode = 96;
 
 % LOOP OVER NUMBER OF STIMULUS FOLDERS, AND CREATE CELL WITH ALL THEIR
@@ -258,6 +261,7 @@ end
 % INITIALIZE MATRIX FOR STORING BETA VALUES
 betaMatrix = [];
 
+% STORE STIMULUS ORDER FOR A AND B
 stimValuesMatSorted_A = [];
 
 stimValuesMatSorted_B = [];
@@ -332,6 +336,7 @@ for i = 1:length(folderNameCell)
    % INITIALIZE MATRICES FOR STORING ACTUAL STIMULUS PLOTS
    timeValuesMatFinal = [];
    stimValuesMatFinal = [];
+   cosStimValuesMatFinal = [];
    
    % MAKE SURE PLOT STARTS AT 0--SO CONVOLUTION WON'T RETURN NANS
    if abs(startTimesMatSorted(1)) > 0.001;
@@ -349,7 +354,9 @@ for i = 1:length(folderNameCell)
       stimOrderMarker = []; 
    end
    
-   stepFunctionRes = 10;
+   stepFunctionRes = 50;
+   
+   cosRamp = 3;
    
    % LOOP OVER ALL THE START TIMES
    for j = 1:length(startTimesMatSorted)
@@ -361,9 +368,19 @@ for i = 1:length(folderNameCell)
        timeValues = [curTimeValueFinal linspace(curTimeValueFinal+1e-7,curTimeValueFinal+stimTime-1e-5,stepFunctionRes) ...
                      curTimeValueFinal+stimTime-1e-7]; 
        stimValues = [-1 repmat(curStimValueFinal,[1 length(timeValues)-2]) -1];
+       
+       timeForCos = timeValues - curTimeValueFinal;
+       timeForCos = timeForCos(2:length(timeForCos)-1);
+       leftRampInd = timeForCos <= cosRamp;
+       rightRampInd = timeForCos >= stimTime - cosRamp;
+       halfCosine = ones([1 length(timeForCos)]);
+       halfCosine(leftRampInd) = fliplr((cos(linspace(0,pi,sum(leftRampInd)))+1)/2);
+       halfCosine(rightRampInd) = (cos(linspace(0,pi,sum(rightRampInd)))+1)/2;
+       halfCosine = [-1 halfCosine -1];
        % STICK IN MATRICES DEFINED BEFORE THE LOOP
        timeValuesMatFinal = [timeValuesMatFinal timeValues];
        stimValuesMatFinal = [stimValuesMatFinal stimValues];
+       cosStimValuesMatFinal = [cosStimValuesMatFinal halfCosine];
    end
    
    % ALL POSSIBLE STIMULI (SANS ATTENTION TASK)
@@ -388,9 +405,10 @@ for i = 1:length(folderNameCell)
    for j = 1:length(stimHz)
       % GET ALL POSITIONS WITH A GIVEN STIMULUS VALUE
       stimPositions = stimValuesMatFinal == stimHz(j); 
-      stimPositions = double(stimPositions);
+      stimPreUps = zeros([1 length(stimPositions)]);
+      stimPreUps(stimPositions) = cosStimValuesMatFinal(stimPositions);
       % SAMPLE AT POINTS t
-      stimulusUpsampled = interp1(timeValuesMatFinal,stimPositions,t,'linear','extrap');
+      stimulusUpsampled = interp1(timeValuesMatFinal,stimPreUps,t,'linear','extrap');
       stimulusUpsampled = stimulusUpsampled(1:length(t));
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
       regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
