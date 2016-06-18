@@ -338,20 +338,17 @@ for i = 1:length(folderNameCell)
       startTimesMatSorted = [0 startTimesMatSorted];
    end
    
-   display(char(timeSeriesDirNames(j)));
-   display(num2str(stimValuesMatSorted));
-   
-   if strfind(char(timeSeriesDirNames(i)),'_A_') & isempty(stimValuesMatSorted_A)
+   if strfind(char(currentTimeSeriesFolder(i)),'_A_') & isempty(stimValuesMatSorted_A)
       startTimesMatSorted_A = startTimesMatSorted;   
       stimValuesMatSorted_A = stimValuesMatSorted;
-      display(['A' num2str(i)]); % display(num2str(stimValuesMatSorted));
-   elseif strfind(char(timeSeriesDirNames(i)),'_B_') & isempty(stimValuesMatSorted_B)
+   elseif strfind(char(currentTimeSeriesFolder(i)),'_B_') & isempty(stimValuesMatSorted_B)
       startTimesMatSorted_B = startTimesMatSorted;
       stimValuesMatSorted_B = stimValuesMatSorted;
-      display(['B' num2str(i)]); % display(num2str(stimValuesMatSorted));
    else
       stimOrderMarker = []; 
    end
+   
+   stepFunctionRes = 10;
    
    % LOOP OVER ALL THE START TIMES
    for j = 1:length(startTimesMatSorted)
@@ -360,9 +357,9 @@ for i = 1:length(folderNameCell)
        curStimValueFinal = stimValuesMatSorted(j);
        % MAKE 'BOX'--ADD TINY OFFSET TO MAKE SURE INTERPOLATION WORKS
        % PROPERLY
-       timeValues = [curTimeValueFinal curTimeValueFinal+1e-7 ...
-                    curTimeValueFinal+stimTime-1e-5 curTimeValueFinal+stimTime-1e-7]; 
-       stimValues = [-1 curStimValueFinal curStimValueFinal -1];
+       timeValues = [curTimeValueFinal linspace(curTimeValueFinal+1e-7,curTimeValueFinal+stimTime-1e-5,stepFunctionRes) ...
+                     curTimeValueFinal+stimTime-1e-7]; 
+       stimValues = [-1 repmat(curStimValueFinal,[1 length(timeValues)-2]) -1];
        % STICK IN MATRICES DEFINED BEFORE THE LOOP
        timeValuesMatFinal = [timeValuesMatFinal timeValues];
        stimValuesMatFinal = [stimValuesMatFinal stimValues];
@@ -393,8 +390,6 @@ for i = 1:length(folderNameCell)
       stimPositions = double(stimPositions);
       % SAMPLE AT POINTS t
       stimulusUpsampled = interp1(timeValuesMatFinal,stimPositions,t,'linear','extrap');
-      % INTERPOLATION HAS SOME NUMERIC ERROR--THIS CORRECTS OF THE ERROR
-      stimulusUpsampled(stimulusUpsampled>0.0001) = 1;
       stimulusUpsampled = stimulusUpsampled(1:length(t));
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
       regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
@@ -405,10 +400,12 @@ for i = 1:length(folderNameCell)
       regMatrix(:,j) = regressor'-mean(regressor); 
       % STORE THE COVARIATES
  %      SCmat(:,j) = stimulusUpsampled';
-%      figure;
- %     plot(timeValuesMatFinal,stimPositions); % hold on
-%        plot(t,stimulusUpsampled); hold on 
+ 
+%        figure;
+%        plot(timeValuesMatFinal,stimPositions); % hold on
+%        plot(t,stimulusUpsampled); 
 %        xlabel('time/s');
+
 %        plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
 %        xlabel('time/s');
 %        pause;
