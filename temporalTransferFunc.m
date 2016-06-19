@@ -48,6 +48,13 @@ param = struct;
 param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
 param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
 param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
+
+% DURATION OF STIMULUS (ALWAYS THE SAME)
+stimTime = 12;
+% DURATION OF ATTENTION TASK
+attnTime = 0.25;
+% THE ATTENTION TASK HAS NO FREQUENCY, BUT IT GETS A 'CODE'
+attnCode = 96;
         
 %% DEFINING PATHS, ORDER, ETC.
 
@@ -240,13 +247,6 @@ numberOfFolders = length(files1);
 
 % INITIALIZE CELL CONTAINING ALL STIMULUS FOLDER NAMES
 folderNameCell = {};
-
-% DURATION OF STIMULUS (ALWAYS THE SAME)
-stimTime = 12;
-% DURATION OF ATTENTION TASK
-attnTime = 0.25;
-% THE ATTENTION TASK HAS NO FREQUENCY, BUT IT GETS A 'CODE'
-attnCode = 96;
 
 % LOOP OVER NUMBER OF STIMULUS FOLDERS, AND CREATE CELL WITH ALL THEIR
 % NAMES
