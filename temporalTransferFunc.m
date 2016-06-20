@@ -1,6 +1,6 @@
 %% temporalTransferFunc
 
-% CREATES TEMPORAL TRANSFER FUNCTIONS. ATTENTION TASK NOT YET ACCOUNTED FOR. 
+% CREATES TEMPORAL TRANSFER FUNCTIONS.  
 
 % SPECIFY THE SUBJECT AND DATE BELOW. 
 
@@ -304,7 +304,7 @@ for i = 1:length(folderNameCell)
           startTimesMat(length(startTimesMat)+1:length(startTimesMat)+length(curTimeValue)) = curTimeValue;
           stimValuesMat(length(stimValuesMat)+1:length(stimValuesMat)+length(curTimeValue)) = freqValueNum;         
           
-          % IF THE FILE CONTAINS ATTENTION TASK DATA * NEED TO DEAL WITH THIS DATA PROPERLY *
+          % IF THE FILE CONTAINS ATTENTION TASK DATA
        elseif length(curFile)>20 & strcmp(curFile(length(curFile)-16:length(curFile)),'attentionTask.txt')
            attnFile = load([currentDirPath '/' curFile]); 
            
