@@ -54,7 +54,7 @@ stimTime = 12;
 % DURATION OF ATTENTION TASK
 attnTime = 0.25;
 % THE ATTENTION TASK HAS NO FREQUENCY, BUT IT GETS A 'CODE'
-attnCode = 96;
+attnCode = 1;
         
 %% DEFINING PATHS, ORDER, ETC.
 
@@ -276,6 +276,8 @@ for i = 1:length(folderNameCell)
    startTimesMat = [];
    stimValuesMat =[];
    
+   attnFunctionRes = 10;
+   
    % LOOP OVER FILES IN EACH FOLDER
    for j = 1:length(runFiles)
        lengthOfCurFile = length(runFiles(j).name);
@@ -309,6 +311,7 @@ for i = 1:length(folderNameCell)
            attnTimeValues = [];
            attnStimValues = [];
            
+           % ANCHOR THE ATTENTION STEP FUNCTION AT 0
            attnStartTimes1 = attnFile(1,1);
            
            if abs(attnStartTimes1) > 0.01
@@ -319,9 +322,9 @@ for i = 1:length(folderNameCell)
            % ATTENTION TASK IS JUST A DIRAC DELTA FUNCTION TYPE DEAL
            for k = 1:size(attnFile,1)
                 curTimeValue = attnFile(k,1);
-                attnTimeValues = [attnTimeValues [curTimeValue curTimeValue+1e-10 ...
-                                  curTimeValue+attnTime-1e-3 curTimeValue+attnTime-1e-7]]; 
-                attnStimValues = [attnStimValues [-1 attnCode attnCode -1]];
+                attnTimeValues = [attnTimeValues [curTimeValue linspace(curTimeValue+1e-10,curTimeValue+attnTime-1e-3,attnFunctionRes) ...
+                                 curTimeValue+attnTime-1e-7]]; 
+                attnStimValues = [attnStimValues [0 repmat(attnCode,[1 attnFunctionRes]) 0]];
            end
        end
        
@@ -448,7 +451,16 @@ for i = 1:length(folderNameCell)
    attnPositions = attnStimValues == attnCode;
    attnPositions = double(attnPositions);
    % SAMPLE IT EVENLY
-   attmCovariate = interp1(attnTimeValues,attnStimValues,t);
+   attnCovariate = interp1(attnTimeValues,attnStimValues,t);
+   % REMOVE NANS
+   attnCovariate(isnan(attnCovariate)) = 0;
+   % CONVOLVE WITH HRF
+   attnCovariate = conv(attnCovariate,BOLDHRF);
+   % SAMPLE TO BE THE SAME LENGTH AS OTHER REGRESSORS
+   attnCovariate = attnCovariate(1:length(t));
+   
+   % ADD TO THE DESIGN MATRIX
+   regMatrix(:,size(regMatrix,2)+1) = attnCovariate - mean(attnCovariate);
    
    % UPSAMPLE THE TIME SERIES DATA
    AVGtsUpsampled = interp1(1:length(AVGts(i,:)),AVGts(i,:),t,'linear','extrap');
@@ -456,7 +468,7 @@ for i = 1:length(folderNameCell)
    betaWeights = regMatrix\AVGtsUpsampled'; 
    
    % BETA WEIGHTS SANS WEIGHT FOR THE FIRST REGRESSOR
-   betaMatrix(i,:) = betaWeights(2:length(betaWeights))./mean(AVGts(i,:));
+   betaMatrix(i,:) = betaWeights(2:length(betaWeights)-1)./mean(AVGts(i,:));
    
    % RECONSTRUCT THE TIME SERIES ACCORDING TO MODEL, CONVERT TO %
    reconstructedTS = sum(repmat(betaWeights',[size(regMatrix,1) 1]).*regMatrix,2);
