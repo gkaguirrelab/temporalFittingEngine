@@ -314,6 +314,9 @@ for i = 1:length(folderNameCell)
        elseif length(curFile)>20 & strcmp(curFile(length(curFile)-16:length(curFile)),'attentionTask.txt')
            attnFile = load([currentDirPath '/' curFile]); 
            
+           [hrf,~] = attentionFIR(T_R.*(1:length(AVGts(i,:))),(AVGts(i,:)-mean(AVGts(i,:)))./mean(AVGts(i,:)),attnFile(:,1),lengthAttnHRF,T_R);
+           hrfMat(i,:) = hrf;
+           
            attnTimeValues = [];
            attnStimValues = [];
            
@@ -580,6 +583,11 @@ errorbar(stimHz,S_Beta,S_BetaSE,'ko');
 set(gca,'FontSize',15);
 set(gca,'Xtick',stimHz);
 title('S');
+
+figure;
+errorbar(T_R.*(1:lengthAttnHRF),mean(hrfMat),std(hrfMat)./sqrt(size(hrfMat,1)),'LineWidth',2);
+xlabel('Time/s'); ylabel('% signal change'); title('HRF from FIR');
+set(gca,'FontSize',15);
 
 figure;
 set(gcf,'Position',[156 372 1522 641])

@@ -21,8 +21,8 @@ timeShiftedMatrix = round(timeShiftedMatrix);
 % CREATES DESIGN MATRIX
 for i = 1:length(timeShiftScale);
    impulseVector = double(ismember(originalTimeSamplesNormalized,timeShiftedMatrix(:,i)));
-%   designMatrix(:,i) = impulseVector;
-   designMatrix(:,i) = impulseVector - mean(impulseVector);
+   designMatrix(:,i) = impulseVector;
+%   designMatrix(:,i) = impulseVector - mean(impulseVector);
 end
 
 % ADD THE REGRESSOR FOR THE MEAN
