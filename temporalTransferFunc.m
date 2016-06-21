@@ -55,6 +55,12 @@ stimTime = 12;
 attnTime = 0.25;
 % THE ATTENTION TASK HAS NO FREQUENCY, BUT IT GETS A 'CODE'
 attnCode = 1;
+% BOOLEAN FOR WHETHER WE WANT TO MODEL THE ATTENTION TASK WITH FIR
+attnFIR = 1;
+% LENGTH OF ATTENTION HRF
+lengthAttnHRF = 16;
+% ACQUISITION TIME
+T_R = 1;
         
 %% DEFINING PATHS, ORDER, ETC.
 
@@ -451,11 +457,11 @@ for i = 1:length(folderNameCell)
    attnPositions = attnStimValues == attnCode;
    attnPositions = double(attnPositions);
    % SAMPLE IT EVENLY
-   attnCovariate = interp1(attnTimeValues,attnStimValues,t);
+   attnBox = interp1(attnTimeValues,attnStimValues,t);
    % REMOVE NANS
-   attnCovariate(isnan(attnCovariate)) = 0;
+   attnBox(isnan(attnBox)) = 0;
    % CONVOLVE WITH HRF
-   attnCovariate = conv(attnCovariate,BOLDHRF);
+   attnCovariate = conv(attnBox,BOLDHRF);
    % SAMPLE TO BE THE SAME LENGTH AS OTHER REGRESSORS
    attnCovariate = attnCovariate(1:length(t));
    
@@ -579,52 +585,70 @@ figure;
 set(gcf,'Position',[156 372 1522 641])
 
 subplot(3,2,1)
-plot(1:length(LightFluxAvgTS_A),LightFluxAvgTS_A); hold on
-plot(1:length(LightFluxAvgTS_A),interp1(t,LightFluxAvgTS_Model_A,1:length(LightFluxAvgTS_A)));
+plot(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A); hold on
+plot(T_R.*(1:length(LightFluxAvgTS_A)),interp1(t,LightFluxAvgTS_Model_A,T_R.*(1:length(LightFluxAvgTS_A))));
 text(startTimesMatSorted_A,repmat(max(LightFluxAvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
-fill([1:length(LightFluxAvgTS_A) fliplr(1:length(LightFluxAvgTS_A))], ...
+fill([T_R.*(1:length(LightFluxAvgTS_A)) T_R.*(fliplr(1:length(LightFluxAvgTS_A)))], ...
      [LightFluxAvgTS_A+LightFluxStdTS_A fliplr(LightFluxAvgTS_A-LightFluxStdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
+makeStimColorLine(startTimesMatSorted_A, ...
+                  repmat(min(LightFluxAvgTS_A-LightFluxStdTS_A), ...
+                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
 
 subplot(3,2,3)
-plot(1:length(L_minus_M_AvgTS_A),L_minus_M_AvgTS_A); hold on
-plot(1:length(L_minus_M_AvgTS_A),interp1(t,L_minus_M_AvgTS_Model_A,1:length(L_minus_M_AvgTS_A)));
+plot(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A); hold on
+plot(T_R.*(1:length(L_minus_M_AvgTS_A)),interp1(t,L_minus_M_AvgTS_Model_A,T_R.*(1:length(L_minus_M_AvgTS_A))));
 text(startTimesMatSorted_A,repmat(max(L_minus_M_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
-fill([1:length(L_minus_M_AvgTS_A) fliplr(1:length(L_minus_M_AvgTS_A))], ...
+fill([T_R.*(1:length(L_minus_M_AvgTS_A)) T_R.*(fliplr(1:length(L_minus_M_AvgTS_A)))], ...
      [L_minus_M_AvgTS_A-L_minus_M_StdTS_A fliplr(L_minus_M_AvgTS_A+L_minus_M_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
-
+makeStimColorLine(startTimesMatSorted_A, ...
+                  repmat(min(L_minus_M_AvgTS_A-L_minus_M_StdTS_A), ...
+                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
+              
 subplot(3,2,5)
-plot(1:length(S_AvgTS_A),S_AvgTS_A); hold on
-plot(1:length(S_AvgTS_A),interp1(t,S_AvgTS_Model_A,1:length(S_AvgTS_A)));
+plot(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A); hold on
+plot(T_R.*(1:length(S_AvgTS_A)),interp1(t,S_AvgTS_Model_A,T_R.*(1:length(S_AvgTS_A))));
 text(startTimesMatSorted_A,repmat(max(S_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
 title('S A'); xlabel('Time / s'); ylabel('% signal change');
-fill([1:length(S_AvgTS_A) fliplr(1:length(S_AvgTS_A))], ...
+fill([T_R.*(1:length(S_AvgTS_A)) T_R.*(fliplr(1:length(S_AvgTS_A)))], ...
      [S_AvgTS_A-S_StdTS_A fliplr(S_AvgTS_A+S_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
+makeStimColorLine(startTimesMatSorted_A, ...
+                  repmat(min(S_AvgTS_A-S_StdTS_A), ...
+                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
  
 subplot(3,2,2)
-plot(1:length(LightFluxAvgTS_B),LightFluxAvgTS_B); hold on
-plot(1:length(LightFluxAvgTS_B),interp1(t,LightFluxAvgTS_Model_B,1:length(LightFluxAvgTS_B)));
+plot(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B); hold on
+plot(T_R.*(1:length(LightFluxAvgTS_B)),interp1(t,LightFluxAvgTS_Model_B,T_R.*(1:length(LightFluxAvgTS_B))));
 title('Light flux B');
-fill([1:length(LightFluxAvgTS_B) fliplr(1:length(LightFluxAvgTS_B))], ...
+fill([T_R.*(1:length(LightFluxAvgTS_B)) T_R.*(fliplr(1:length(LightFluxAvgTS_B)))], ...
      [LightFluxAvgTS_B+LightFluxStdTS_B fliplr(LightFluxAvgTS_B-LightFluxStdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
 text(startTimesMatSorted_B,repmat(max(LightFluxAvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
+makeStimColorLine(startTimesMatSorted_B, ...
+                  repmat(min(LightFluxAvgTS_B-LightFluxStdTS_B), ...
+                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
  
  subplot(3,2,4)
-plot(1:length(L_minus_M_AvgTS_B),L_minus_M_AvgTS_B); hold on
-plot(1:length(L_minus_M_AvgTS_B),interp1(t,L_minus_M_AvgTS_Model_B,1:length(L_minus_M_AvgTS_B)));
+plot(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B); hold on
+plot(T_R.*(1:length(L_minus_M_AvgTS_B)),interp1(t,L_minus_M_AvgTS_Model_B,T_R.*(1:length(L_minus_M_AvgTS_B))));
 text(startTimesMatSorted_B,repmat(max(L_minus_M_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
 title('L - M B');
-fill([1:length(L_minus_M_AvgTS_B) fliplr(1:length(L_minus_M_AvgTS_B))], ...
+fill([T_R.*(1:length(L_minus_M_AvgTS_B)) T_R.*(fliplr(1:length(L_minus_M_AvgTS_B)))], ...
      [L_minus_M_AvgTS_B-L_minus_M_StdTS_B fliplr(L_minus_M_AvgTS_B+L_minus_M_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
-
+makeStimColorLine(startTimesMatSorted_B, ...
+                  repmat(min(L_minus_M_AvgTS_B-L_minus_M_StdTS_B), ...
+                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
+              
 subplot(3,2,6)
-plot(1:length(S_AvgTS_B),S_AvgTS_B); hold on
-plot(1:length(S_AvgTS_B),interp1(t,S_AvgTS_Model_B,1:length(S_AvgTS_B)));
+plot(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B); hold on
+plot(T_R.*(1:length(S_AvgTS_B)),interp1(t,S_AvgTS_Model_B,T_R.*(1:length(S_AvgTS_B))));
 text(startTimesMatSorted_B,repmat(max(S_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
 title('S B');
-fill([1:length(S_AvgTS_B) fliplr(1:length(S_AvgTS_B))], ...
+fill([T_R.*(1:length(S_AvgTS_B)) T_R.*(fliplr(1:length(S_AvgTS_B)))], ...
      [S_AvgTS_B-S_StdTS_B fliplr(S_AvgTS_B+S_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
+makeStimColorLine(startTimesMatSorted_B, ...
+                  repmat(min(S_AvgTS_B-S_StdTS_B), ...
+                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
 
 % figure;
 % set(gcf,'Position',[441 557 1116 420])
