@@ -29,7 +29,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_gka1';
+subj_name = 'HERO_asb1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -58,7 +58,7 @@ attnCode = 1;
 % BOOLEAN FOR WHETHER WE WANT TO MODEL THE ATTENTION TASK WITH FIR
 attnFIR = 1;
 % LENGTH OF ATTENTION HRF
-lengthAttnHRF = 16;
+lengthAttnHRF = 26;
 % ACQUISITION TIME
 T_R = 1;
         
@@ -312,9 +312,9 @@ for i = 1:length(folderNameCell)
           
           % IF THE FILE CONTAINS ATTENTION TASK DATA
        elseif length(curFile)>20 & strcmp(curFile(length(curFile)-16:length(curFile)),'attentionTask.txt')
-           attnFile = load([currentDirPath '/' curFile]); 
-           
-           [hrf,~] = attentionFIR(T_R.*(1:length(AVGts(i,:))),(AVGts(i,:)-mean(AVGts(i,:)))./mean(AVGts(i,:)),attnFile(:,1),lengthAttnHRF,T_R);
+           attnFile = load([currentDirPath '/' curFile]);
+           % RUN FIR ON THE ATTENTION START TIMES
+           [hrf,~] = attentionFIR(T_R.*(1:length(AVGts(i,:))),((AVGts(i,:)-mean(AVGts(i,:)))./mean(AVGts(i,:))).*100,attnFile(:,1),lengthAttnHRF,T_R);
            hrfMat(i,:) = hrf;
            
            attnTimeValues = [];
@@ -585,8 +585,8 @@ set(gca,'Xtick',stimHz);
 title('S');
 
 figure;
-errorbar(T_R.*(1:lengthAttnHRF),mean(hrfMat),std(hrfMat)./sqrt(size(hrfMat,1)),'LineWidth',2);
-xlabel('Time/s'); ylabel('% signal change'); title('HRF from FIR');
+errorbar(T_R.*(1:lengthAttnHRF)-1,mean(hrfMat),std(hrfMat)./sqrt(size(hrfMat,1)),'LineWidth',2);
+xlabel('Time/s'); ylabel('% signal change'); title('HRF obtained using FIR');
 set(gca,'FontSize',15);
 
 figure;
