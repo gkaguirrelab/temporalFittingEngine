@@ -440,16 +440,12 @@ for i = 1:length(folderNameCell)
       regressorDownSampled = interp1(t,regressor,TS_timeSamples,'linear','extrap');
       % STORE THE REGRESSOR
       regMatrix(:,j) = regressorDownSampled'-mean(regressorDownSampled); 
-      % STORE THE COVARIATES
- %      SCmat(:,j) = stimulusUpsampled';
  
 %        figure;
-%        plot(stimPlotsTimeSamples,stimPositions); % hold on
+%        plot(stimPlotsTimeSamples,stimPositions); hold on
 %        plot(t,stimulusUpsampled); 
 %        xlabel('time/s');
-
 %        plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
-%        xlabel('time/s');
 %        pause;
 %        close;
    end
@@ -487,32 +483,7 @@ for i = 1:length(folderNameCell)
    
    % STORE ALL RECONSTRUCTED TIME SERIES
    reconstructedTSmat(i,:) = reconstructedTS;
-   
-%    figure;
-%    plot(stimHz,betaWeights(2:length(betaWeights)),'-o'); 
-%    xlabel('Frequency');
-%    title(['Beta weights for ' coneName]);
-%    pause;
-%    close;
 
-%    figure;
-%    set(gcf,'Position',[439 222 1029 876]);
-%    subplot(3,1,3);
-%    plot(stimPlotsTimeSamples,stimPlotsValues); hold on
-%    plot(attnTimeValues,attnStimValues);
-%    xlabel('Time(s)'); ylabel('Stimulus frequency (Hz)');
-%    title('Stimulus');
-%    set(gca,'FontSize',15);
-%    subplot(3,1,2);
-%    plot(LHtsStore(i,:));
-%    title('Left hemisphere BOLD response');
-%    set(gca,'FontSize',15);
-%    subplot(3,1,1);
-%    plot(RHtsStore(i,:));
-%    title('Right hemisphere BOLD response');
-%    set(gca,'FontSize',15);
-%    pause;
-%    close;
 end
 
 % SELF-EXPLANATORY VARIABLE NAMES
