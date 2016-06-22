@@ -3,6 +3,12 @@ function [hrf, timeSeriesNoAttn] = attentionFIR(originalTimeSamples,timeSeries,a
 % function [hrf, timeSeriesNoAttn] = attentionFIR(originalTimeSamples,timeSeries,attnStartTimes,HRFduration,HRFsampleInterval)
 %
 % infers HRF from attention task
+%
+% originalTimeSamples: time samples for time series
+% timeSeries         : self-explanatory
+% attnStartTimes     : when each attention task began
+% HRFduration        : duration of the HRF
+% HRFsampleInternal  : TR
 
 % NORMALIZE TIME SAMPLES TO 1
 originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
@@ -21,8 +27,8 @@ timeShiftedMatrix = round(timeShiftedMatrix);
 % CREATES DESIGN MATRIX
 for i = 1:length(timeShiftScale);
    impulseVector = double(ismember(originalTimeSamplesNormalized,timeShiftedMatrix(:,i)));
-   designMatrix(:,i) = impulseVector;
-%   designMatrix(:,i) = impulseVector - mean(impulseVector);
+%   designMatrix(:,i) = impulseVector;
+   designMatrix(:,i) = impulseVector - mean(impulseVector);
 end
 
 % ADD THE REGRESSOR FOR THE MEAN

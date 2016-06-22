@@ -4,8 +4,6 @@
 
 % SPECIFY THE SUBJECT AND DATE BELOW. 
 
-% MAKES PLOTS ONE BY ONE--PRESS ANY KEY TO CYCLE THROUGH THEM
-
 %% Variable name legend (will clean these up if there is time)
 
 % ts = time series
@@ -29,7 +27,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_gka1';
+subj_name = 'HERO_asb1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -58,9 +56,11 @@ attnCode = 1;
 % BOOLEAN FOR WHETHER WE WANT TO MODEL THE ATTENTION TASK WITH FIR
 attnFIR = 1;
 % LENGTH OF ATTENTION HRF
-lengthAttnHRF = 16;
+lengthAttnHRF = 26;
 % ACQUISITION TIME
 T_R = 1;
+% TIME SERIES SAMPLING POINTS
+TS_timeSamples = 1:336;
         
 %% DEFINING PATHS, ORDER, ETC.
 
@@ -192,14 +192,14 @@ for i = 1:length(timeSeriesDir)
 end
 
 % INITIALIZE MATRICES FOR STORING TIME SERIES
-LHtsMat = [];
-RHtsMat = [];
-AVGts = [];
+LHtsStore = [];
+RHtsStore = [];
+avgTS = [];
 
 % NOTE STIMULUS TYPE FOR FUTURE INDEXING
 stimTypeArr = [];
 runOrder = '';
-timeSeriesMat = [];
+timeSeriesStore = [];
 
 % LOOK AT EACH FILE IN THE TIME SERIES FOLDER
 for i = 1:length(currentTimeSeriesFolder)
@@ -235,21 +235,21 @@ for i = 1:length(currentTimeSeriesFolder)
     LHts = LHtsStruct.avgTC;
     RHts = RHtsStruct.avgTC;
     % STORE FOR PLOTTING LATER
-    LHtsMat(i,:) = LHts;
-    RHtsMat(i,:) = RHts;
+    LHtsStore(i,:) = LHts;
+    RHtsStore(i,:) = RHts;
     % MEAN OF LEFT AND RIGHT HEMISPHERE
-    AVGts(i,:) = (LHts+RHts)./2;
-    timeSeriesMat(size(timeSeriesMat,1)+1,:) = ((AVGts(i,:) - mean(AVGts(i,:)))./mean(AVGts(i,:))).*100;
-%    timeSeriesMat(size(timeSeriesMat,1)+1,:) = AVGts(i,:);
+    avgTS(i,:) = (LHts+RHts)./2;
+    timeSeriesStore(size(timeSeriesStore,1)+1,:) = ((avgTS(i,:) - mean(avgTS(i,:)))./mean(avgTS(i,:))).*100;
+%    timeSeriesStore(size(timeSeriesStore,1)+1,:) = avgTS(i,:);
 end
 
 %% LOAD AND PLOT STIMULUS STEP FUNCTIONS
 
 % LOAD ALL CONTENTS OF STIMULUS DIRECTORY
-files1 = dir(dirPathStim);
+stimDirContents = dir(dirPathStim);
 
 % NUMBER OF STIMULUS FOLDERS
-numberOfFolders = length(files1);
+numberOfFolders = length(stimDirContents);
 
 % INITIALIZE CELL CONTAINING ALL STIMULUS FOLDER NAMES
 folderNameCell = {};
@@ -257,7 +257,7 @@ folderNameCell = {};
 % LOOP OVER NUMBER OF STIMULUS FOLDERS, AND CREATE CELL WITH ALL THEIR
 % NAMES
 for i = 1:numberOfFolders
-   miniFolderName = files1(i).name;
+   miniFolderName = stimDirContents(i).name;
    if length(miniFolderName)>4 & strcmp(miniFolderName(1:4),'HERO');
        folderNameCell{length(folderNameCell)+1} = miniFolderName;
    end
@@ -267,9 +267,9 @@ end
 betaMatrix = [];
 
 % STORE STIMULUS ORDER FOR A AND B
-stimValuesMatSorted_A = [];
+stimValuesSorted_A = [];
 
-stimValuesMatSorted_B = [];
+stimValuesSorted_B = [];
 
 % LOOP OVER STIMULUS FOLDER NAMES
 for i = 1:length(folderNameCell)
@@ -279,8 +279,8 @@ for i = 1:length(folderNameCell)
    runFiles = dir(currentDirPath);
    
    % INITIALIZE MATRICES FOR STORING START TIMES AND STIMULUS VALUES
-   startTimesMat = [];
-   stimValuesMat =[];
+   startTimes = [];
+   stimValues =[];
    
    attnFunctionRes = 10;
    
@@ -307,15 +307,15 @@ for i = 1:length(folderNameCell)
           % GRAB ALL VALUES IN THE FIRST COLUMN: THESE ARE STARTING TIMES
           curTimeValue = stimFile(:,1);
           % COLLECT ALL START TIMES AND THEIR CORRESPONDING STIMULUS VALUES
-          startTimesMat(length(startTimesMat)+1:length(startTimesMat)+length(curTimeValue)) = curTimeValue;
-          stimValuesMat(length(stimValuesMat)+1:length(stimValuesMat)+length(curTimeValue)) = freqValueNum;         
+          startTimes(length(startTimes)+1:length(startTimes)+length(curTimeValue)) = curTimeValue;
+          stimValues(length(stimValues)+1:length(stimValues)+length(curTimeValue)) = freqValueNum;         
           
           % IF THE FILE CONTAINS ATTENTION TASK DATA
        elseif length(curFile)>20 & strcmp(curFile(length(curFile)-16:length(curFile)),'attentionTask.txt')
-           attnFile = load([currentDirPath '/' curFile]); 
-           
-           [hrf,~] = attentionFIR(T_R.*(1:length(AVGts(i,:))),(AVGts(i,:)-mean(AVGts(i,:)))./mean(AVGts(i,:)),attnFile(:,1),lengthAttnHRF,T_R);
-           hrfMat(i,:) = hrf;
+           attnFile = load([currentDirPath '/' curFile]);
+           % RUN FIR ON THE ATTENTION START TIMES
+           [hrf,~] = attentionFIR(T_R.*(1:length(avgTS(i,:))),((avgTS(i,:)-mean(avgTS(i,:)))./mean(avgTS(i,:))).*100,attnFile(:,1),lengthAttnHRF,T_R);
+           hrfStore(i,:) = hrf;
            
            attnTimeValues = [];
            attnStimValues = [];
@@ -340,31 +340,31 @@ for i = 1:length(folderNameCell)
    end
    
    % SORT THE BIG VECTOR OF START TIMES
-   [startTimesMatSorted, stmsInd] = sort(startTimesMat);
+   [startTimesSorted, stmsInd] = sort(startTimes);
    % SORT THE CORRESPONDING STIMULUS VALUES
-   stimValuesMatSorted = stimValuesMat(stmsInd);
+   stimValuesSorted = stimValues(stmsInd);
    
    % INITIALIZE MATRICES FOR STORING ACTUAL STIMULUS PLOTS
-   timeValuesMatFinal = [];
+   stimPlotsTimeSamples = [];
    % MARKS WHAT STIMULUS THERE WAS AT EACH TIME POINT
-   stimValuesMatFinal = [];
+   stimPlotsValues = [];
    % STORES THE COSINE-WINDOWED STIMULUS
-   cosStimValuesMatFinal = [];
+   cosWindowedStim = [];
    
    % MAKE SURE PLOT STARTS AT 0--SO CONVOLUTION WON'T RETURN NANS
-   if abs(startTimesMatSorted(1)) > 0.001;
-      stimValuesMatSorted = [0 stimValuesMatSorted];
-      startTimesMatSorted = [0 startTimesMatSorted];
+   if abs(startTimesSorted(1)) > 0.001;
+      stimValuesSorted = [0 stimValuesSorted];
+      startTimesSorted = [0 startTimesSorted];
    end
    
    % STORES THE A AND B SEQUENCES--FOR LABELING TIME SERIES BY STIMULUS
    % PERIOD LATER
-   if strfind(char(currentTimeSeriesFolder(i)),'_A_') & isempty(stimValuesMatSorted_A)
-      startTimesMatSorted_A = startTimesMatSorted;   
-      stimValuesMatSorted_A = stimValuesMatSorted;
-   elseif strfind(char(currentTimeSeriesFolder(i)),'_B_') & isempty(stimValuesMatSorted_B)
-      startTimesMatSorted_B = startTimesMatSorted;
-      stimValuesMatSorted_B = stimValuesMatSorted;
+   if strfind(char(currentTimeSeriesFolder(i)),'_A_') & isempty(stimValuesSorted_A)
+      startTimesSorted_A = startTimesSorted;   
+      stimValuesSorted_A = stimValuesSorted;
+   elseif strfind(char(currentTimeSeriesFolder(i)),'_B_') & isempty(stimValuesSorted_B)
+      startTimesSorted_B = startTimesSorted;
+      stimValuesSorted_B = stimValuesSorted;
    else
       stimOrderMarker = []; 
    end
@@ -376,17 +376,17 @@ for i = 1:length(folderNameCell)
    cosRamp = 3;
    
    % LOOP OVER ALL THE START TIMES
-   for j = 1:length(startTimesMatSorted)
+   for j = 1:length(startTimesSorted)
        % GRAB EACH INDIVIDUAL START TIME
-       curTimeValueFinal = startTimesMatSorted(j);
-       curStimValueFinal = stimValuesMatSorted(j);
+       curTimeValue2 = startTimesSorted(j);
+       curStimValue2 = stimValuesSorted(j);
        % MAKE 'BOX'--ADD TINY OFFSET TO MAKE SURE INTERPOLATION WORKS
        % PROPERLY
-       timeValues = [curTimeValueFinal linspace(curTimeValueFinal+1e-7,curTimeValueFinal+stimTime-1e-5,stepFunctionRes) ...
-                     curTimeValueFinal+stimTime-1e-7]; 
-       stimValues = [-1 repmat(curStimValueFinal,[1 length(timeValues)-2]) -1];
+       timeValues = [curTimeValue2 linspace(curTimeValue2+1e-7,curTimeValue2+stimTime-1e-5,stepFunctionRes) ...
+                     curTimeValue2+stimTime-1e-7]; 
+       stimValues = [-1 repmat(curStimValue2,[1 length(timeValues)-2]) -1];
        % SHIFT TIME VALUES SO THAT STIMULUS ONSET BECOMES TIME 0
-       timeForCos = timeValues - curTimeValueFinal;
+       timeForCos = timeValues - curTimeValue2;
        % REMOVE STIMULUS ONSET MARKERS FOR NOW
        timeForCos = timeForCos(2:length(timeForCos)-1);
        % DEFINE POSITIONS FOR THE LEFT RAMP AND RIGHT RAMP
@@ -399,9 +399,9 @@ for i = 1:length(folderNameCell)
        % PUT IN POINTS CORRESPONDING TO STIMULUS START AND END
        halfCosine = [-1 halfCosine -1];
        % STICK ALL THE ABOVE IN MATRICES DEFINED BEFORE THE LOOP
-       timeValuesMatFinal = [timeValuesMatFinal timeValues];
-       stimValuesMatFinal = [stimValuesMatFinal stimValues];
-       cosStimValuesMatFinal = [cosStimValuesMatFinal halfCosine];
+       stimPlotsTimeSamples = [stimPlotsTimeSamples timeValues];
+       stimPlotsValues = [stimPlotsValues stimValues];
+       cosWindowedStim = [cosWindowedStim halfCosine];
    end
    
    % ALL POSSIBLE STIMULI (SANS ATTENTION TASK)
@@ -412,7 +412,7 @@ for i = 1:length(folderNameCell)
    
    % MAKE HRF (TAKEN FROM GEOFF'S WINAWER MODEL CODE)
    % TOTAL DURATION IS SIMPLY LARGEST TIME VALUE
-   modelDuration=floor(max(timeValuesMatFinal));
+   modelDuration=floor(max(stimPlotsTimeSamples));
    modelResolution=20; 
    % TIME SAMPLES TO INTERPOLATE
    t = linspace(1,modelDuration,modelDuration.*modelResolution);
@@ -425,30 +425,27 @@ for i = 1:length(folderNameCell)
    % LOOP OVER POSSIBLE STIMULUS VALUES 
    for j = 1:length(stimHz)
       % GET ALL POSITIONS WITH A GIVEN STIMULUS VALUE
-      stimPositions = stimValuesMatFinal == stimHz(j);
+      stimPositions = stimPlotsValues == stimHz(j);
       % PUT IN COSINE-WINDOWED STIMULI
       stimPreUps = zeros([1 length(stimPositions)]);
-      stimPreUps(stimPositions) = cosStimValuesMatFinal(stimPositions);
+      stimPreUps(stimPositions) = cosWindowedStim(stimPositions);
       % SAMPLE AT POINTS t
-      stimulusUpsampled = interp1(timeValuesMatFinal,stimPreUps,t,'linear','extrap');
+      stimulusUpsampled = interp1(stimPlotsTimeSamples,stimPreUps,t,'linear','extrap');
       stimulusUpsampled = stimulusUpsampled(1:length(t));
       % CONVOLVE STIMULUS WITH HRF TO GET REGRESSOR
       regressorPreCut = conv(stimulusUpsampled,BOLDHRF);
       % CUT OFF THE EXTRA CONV VALUES--NEED TO LOOK MORE INTO THIS. CONV IS
       % WEIRD IN MATLAB
       regressor = regressorPreCut(1:length(stimulusUpsampled));
+      regressorDownSampled = interp1(t,regressor,TS_timeSamples,'linear','extrap');
       % STORE THE REGRESSOR
-      regMatrix(:,j) = regressor'-mean(regressor); 
-      % STORE THE COVARIATES
- %      SCmat(:,j) = stimulusUpsampled';
+      regMatrix(:,j) = regressorDownSampled'-mean(regressorDownSampled); 
  
 %        figure;
-%        plot(timeValuesMatFinal,stimPositions); % hold on
+%        plot(stimPlotsTimeSamples,stimPositions); hold on
 %        plot(t,stimulusUpsampled); 
 %        xlabel('time/s');
-
 %        plot(t,regressor); title(['Stimulus and BOLD signal for ' num2str(stimHz(j)) ' Hz' ' flicker']);
-%        xlabel('time/s');
 %        pause;
 %        close;
    end
@@ -467,17 +464,18 @@ for i = 1:length(folderNameCell)
    attnCovariate = conv(attnBox,BOLDHRF);
    % SAMPLE TO BE THE SAME LENGTH AS OTHER REGRESSORS
    attnCovariate = attnCovariate(1:length(t));
+   attnCovariateDownSampled = interp1(t,attnCovariate,TS_timeSamples,'linear','extrap');
    
    % ADD TO THE DESIGN MATRIX
-   regMatrix(:,size(regMatrix,2)+1) = attnCovariate - mean(attnCovariate);
+   regMatrix(:,size(regMatrix,2)+1) = attnCovariateDownSampled - mean(attnCovariateDownSampled);
    
    % UPSAMPLE THE TIME SERIES DATA
-   AVGtsUpsampled = interp1(1:length(AVGts(i,:)),AVGts(i,:),t,'linear','extrap');
+%   AVGtsUpsampled = interp1(1:length(avgTS(i,:)),avgTS(i,:),t,'linear','extrap');
    % OBTAIN BETA WEIGHTS AND PLOT
-   betaWeights = regMatrix\AVGtsUpsampled'; 
+   betaWeights = regMatrix\avgTS(i,:)'; 
    
    % BETA WEIGHTS SANS WEIGHT FOR THE FIRST REGRESSOR
-   betaMatrix(i,:) = betaWeights(2:length(betaWeights)-1)./mean(AVGts(i,:));
+   betaMatrix(i,:) = betaWeights(2:length(betaWeights)-1)./mean(avgTS(i,:));
    
    % RECONSTRUCT THE TIME SERIES ACCORDING TO MODEL, CONVERT TO %
    reconstructedTS = sum(repmat(betaWeights',[size(regMatrix,1) 1]).*regMatrix,2);
@@ -485,32 +483,7 @@ for i = 1:length(folderNameCell)
    
    % STORE ALL RECONSTRUCTED TIME SERIES
    reconstructedTSmat(i,:) = reconstructedTS;
-   
-%    figure;
-%    plot(stimHz,betaWeights(2:length(betaWeights)),'-o'); 
-%    xlabel('Frequency');
-%    title(['Beta weights for ' coneName]);
-%    pause;
-%    close;
 
-%    figure;
-%    set(gcf,'Position',[439 222 1029 876]);
-%    subplot(3,1,3);
-%    plot(timeValuesMatFinal,stimValuesMatFinal); hold on
-%    plot(attnTimeValues,attnStimValues);
-%    xlabel('Time(s)'); ylabel('Stimulus frequency (Hz)');
-%    title('Stimulus');
-%    set(gca,'FontSize',15);
-%    subplot(3,1,2);
-%    plot(LHtsMat(i,:));
-%    title('Left hemisphere BOLD response');
-%    set(gca,'FontSize',15);
-%    subplot(3,1,1);
-%    plot(RHtsMat(i,:));
-%    title('Right hemisphere BOLD response');
-%    set(gca,'FontSize',15);
-%    pause;
-%    close;
 end
 
 % SELF-EXPLANATORY VARIABLE NAMES
@@ -519,14 +492,16 @@ numRunsPerStimOrder = 6;
 
 % CREATE CELLS FOR LABELLING PLOTS
 stimValuesMatSorted_A_cell = {};
-for i = 1:length(stimValuesMatSorted_A)
-   stimValuesMatSorted_A_cell{i} = num2str(stimValuesMatSorted_A(i)); 
+for i = 1:length(stimValuesSorted_A)
+   stimValuesMatSorted_A_cell{i} = num2str(stimValuesSorted_A(i)); 
 end
 
 stimValuesMatSorted_B_cell = {};
-for i = 1:length(stimValuesMatSorted_B)
-   stimValuesMatSorted_B_cell{i} = num2str(stimValuesMatSorted_B(i)); 
+for i = 1:length(stimValuesSorted_B)
+   stimValuesMatSorted_B_cell{i} = num2str(stimValuesSorted_B(i)); 
 end
+
+%% AVERAGING A BUNCH OF THINGS TOGETHER
 
 % CONVERT MEAN-SUBTRACTED BETA VALUES TO PERCENTAGES
 LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
@@ -539,22 +514,22 @@ L_minus_M_BetaSE = ((std(betaMatrix(stimTypeArr == 2,:)))./sqrt(numberOfRuns)).*
 S_BetaSE = ((std(betaMatrix(stimTypeArr == 3,:)))./sqrt(numberOfRuns)).*100;
 
 % AVERAGE TIME SERIES FOR EACH COMBINATION OF STIMULUS TYPE AND RUN ORDER
-LightFluxAvgTS_A = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'A',:));
-L_minus_M_AvgTS_A = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'A',:));
-S_AvgTS_A = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'A',:));
+LightFluxAvgTS_A = mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:));
+L_minus_M_AvgTS_A = mean(timeSeriesStore(stimTypeArr == 2 & runOrder == 'A',:));
+S_AvgTS_A = mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:));
 
-LightFluxAvgTS_B = mean(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:));
-L_minus_M_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:));
-S_AvgTS_B = mean(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:));
+LightFluxAvgTS_B = mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:));
+L_minus_M_AvgTS_B = mean(timeSeriesStore(stimTypeArr == 2 & runOrder == 'B',:));
+S_AvgTS_B = mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:));
 
 % STANDARD ERROR OF TIME SERIES
-LightFluxStdTS_A = (std(timeSeriesMat(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
-L_minus_M_StdTS_A = (std(timeSeriesMat(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
-S_StdTS_A = (std(timeSeriesMat(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_A = (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+L_minus_M_StdTS_A = (std(timeSeriesStore(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_A = (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 
-LightFluxStdTS_B = (std(timeSeriesMat(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
-L_minus_M_StdTS_B = (std(timeSeriesMat(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
-S_StdTS_B = (std(timeSeriesMat(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_B = (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+L_minus_M_StdTS_B = (std(timeSeriesStore(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_B = (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
 
 % DO THE SAME FOR THE 'RECONSTRUCTED' TIME SERIES'
 LightFluxAvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:));
@@ -567,109 +542,58 @@ S_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:))
 
 yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])];
 
-%% PLOTS UPON PLOTS
+%% TTF AND HRF PLOTS
 [wftd1, fp1] = fitWatsonToTTF_errorGuided(stimHz,LightFluxBeta,LightFluxBetaSE,1); hold on
 errorbar(stimHz,LightFluxBeta,LightFluxBetaSE,'ko');
 set(gca,'FontSize',15);
 set(gca,'Xtick',stimHz);
 title('Light flux');
-[wftd2, fp2] = fitWatsonToTTF_errorGuided(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,1);
+[wftd2, fp2] = fitWatsonToTTF_errorGuided(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
 errorbar(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,'ko');
 set(gca,'FontSize',15);
 set(gca,'Xtick',stimHz);
 title('L - M');
-[wftd3, fp3] = fitWatsonToTTF_errorGuided(stimHz,S_Beta,S_BetaSE,1);
+[wftd3, fp3] = fitWatsonToTTF_errorGuided(stimHz,S_Beta,S_BetaSE,1); hold on
 errorbar(stimHz,S_Beta,S_BetaSE,'ko');
 set(gca,'FontSize',15);
 set(gca,'Xtick',stimHz);
 title('S');
 
 figure;
-errorbar(T_R.*(1:lengthAttnHRF),mean(hrfMat),std(hrfMat)./sqrt(size(hrfMat,1)),'LineWidth',2);
-xlabel('Time/s'); ylabel('% signal change'); title('HRF from FIR');
+errorbar(T_R.*(1:lengthAttnHRF)-1,mean(hrfStore),std(hrfStore)./sqrt(size(hrfStore,1)),'LineWidth',2);
+xlabel('Time/s'); ylabel('% signal change'); title('HRF obtained using FIR');
 set(gca,'FontSize',15);
 
+%% TIME SERIES PLOTS
 figure;
 set(gcf,'Position',[156 372 1522 641])
 
 subplot(3,2,1)
-plot(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A); hold on
-plot(T_R.*(1:length(LightFluxAvgTS_A)),interp1(t,LightFluxAvgTS_Model_A,T_R.*(1:length(LightFluxAvgTS_A))));
-text(startTimesMatSorted_A,repmat(max(LightFluxAvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
+plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A);
 title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
-fill([T_R.*(1:length(LightFluxAvgTS_A)) T_R.*(fliplr(1:length(LightFluxAvgTS_A)))], ...
-     [LightFluxAvgTS_A+LightFluxStdTS_A fliplr(LightFluxAvgTS_A-LightFluxStdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
-makeStimColorLine(startTimesMatSorted_A, ...
-                  repmat(min(LightFluxAvgTS_A-LightFluxStdTS_A), ...
-                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
 
 subplot(3,2,3)
-plot(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A); hold on
-plot(T_R.*(1:length(L_minus_M_AvgTS_A)),interp1(t,L_minus_M_AvgTS_Model_A,T_R.*(1:length(L_minus_M_AvgTS_A))));
-text(startTimesMatSorted_A,repmat(max(L_minus_M_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
+plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A);
 title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
-fill([T_R.*(1:length(L_minus_M_AvgTS_A)) T_R.*(fliplr(1:length(L_minus_M_AvgTS_A)))], ...
-     [L_minus_M_AvgTS_A-L_minus_M_StdTS_A fliplr(L_minus_M_AvgTS_A+L_minus_M_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
-makeStimColorLine(startTimesMatSorted_A, ...
-                  repmat(min(L_minus_M_AvgTS_A-L_minus_M_StdTS_A), ...
-                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
               
 subplot(3,2,5)
-plot(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A); hold on
-plot(T_R.*(1:length(S_AvgTS_A)),interp1(t,S_AvgTS_Model_A,T_R.*(1:length(S_AvgTS_A))));
-text(startTimesMatSorted_A,repmat(max(S_AvgTS_A),[1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A_cell);
+plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A);
 title('S A'); xlabel('Time / s'); ylabel('% signal change');
-fill([T_R.*(1:length(S_AvgTS_A)) T_R.*(fliplr(1:length(S_AvgTS_A)))], ...
-     [S_AvgTS_A-S_StdTS_A fliplr(S_AvgTS_A+S_StdTS_A)],'k','FaceAlpha',0.15,'EdgeColor','none');
-makeStimColorLine(startTimesMatSorted_A, ...
-                  repmat(min(S_AvgTS_A-S_StdTS_A), ...
-                  [1 length(startTimesMatSorted_A)]),stimValuesMatSorted_A)
  
 subplot(3,2,2)
-plot(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B); hold on
-plot(T_R.*(1:length(LightFluxAvgTS_B)),interp1(t,LightFluxAvgTS_Model_B,T_R.*(1:length(LightFluxAvgTS_B))));
+plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B);
 title('Light flux B');
-fill([T_R.*(1:length(LightFluxAvgTS_B)) T_R.*(fliplr(1:length(LightFluxAvgTS_B)))], ...
-     [LightFluxAvgTS_B+LightFluxStdTS_B fliplr(LightFluxAvgTS_B-LightFluxStdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
-text(startTimesMatSorted_B,repmat(max(LightFluxAvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
-makeStimColorLine(startTimesMatSorted_B, ...
-                  repmat(min(LightFluxAvgTS_B-LightFluxStdTS_B), ...
-                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
  
- subplot(3,2,4)
-plot(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B); hold on
-plot(T_R.*(1:length(L_minus_M_AvgTS_B)),interp1(t,L_minus_M_AvgTS_Model_B,T_R.*(1:length(L_minus_M_AvgTS_B))));
-text(startTimesMatSorted_B,repmat(max(L_minus_M_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
+subplot(3,2,4)
+plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B);
 title('L - M B');
-fill([T_R.*(1:length(L_minus_M_AvgTS_B)) T_R.*(fliplr(1:length(L_minus_M_AvgTS_B)))], ...
-     [L_minus_M_AvgTS_B-L_minus_M_StdTS_B fliplr(L_minus_M_AvgTS_B+L_minus_M_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
-makeStimColorLine(startTimesMatSorted_B, ...
-                  repmat(min(L_minus_M_AvgTS_B-L_minus_M_StdTS_B), ...
-                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
               
 subplot(3,2,6)
-plot(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B); hold on
-plot(T_R.*(1:length(S_AvgTS_B)),interp1(t,S_AvgTS_Model_B,T_R.*(1:length(S_AvgTS_B))));
-text(startTimesMatSorted_B,repmat(max(S_AvgTS_B),[1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B_cell);
+plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
 title('S B');
-fill([T_R.*(1:length(S_AvgTS_B)) T_R.*(fliplr(1:length(S_AvgTS_B)))], ...
-     [S_AvgTS_B-S_StdTS_B fliplr(S_AvgTS_B+S_StdTS_B)],'k','FaceAlpha',0.15,'EdgeColor','none');
-makeStimColorLine(startTimesMatSorted_B, ...
-                  repmat(min(S_AvgTS_B-S_StdTS_B), ...
-                  [1 length(startTimesMatSorted_B)]),stimValuesMatSorted_B)
-
-% figure;
-% set(gcf,'Position',[441 557 1116 420])
-% subplot(1,3,1)
-% semilogx(stimHz,LightFluxBeta,'-ko','LineWidth',2,'MarkerSize',10); axis square;
-% set(gca,'FontSize',15);
-% set(gca,'Xtick',stimHz);
-% xlabel('Stimulus frequency'); ylabel('% signal change');
-% ylim(yLimits);
-% title('Light flux');
-% subplot(1,3,2)
-% semilogx(stimHz,L_minus_M_Beta,'-ro','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-% title('L-M'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
-% subplot(1,3,3)
-% semilogx(stimHz,S_Beta,'-bo','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-% title('S'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);

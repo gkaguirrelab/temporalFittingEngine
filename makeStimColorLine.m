@@ -11,7 +11,7 @@ function makeStimColorLine(stimXcoordinates,stimYcoordinates,stimValues)
 % DEFINE BLACK COLOR
 blackWhiteArr = [1 1 1];
 % DEFINE A BUNCH OF GRAYSCALE LEVELS
-blackWhiteArrGradient = linspace(0,1,length(unique(stimValues)-2));
+blackWhiteArrGradient = linspace(0,1,length(unique(stimValues)));
 % ASSIGN EACH LEVEL TO A GIVEN STIMULUS VALUE
 colorStimLookup = [unique(stimValues)' flipud(blackWhiteArrGradient')];
 
