@@ -34,7 +34,7 @@ if nargin==0
     t = linspace(0,15,16);
     data = [0,0.0031,0.0361,0.1008,0.1561,0.1746,0.1584,0.1232,0.0844, ...
             0.0510,0.0265,0.0105,0.0013,-0.0032,-0.0047,-0.0047];
-    stdError = ones(1,16);
+    stdError = ones(1,16)/30;
         
     displayFitPlot=true;
 end
@@ -59,15 +59,22 @@ end
 %% define default parameters
 
 % Initial guess for the parameters to define the Watson fit
+%   lag
+%   amplitude -- overall amplitude
 %   gamma1 -- positive gamma parameter (roughly, time-to-peak in seconds)
 %   gamma2 -- negative gamma parameter (roughly, time-to-peak in seconds)
 %   Scale  -- scaling factor between the positive and negative gamma componenets
 
 % parameters of the double-gamma hemodynamic filter (HRF)
 
-initialParams(1) = 6;
-initialParams(2) = 12;
-initialParams(3) = 10;
+initialParams(1) = -1;
+initialParams(2) = 1;
+initialParams(3) = 5;
+initialParams(4) = 10;
+initialParams(5) = .5;
+
+LowerBounds=[-2,-inf,3,6,0];
+UpperBounds=[2,+inf,8,14,1];
 
 if nargin==5
     initialParams=initialParamsIn;
@@ -82,7 +89,7 @@ offset=data(1);
 data=data-offset;
 
 % Run the optimization. We will return these params.
-fitParams = fminsearch( (@(p) doubleGammaModelFit(p, t, stdError, data)), initialParams);
+fitParams = fminsearchbnd( (@(p) doubleGammaModelFit(p, t, stdError, data)), initialParams, LowerBounds, UpperBounds);
 
 % Obtain the Double Gamma model fit at the passed time points. This might
 % be used for plotting.
@@ -97,7 +104,8 @@ if displayFitPlot
     y = abs(doubleGammaModel(t_fine, fitParams));
     % Plot the data
     r1 = plot(t, data+offset, 'sr', 'MarkerFaceColor', 'r'); hold on;
-    
+    hold on
+    errorbar(t,data+offset,stdError);
     % Plot the finely sampled fit
     r2 = plot(t_fine, y+offset, '-k');
     
@@ -132,12 +140,15 @@ function H = doubleGammaModel(t, params)
 
 % Un-pack the passed parameters
 
-params_gamma1 = params(1);             % time constant of the center filter (in seconds)
-params_gamma2 = params(2);           % multiplier of the time-constant for the surround
-params_gammaScale = params(3); % amplitude of the center filter
+params_lag = params(1);
+params_amplitude = params(2);
+params_gamma1shape = params(3); 
+params_gamma2shape = params(4); 
+params_gammaScale = params(5);  % relative amplitude of neg to pos gamma
 
 % Generate the model. We return H.
 
-H = gampdf(t, params_gamma1, 1) - ...
-    gampdf(t, params_gamma2, 1)/params_gammaScale;
+H =  params_amplitude * ...
+    (gampdf(t+params_lag, params_gamma1shape, 1) - ...
+     gampdf(t+params_lag, params_gamma2shape, 1)*params_gammaScale);
 
