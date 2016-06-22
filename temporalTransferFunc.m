@@ -626,19 +626,3 @@ subplot(3,2,6)
 plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
                  startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
 title('S B');
-%%
-% figure;
-% set(gcf,'Position',[441 557 1116 420])
-% subplot(1,3,1)
-% semilogx(stimHz,LightFluxBeta,'-ko','LineWidth',2,'MarkerSize',10); axis square;
-% set(gca,'FontSize',15);
-% set(gca,'Xtick',stimHz);
-% xlabel('Stimulus frequency'); ylabel('% signal change');
-% ylim(yLimits);
-% title('Light flux');
-% subplot(1,3,2)
-% semilogx(stimHz,L_minus_M_Beta,'-ro','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-% title('L-M'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
-% subplot(1,3,3)
-% semilogx(stimHz,S_Beta,'-bo','LineWidth',2,'MarkerSize',10); axis square; ylim(yLimits);
-% title('S'); set(gca,'FontSize',15); set(gca,'Xtick',stimHz);
