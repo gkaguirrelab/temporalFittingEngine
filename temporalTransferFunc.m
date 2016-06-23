@@ -41,11 +41,16 @@ localDropboxDir = ['/Users/',strtrim(user_name),'/Dropbox-Aguirre-Brainard-Lab/'
 
 %% HRF PARAMETERS (GRABBED FROM WINAWER MODEL CODE)
 
-param = struct;
-% parameters of the double-gamma hemodynamic filter (HRF)
-param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
-param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
-param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
+% 1 = USE CANONICAL HRF, 0 = USE THE FIR-EXTRACTED HRF
+bCanonicalHRF = 1;
+
+if bCanonicalHRF == 1
+    param = struct;
+    % parameters of the double-gamma hemodynamic filter (HRF)
+    param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
+    param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
+    param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
+end
 
 % DURATION OF STIMULUS (ALWAYS THE SAME)
 stimTime = 12;
@@ -468,9 +473,7 @@ for i = 1:length(folderNameCell)
    
    % ADD TO THE DESIGN MATRIX
    regMatrix(:,size(regMatrix,2)+1) = attnCovariateDownSampled - mean(attnCovariateDownSampled);
-   
-   % UPSAMPLE THE TIME SERIES DATA
-%   AVGtsUpsampled = interp1(1:length(avgTS(i,:)),avgTS(i,:),t,'linear','extrap');
+  
    % OBTAIN BETA WEIGHTS AND PLOT
    betaWeights = regMatrix\avgTS(i,:)'; 
    
@@ -504,41 +507,41 @@ end
 %% AVERAGING A BUNCH OF THINGS TOGETHER
 
 % CONVERT MEAN-SUBTRACTED BETA VALUES TO PERCENTAGES
-LightFluxBeta = mean(betaMatrix(stimTypeArr == 1,:)).*100;
+LightFluxBeta =  mean(betaMatrix(stimTypeArr == 1,:)).*100;
 L_minus_M_Beta = mean(betaMatrix(stimTypeArr == 2,:)).*100;
-S_Beta = mean(betaMatrix(stimTypeArr == 3,:)).*100;
+S_Beta =         mean(betaMatrix(stimTypeArr == 3,:)).*100;
 
 % COMPUTE STANDARD ERROR
-LightFluxBetaSE = ((std(betaMatrix(stimTypeArr == 1,:)))./sqrt(numberOfRuns)).*100;
+LightFluxBetaSE =  ((std(betaMatrix(stimTypeArr == 1,:)))./sqrt(numberOfRuns)).*100;
 L_minus_M_BetaSE = ((std(betaMatrix(stimTypeArr == 2,:)))./sqrt(numberOfRuns)).*100;
-S_BetaSE = ((std(betaMatrix(stimTypeArr == 3,:)))./sqrt(numberOfRuns)).*100;
+S_BetaSE =         ((std(betaMatrix(stimTypeArr == 3,:)))./sqrt(numberOfRuns)).*100;
 
 % AVERAGE TIME SERIES FOR EACH COMBINATION OF STIMULUS TYPE AND RUN ORDER
-LightFluxAvgTS_A = mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:));
+LightFluxAvgTS_A =  mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:));
 L_minus_M_AvgTS_A = mean(timeSeriesStore(stimTypeArr == 2 & runOrder == 'A',:));
-S_AvgTS_A = mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:));
+S_AvgTS_A =         mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:));
 
-LightFluxAvgTS_B = mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:));
+LightFluxAvgTS_B =  mean(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:));
 L_minus_M_AvgTS_B = mean(timeSeriesStore(stimTypeArr == 2 & runOrder == 'B',:));
-S_AvgTS_B = mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:));
+S_AvgTS_B =         mean(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:));
 
 % STANDARD ERROR OF TIME SERIES
-LightFluxStdTS_A = (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_A =  (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 L_minus_M_StdTS_A = (std(timeSeriesStore(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
-S_StdTS_A = (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_A =         (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder);
 
-LightFluxStdTS_B = (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+LightFluxStdTS_B =  (std(timeSeriesStore(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
 L_minus_M_StdTS_B = (std(timeSeriesStore(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
-S_StdTS_B = (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
+S_StdTS_B =         (std(timeSeriesStore(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder);
 
 % DO THE SAME FOR THE 'RECONSTRUCTED' TIME SERIES'
-LightFluxAvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:));
+LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:));
 L_minus_M_AvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'A',:));
-S_AvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'A',:));
+S_AvgTS_Model_A =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'A',:));
 
-LightFluxAvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'B',:));
+LightFluxAvgTS_Model_B =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'B',:));
 L_minus_M_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'B',:));
-S_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:));
+S_AvgTS_Model_B =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:));
 
 yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])];
 
