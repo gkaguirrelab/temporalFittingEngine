@@ -1,6 +1,6 @@
-function [yBOLD] = createBOLDTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
+function [yBOLD] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
 
-%% createBOLDTemporalModel
+%% createNeuralTemporalModel
 %
 % This function models a BOLD fMRI response given a vector of
 % stimulus input, a vector of time points, and a set of parameters.
@@ -10,12 +10,23 @@ function [yBOLD] = createBOLDTemporalModel(t, yStimulus, displayFitPlotIn, param
 %  - a neural impulse response function (modeled as a gamma function)
 %  - a compressive non-linearity
 %  - a delayed, divisive normalization stage
-%  - convolution with a hemodynamic response function
 %
 % The approach is inspired by:
 %
 %   Zhou, Benson, Kay, Winawer (2016) VSS annual meeting
 %   Temporal Summation and Adaptation in Human Visual Cortex
+%
+%   With additional modeling details taken from:
+%
+%   McLelland, D., Ahmed, B., & Bair, W. (2009). Responses to static visual
+%   images in macaque lateral geniculate nucleus: implications for
+%   adaptation, negative afterimages, and visual fading. 
+%   The Journal of Neuroscience, 29(28), 8996-9001.
+%
+%   McLelland, D., Baker, P. M., Ahmed, B., & Bair, W. (2010). 
+%   Neuronal responses during and after the presentation of static visual
+%   stimuli in macaque primary visual cortex.
+%   The Journal of Neuroscience, 30(38), 12619-12631.
 %
 % Input properties:
 %
@@ -26,7 +37,14 @@ function [yBOLD] = createBOLDTemporalModel(t, yStimulus, displayFitPlotIn, param
 %   paramIn - a structure of parameters that define the model. These are
 %             described below. Optional.
 %
-% 05-30-2016    -  gka wrote it
+% Output properties:
+%
+%   yBOLD - a vector of response amplitudes, of the same length as t.
+%
+%
+% 05-30-2016 -  gka wrote it
+% 06-23-2016 -  gka modified to serve as a function call in fminsearch
+%
 %
 
 
@@ -80,6 +98,10 @@ if nargin==3
 end
 
 %% define default parameters
+
+% parameters of the stimulus
+param.blocklength = 12 % stimulus block length (in seconds). This is needed to know where to place the after response.
+
 
 % parameters of the neural filters
 param.tau1 = 0.005;   % time constant of the neural IRF (in seconds)
@@ -200,8 +222,6 @@ if displayFitPlot
 end
 
 %% Return yBOLD
-% For some fitting applications, it is useful to scale yBOLD to have unit
-% amplitude
 
-yBOLD=yBOLD/max(yBOLD);
+yBOLD=yBOLD;
 
