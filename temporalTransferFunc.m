@@ -27,7 +27,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_asb1';
+subj_name = 'HERO_gka1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
@@ -42,7 +42,7 @@ localDropboxDir = ['/Users/',strtrim(user_name),'/Dropbox-Aguirre-Brainard-Lab/'
 %% HRF PARAMETERS (GRABBED FROM WINAWER MODEL CODE)
 
 % 1 = USE CANONICAL HRF, 0 = USE THE FIR-EXTRACTED HRF
-bCanonicalHRF = 1;
+bCanonicalHRF = 0;
 
 if bCanonicalHRF == 1
     param = struct;
@@ -416,16 +416,25 @@ for i = 1:length(folderNameCell)
    regMatrix = [];
    
    % MAKE HRF (TAKEN FROM GEOFF'S WINAWER MODEL CODE)
-   % TOTAL DURATION IS SIMPLY LARGEST TIME VALUE
-   modelDuration=floor(max(stimPlotsTimeSamples));
-   modelResolution=20; 
-   % TIME SAMPLES TO INTERPOLATE
-   t = linspace(1,modelDuration,modelDuration.*modelResolution);
-   % DOUBLE GAMMA HRF
-    BOLDHRF = gampdf(t, param.gamma1, 1) - ...
-    gampdf(t, param.gamma2, 1)/param.gammaScale;
-    % scale to unit sum to preserve amplitude of y following convolution
-    BOLDHRF = BOLDHRF/sum(BOLDHRF);
+       % TOTAL DURATION IS SIMPLY LARGEST TIME VALUE
+       modelDuration=floor(max(stimPlotsTimeSamples));
+       modelResolution=20; 
+       % TIME SAMPLES TO INTERPOLATE
+       t = linspace(1,modelDuration,modelDuration.*modelResolution);
+       
+   if bCanonicalHRF == 1     
+       % DOUBLE GAMMA HRF
+       BOLDHRF = gampdf(t, param.gamma1, 1) - ...
+       gampdf(t, param.gamma2, 1)/param.gammaScale;
+       % scale to unit sum to preserve amplitude of y following convolution
+       BOLDHRF = BOLDHRF/sum(BOLDHRF);
+   else
+       load([subj_name '_HRF']);
+       BOLDHRF_unInterp = zeros([1 length(avgTS(i,:))]);
+       BOLDHRF_unInterp(1:length(hrf)) = hrf;
+       BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
+       BOLDHRF(isnan(BOLDHRF)) = 0;
+   end
     
    % LOOP OVER POSSIBLE STIMULUS VALUES 
    for j = 1:length(stimHz)
