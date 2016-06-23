@@ -431,9 +431,11 @@ for i = 1:length(folderNameCell)
    else
        load([subj_name '_HRF']);
        BOLDHRF_unInterp = zeros([1 length(avgTS(i,:))]);
+       hrf = hrf-hrf(1);
        BOLDHRF_unInterp(1:length(hrf)) = hrf;
        BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
        BOLDHRF(isnan(BOLDHRF)) = 0;
+       
    end
     
    % LOOP OVER POSSIBLE STIMULUS VALUES 
