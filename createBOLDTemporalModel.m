@@ -1,8 +1,8 @@
-function [yBOLD] = fitWinawerModelToBOLD(t, yStimulus, displayFitPlotIn, paramIn)
+function [yBOLD] = createBOLDTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
 
-%% fitWinawerModelToBOLD
+%% createBOLDTemporalModel
 %
-% This function produces a predicted BOLD fMRI response given a vector of
+% This function models a BOLD fMRI response given a vector of
 % stimulus input, a vector of time points, and a set of parameters.
 %
 % The model includes the following stages:
