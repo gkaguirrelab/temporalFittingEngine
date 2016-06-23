@@ -303,8 +303,7 @@ for i = 1:length(folderNameCell)
           % SOMETIMES IT IS A TWO-DIGIT NUMBER, AND OTHER TIMES A ONE-DIGIT
           % NUMBER (0,2,4,8,16,32,OR 64)
           if str2num(freqValueTxt)
-              freqValueNum = str2num(freqValueTxt);
-              
+              freqValueNum = str2num(freqValueTxt);             
           else
               freqValueNum = str2num(freqValueTxt(2));            
           end
@@ -431,11 +430,12 @@ for i = 1:length(folderNameCell)
    else
        load([subj_name '_HRF']);
        BOLDHRF_unInterp = zeros([1 length(avgTS(i,:))]);
+       % ALIGN HRF WITH 0 MARK
        hrf = hrf-hrf(1);
        BOLDHRF_unInterp(1:length(hrf)) = hrf;
+       % UPSAMPLE HRF
        BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
-       BOLDHRF(isnan(BOLDHRF)) = 0;
-       
+       BOLDHRF(isnan(BOLDHRF)) = 0;       
    end
     
    % LOOP OVER POSSIBLE STIMULUS VALUES 
