@@ -235,7 +235,10 @@ end
 
 %% Return yNeural
 
-% Note that yNeural has a negative after response. This should be rectified
-% prior to convolution with the HRF.
-yNeural=yNeural;
+% yNeural has a negative after response, reflecting what is observed in LFP
+% measurements. As we will be convolving this with an HRF, we rectify the
+% signal to reflect total synaptic activity, which is what drives the BOLD
+% response.
+
+yNeural=abs(yNeural);
 paramNeural=param;
