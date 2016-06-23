@@ -27,7 +27,7 @@ elseif ispc
 
 %% SPECIFY SUBJECT AND SESSION, AND DROPBOX FOLDER
 
-subj_name = 'HERO_gka1';
+subj_name = 'HERO_asb1';
 %     'HERO_asb1' 
 %     'HERO_gka1'
 
