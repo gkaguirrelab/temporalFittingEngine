@@ -1,4 +1,4 @@
-function [yBOLD] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
+function [yBOLD,t,param] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
 
 %% createNeuralTemporalModel
 %
@@ -28,6 +28,14 @@ function [yBOLD] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, par
 %   Neuronal responses during and after the presentation of static visual
 %   stimuli in macaque primary visual cortex.
 %   The Journal of Neuroscience, 30(38), 12619-12631.
+%
+% This model implements a negative after-response. Based upon the findings
+%   of McLelland et al., 2010, it seems that (for the most part) V1 neurons
+%   respond with an after-response that has an amplitude that is
+%   proportional to the main response, with a very similar time constant.
+%
+%   We adopt these properties in the model by treating the after-response
+%   as an inverted, shifted, and scaled version of the main-response.
 %
 % Input properties:
 %
@@ -101,26 +109,23 @@ end
 %% define default parameters
 
 % parameters of the stimulus
-param.blocklength = 12 % stimulus block length (in seconds). This is needed to know where to place the after response.
-
+param.blocklength = 11; % stimulus block length (in seconds). This is needed to know where to place the after response.
 
 % parameters of the neural filters
-param.tau1 = 0.005;   % time constant of the neural IRF (in seconds)
-param.epsilon = 0.35; % compressive non-linearity parameter
-param.tau2 = 0.1;     % time constant of the low-pass (exponential decay) component of delayed normalization
-param.sigma = 0.13;   % constant scaling factor of the divisive normalization
-param.n = 0.5;        % the order of the delayed normalization
+param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response
+param.ARampRelative = 0.25; % multiplicative scaling of the after neural response, relative to main response
+param.tau1 = 0.005;         % time constant of the neural IRF (in seconds)
+param.epsilon = 0.35;       % compressive non-linearity parameter
+param.tau2 = 0.5;           % time constant of the low-pass (exponential decay) component of delayed normalization
 
-% parameters of the double-gamma hemodynamic filter (HRF)
-param.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in seconds)
-param.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in seconds)
-param.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
+% currently unused parameters Zhou & Winawer neural model
+%param.sigma = 1;        % constant scaling factor of the divisive normalization
+%param.n = 0.5;             % the order of the delayed normalization
 
 % if no parameters were passed in, use the defaults
 if nargin==4
     param=paramIn;
 end
-
 
 
 %% Implement the neural stage
@@ -131,9 +136,10 @@ neuralIRF = t .* exp(-t/param.tau1);
 % scale to unit sum to preserve amplitude of y following convolution
 neuralIRF=neuralIRF/sum(neuralIRF);
 
-% Obtain first stage, linear model, which is the stimulus vector convolved
-% by the neural IRF
-yLinear = conv(yStimulus,neuralIRF);
+% Obtain first stage, linear model, which is the stimulus vector with a 
+% multiplicative amplitude parameter, then convolved by the neural IRF.
+
+yLinear = conv(yStimulus*param.MRamplitude,neuralIRF);
 
 % Truncate the convolved vector to the input length. Not sure why I have to
 % do this. Probably mis-using the conv function.
@@ -164,36 +170,41 @@ yCTS = yLinear.^param.epsilon;
 % properties of the normalization
 decayingExponential=(exp(-1*param.tau2*t));
 
-% scale to have unit sum to preserve amplitude after convolution
-decayingExponential=decayingExponential/sum(decayingExponential);
 
-% convolve the neural response by the decaying exponential
-yCTSDecayed=conv(yCTS,decayingExponential);
-
-% Truncate the convolved vector to the input length. Not sure why I have to
-% do this. Probably mis-using the conv function.
-yCTSDecayed=yCTSDecayed(1:modelLength);
-
+%% As we are modeling MRI data, we are currently skipping several features
+% of the Zhou & Winawer model. We use the decaying exponential only as a
+% multiplicative weight for the neural response.
+%
+% % scale to have unit sum to preserve amplitude after convolution
+% decayingExponential=decayingExponential/sum(decayingExponential);
+% 
+% % convolve the neural response by the decaying exponential
+% yCTSDecayed=conv(yCTS,decayingExponential);
+% 
+% % Truncate the convolved vector to the input length. Not sure why I have to
+% % do this. Probably mis-using the conv function.
+% yCTSDecayed=yCTSDecayed(1:modelLength);
+%
 % Assemble the delayed, divisive normalization response
-yDN = (yCTS.^param.n) ./ ... % the numerator
-      ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
+%
+% yNeuralMR = (yCTS.^param.n) ./ ... % the numerator
+%       ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
 
+%% Here we apply the exponential function.
 
-%% Convolve the neural model by the BOLD HRF
+decayingExponential=decayingExponential/max(decayingExponential);
+yNeuralMR = yCTS.*decayingExponential;
 
-% Create a double-gamma model of the hemodynamic response function (HRF)
-BOLDHRF = gampdf(t, param.gamma1, 1) - ...
-    gampdf(t, param.gamma2, 1)/param.gammaScale;
+%% Create the after-response
+% This is assumed to be a shifted, scaled version of the main response.
 
-% scale to unit sum to preserve amplitude of y following convolution
-BOLDHRF = BOLDHRF/sum(BOLDHRF);
+% Scale, invert, shift, and blank out the circular wrapping)
+yNeuralAR = yNeuralMR * param.ARampRelative * (-1);
+yNeuralAR = circshift(yNeuralAR,[0,param.blocklength]);
+yNeuralAR(1:param.blocklength)=NaN;
 
-% Perform the convolution
-yBOLD = conv(yDN,BOLDHRF);
+yNeural = nansum([yNeuralMR;yNeuralAR]);
 
-% Truncate the convolved vector to the input length. Not sure why I have to
-% do this. Probably mis-using the conv function.
-yBOLD = yBOLD(1:modelLength);
 
 %% Plot the model
 if displayFitPlot
@@ -202,10 +213,8 @@ if displayFitPlot
     hold on;
     r1 = plot(neuralIRF);
     r2 = plot(decayingExponential);
-    r3 = plot(BOLDHRF);
-    plot(BOLDHRF,'.');
     title('Convolution functions used in the model');
-    legend([r1 r2 r3], 'neuralIRF', 'decayingExponential', 'BOLDHRF');
+    legend([r1 r2], 'neuralIRF', 'decayingExponential');
     legend boxoff
     hold off;
     
@@ -214,15 +223,17 @@ if displayFitPlot
     r1 = plot(yStimulus);
     r2 = plot(yLinear);
     r3 = plot(yCTS);
-    r4 = plot(yDN);
-    r5 = plot(yBOLD);
-    legend([r1 r2 r3 r4 r5], 'yStimulus', 'yLinear', 'yCTS', 'yDN', 'yBOLD');
+    r4 = plot(yNeuralMR);
+    r5 = plot(yNeural);
+    legend([r1 r2 r3 r4 r5], 'yStimulus', 'yLinear', 'yCTS', 'yDN', 'yNeural');
     title('Responses at sequential filter stages');
     legend boxoff
     hold off;
 end
 
-%% Return yBOLD
+%% Return yNeural
 
-yBOLD=yBOLD;
+% Note that yNeural has a negative after response. This should be rectified
+% prior to convolution with the HRF.
+yNeural=yNeural;
 
