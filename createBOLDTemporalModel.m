@@ -44,7 +44,7 @@ if nargin==1
 end
 
 % Sanity check the input and derive the modelLength
-if length(yStimulus)~=length(t)
+if length(yNeural)~=length(t)
     msg = 'The vector of time points and the stimulus vector are different lengths.';
     error(msg)
 end

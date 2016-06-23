@@ -1,4 +1,4 @@
-function [yBOLD,t,param] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, paramIn)
+function [yNeural,t,paramNeural] = createNeuralTemporalModel(tIn, yStimulus, displayFitPlotIn, paramIn)
 
 %% createNeuralTemporalModel
 %
@@ -72,13 +72,15 @@ if nargin==0
     
     % Create a stimulus model, which is a simple step function of input,
     % with a half cosine ramp on and off, 
-    t = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain of the model
-    yStimulus = t*0; % the stimulus vector
+    tIn = linspace(1,modelDuration,modelDuration*modelResolution); % the temporal domain of the model
+    yStimulus = tIn*0; % the stimulus vector
     yStimulus(1:(stimulusDuration*modelResolution)) = 1; % implement the step function of input
     halfCosine=(cos(linspace(0,pi,rampDuration*modelResolution))+1)/2;
     yStimulus(1:(rampDuration*modelResolution))=fliplr(halfCosine);
     yStimulus(1+(stimulusDuration*modelResolution)-(rampDuration*modelResolution):(stimulusDuration*modelResolution))=halfCosine;
 end
+
+t=tIn;
 
 % The user just passed a stimulus or a time vector, return an error
 if nargin==1
@@ -236,4 +238,4 @@ end
 % Note that yNeural has a negative after response. This should be rectified
 % prior to convolution with the HRF.
 yNeural=yNeural;
-
+paramNeural=param;
