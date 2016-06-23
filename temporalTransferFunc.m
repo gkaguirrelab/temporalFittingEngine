@@ -558,20 +558,16 @@ yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus
 
 %% TTF AND HRF PLOTS
 [wftd1, fp1] = fitWatsonToTTF_errorGuided(stimHz,LightFluxBeta,LightFluxBetaSE,1); hold on
-errorbar(stimHz,LightFluxBeta,LightFluxBetaSE,'ko');
-set(gca,'FontSize',15);
-set(gca,'Xtick',stimHz);
-title('Light flux');
+errorbar(stimHz,LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
+set(gca,'Xtick',stimHz); title('Light flux');
+
 [wftd2, fp2] = fitWatsonToTTF_errorGuided(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
 errorbar(stimHz,L_minus_M_Beta,L_minus_M_BetaSE,'ko');
-set(gca,'FontSize',15);
-set(gca,'Xtick',stimHz);
-title('L - M');
+set(gca,'FontSize',15); set(gca,'Xtick',stimHz); title('L - M');
+
 [wftd3, fp3] = fitWatsonToTTF_errorGuided(stimHz,S_Beta,S_BetaSE,1); hold on
-errorbar(stimHz,S_Beta,S_BetaSE,'ko');
-set(gca,'FontSize',15);
-set(gca,'Xtick',stimHz);
-title('S');
+errorbar(stimHz,S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
+set(gca,'Xtick',stimHz); title('S');
 
 figure;
 errorbar(T_R.*(1:lengthAttnHRF)-1,mean(hrfStore),std(hrfStore)./sqrt(size(hrfStore,1)),'LineWidth',2);
@@ -579,6 +575,7 @@ xlabel('Time/s'); ylabel('% signal change'); title('HRF obtained using FIR');
 set(gca,'FontSize',15);
 
 %% TIME SERIES PLOTS
+
 figure;
 set(gcf,'Position',[156 372 1522 641])
 
