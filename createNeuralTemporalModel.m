@@ -2,7 +2,7 @@ function [yBOLD] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, par
 
 %% createNeuralTemporalModel
 %
-% This function models a BOLD fMRI response given a vector of
+% This function creates a model of neural response given a vector of
 % stimulus input, a vector of time points, and a set of parameters.
 %
 % The model includes the following stages:
@@ -10,6 +10,7 @@ function [yBOLD] = createNeuralTemporalModel(t, yStimulus, displayFitPlotIn, par
 %  - a neural impulse response function (modeled as a gamma function)
 %  - a compressive non-linearity
 %  - a delayed, divisive normalization stage
+%  - an after response
 %
 % The approach is inspired by:
 %
