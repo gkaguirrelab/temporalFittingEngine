@@ -1,4 +1,4 @@
-function [yNeural,t,paramNeural] = createNeuralTemporalModel(tIn, yStimulus, displayFitPlotIn, paramIn)
+function [yNeural,t,param] = createNeuralTemporalModel(tIn, yStimulus, displayFitPlotIn, paramIn)
 
 %% createNeuralTemporalModel
 %
@@ -10,7 +10,8 @@ function [yNeural,t,paramNeural] = createNeuralTemporalModel(tIn, yStimulus, dis
 %  - a neural impulse response function (modeled as a gamma function)
 %  - a compressive non-linearity
 %  - a delayed, divisive normalization stage
-%  - an after response
+%    [or, a simple multiplicative exponential decay temporal scaling]
+%  - an after-response
 %
 % The approach is inspired by:
 %
@@ -49,7 +50,9 @@ function [yNeural,t,paramNeural] = createNeuralTemporalModel(tIn, yStimulus, dis
 % Output properties:
 %
 %   yBOLD - a vector of response amplitudes, of the same length as t.
-%
+%   t - the temporal vector
+%   paramOut - the parameters passed back out
+%   
 %
 % 05-30-2016 -  gka wrote it
 % 06-23-2016 -  gka modified to serve as a function call in fminsearch
@@ -81,6 +84,7 @@ if nargin==0
 end
 
 t=tIn;
+modelLength = length(t);
 
 % The user just passed a stimulus or a time vector, return an error
 if nargin==1
@@ -88,13 +92,11 @@ if nargin==1
     error(msg)
 end
 
-% Sanity check the input and derive the modelLength
-if length(yStimulus)~=length(t)
+% Sanity check the input
+if length(yStimulus)~=modelLength
     msg = 'The vector of time points and the stimulus vector are different lengths.';
     error(msg)
 end
-
-modelLength = length(t);
 
 % Assume that we do not want to plot the fit unless we receive a
 % corresponding flag, or if no arguments were passed, in which case we will
@@ -114,11 +116,12 @@ end
 param.afterResponseTiming = 10; % Time after stimulus onset at which the offset response occurs.
 
 % parameters of the neural filters
-param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response
-param.ARampRelative = 0.25; % multiplicative scaling of the after neural response, relative to main response
-param.tau1 = 0.005;         % time constant of the neural IRF (in seconds)
-param.epsilon = .35;       % compressive non-linearity parameter
-param.tau2 = 0.5;           % time constant of the low-pass (exponential decay) component of delayed normalization
+param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response. Should be unbounded.
+param.ARampRelative = 0.25; % multiplicative scaling of the after-response, relative to main. Reasonable bounds [0:1]
+param.tau1 = 0.005;         % time constant of the neural IRF (in seconds). In fMRI data modeling, this will be held fixed.
+param.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
+param.tau2 = 1;             % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0011:5] 
+param.rectify = false;       % controls if rectification is performed upon the neural model.
 
 % currently unused parameters Zhou & Winawer neural model
 %param.sigma = 1;        % constant scaling factor of the divisive normalization
@@ -229,6 +232,16 @@ yNeuralAR(1:param.afterResponseTiming)=NaN;
 
 yNeural = nansum([yNeuralMR;yNeuralAR]);
 
+%% Rectify yNeural
+
+% yNeural has a negative after-response, reflecting what is observed in LFP
+% measurements. The param.rectify setting controls if this is converted to
+% a rectified measure to reflect total total synaptic activity, which may
+% be the better model for input to the BOLD system.
+
+if param.rectify
+    yNeural=abs(yNeural);
+end
 
 %% Plot the model
 if displayFitPlot
@@ -254,13 +267,3 @@ if displayFitPlot
     legend boxoff
     hold off;
 end
-
-%% Return yNeural
-
-% yNeural has a negative after response, reflecting what is observed in LFP
-% measurements. As we will be convolving this with an HRF, we rectify the
-% signal to reflect total synaptic activity, which is what drives the BOLD
-% response.
-
-yNeural=abs(yNeural);
-paramNeural=param;
