@@ -26,7 +26,7 @@ elseif ispc
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -46,7 +46,7 @@ dirPathStim = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_d
 
 %% HRF Parameters --(Grabbed from Winawer Model Code)
 
-bCanonicalHRF = 0 ;
+bCanonicalHRF = 1 ;
 % 1 = Use Canonical HRF
 % 0 = Use FIR-extracted HRF
 
