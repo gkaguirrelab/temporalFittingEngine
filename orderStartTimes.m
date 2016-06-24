@@ -39,7 +39,7 @@ for i = 1:numberOfFolders
    end
 end
 
-% Stire Stimulus Order A & B
+% Store Stimulus Order A & B
 stimValuesSorted_A = [] ;
 stimValuesSorted_B = [] ;
 
