@@ -111,13 +111,13 @@ end
 %% define default parameters
 
 % parameters of the stimulus
-param.blocklength = 11; % stimulus block length (in seconds). This is needed to know where to place the after response.
+param.afterResponseTiming = 10; % Time after stimulus onset at which the offset response occurs.
 
 % parameters of the neural filters
 param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response
 param.ARampRelative = 0.25; % multiplicative scaling of the after neural response, relative to main response
 param.tau1 = 0.005;         % time constant of the neural IRF (in seconds)
-param.epsilon = 0.35;       % compressive non-linearity parameter
+param.epsilon = .35;       % compressive non-linearity parameter
 param.tau2 = 0.5;           % time constant of the low-pass (exponential decay) component of delayed normalization
 
 % currently unused parameters Zhou & Winawer neural model
@@ -155,28 +155,27 @@ yLinear = yLinear(1:modelLength);
 % normalization.
 yCTS = yLinear.^param.epsilon;
 
-%% Implement the delayed, divisive normalization stage.
-% (Instantaneous) divisive normalization is described by:
-%
-%   yResponse = Input^n / (sigma^n + Input^n)
-%
-% The computation is implemented over time by weighting the input by a
-% temporal decay function:
-%
-%   yResponseDN(t) = Input(t)^n / (sigma^n + (Input(t) * decay(t))^n)
-%
-% where '*' indicates here convolution and decay is a decaying exponential
-% that is defined by the parameter tau2
-
-% Create the exponential low-pass function that defines the time-domain
-% properties of the normalization
-decayingExponential=(exp(-1*param.tau2*t));
-
-
 %% As we are modeling MRI data, we are currently skipping several features
 % of the Zhou & Winawer model. We use the decaying exponential only as a
 % multiplicative weight for the neural response.
 %
+% %% Implement the delayed, divisive normalization stage.
+% % (Instantaneous) divisive normalization is described by:
+% %
+% %  yResponse = Input^n / (sigma^n + Input^n)
+% %
+% % The computation is implemented over time by weighting the input by a
+% % temporal decay function:
+% %
+% %  yResponseDN(t) = Input(t)^n / (sigma^n + (Input(t) * decay(t))^n)
+% %
+% % where '*' indicates here convolution and decay is a decaying exponential
+% % that is defined by the parameter tau2
+% %
+% % Create the exponential low-pass function that defines the time-domain
+% % properties of the normalization
+%  decayingExponential=(exp(-1*param.tau2*t));
+% 
 % % scale to have unit sum to preserve amplitude after convolution
 % decayingExponential=decayingExponential/sum(decayingExponential);
 % 
@@ -186,15 +185,38 @@ decayingExponential=(exp(-1*param.tau2*t));
 % % Truncate the convolved vector to the input length. Not sure why I have to
 % % do this. Probably mis-using the conv function.
 % yCTSDecayed=yCTSDecayed(1:modelLength);
-%
-% Assemble the delayed, divisive normalization response
-%
+% 
+% % Assemble the delayed, divisive normalization response
 % yNeuralMR = (yCTS.^param.n) ./ ... % the numerator
 %       ( param.sigma^param.n + yCTSDecayed.^param.n );  % the denominator
 
-%% Here we apply the exponential function.
+%% Implement a decaying exponential scaling of the response
+%
+% This is implemented instead of the divisive normalization approach
+% followed in the original Zhou & Winawer model.
+%
+% The tau2 parameter describes the time constant of this multiplicative
+% scaling.
+%
 
+% Create the exponential low-pass function that defines the time-domain
+% properties of the normalization
+decayingExponential=(exp(-1*param.tau2*t));
+
+% Shift and scale the exponential so that the peak coincides with the
+% initial peak response in the yCTS model. This is needed to unconfound the
+% overall amplitude response parameter from the exponential decay
+% parameter.
+
+initialPeak=find(yCTS,max(yCTS));
+initialPeak=initialPeak(1);
+decayingExponential=circshift(decayingExponential,[0,initialPeak]);
 decayingExponential=decayingExponential/max(decayingExponential);
+decayingExponential(1:initialPeak-1)=1;
+
+% Apply the exponential function as a mulitiplicative scaling of the
+% response.
+
 yNeuralMR = yCTS.*decayingExponential;
 
 %% Create the after-response
@@ -202,8 +224,8 @@ yNeuralMR = yCTS.*decayingExponential;
 
 % Scale, invert, shift, and blank out the circular wrapping)
 yNeuralAR = yNeuralMR * param.ARampRelative * (-1);
-yNeuralAR = circshift(yNeuralAR,[0,param.blocklength]);
-yNeuralAR(1:param.blocklength)=NaN;
+yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
+yNeuralAR(1:param.afterResponseTiming)=NaN;
 
 yNeural = nansum([yNeuralMR;yNeuralAR]);
 
