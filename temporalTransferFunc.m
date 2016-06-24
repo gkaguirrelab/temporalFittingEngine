@@ -26,7 +26,7 @@ elseif ispc
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -40,9 +40,11 @@ session = 'all' ;
 % Path to local Dropbox
 localDropboxDir = ['/Users/',strtrim(user_name),'/Dropbox-Aguirre-Brainard-Lab/'] ;
 
+% Define path to folder for one sunject on one date
+dirPathStim = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_data/' ...
+           subj_name '/' session '/' 'Stimuli/'] ;
 
 %% HRF Parameters --(Grabbed from Winawer Model Code)
-
 
 bCanonicalHRF = 0 ;
 % 1 = Use Canonical HRF
@@ -79,10 +81,6 @@ T_R = 1 ;
 TS_timeSamples = 1:336 ;
         
 %% Defining Paths, Order, etc
-
-% Define path to folder for one sunject on one date
-dirPathStim = [localDropboxDir 'MELA_analysis/HCLV_Photo_7T/mriTemporalFitting_data/' ...
-           subj_name '/' session '/' 'Stimuli/'] ;
 
 % load time series
 [avgTS, timeSeriesStore, tsFileNames, stimTypeArr, runOrder] = loadTimeSeriesData(subj_name,session);
