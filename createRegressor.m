@@ -1,6 +1,8 @@
 function regressor = createRegressor(stimulus,stimTimeSamples,hrf,t)
 
 % function regressor = createRegressor(stimulus,stimTimeSamples,hrf,t)
+%
+% upsamples the stimulus to the same resolution as HRF, then convolves
 
 % Sample at Points t
 stimulusUpsampled = interp1(stimTimeSamples,stimulus,t,'linear','extrap') ;

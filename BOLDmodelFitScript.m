@@ -33,6 +33,8 @@ bCanonicalHRF = 0;
 % start times
 [startTimesSorted, stimValuesSorted, attnStartTimes] = orderStartTimes(subj_name,session);
 
+%% HRF AND STIMULUS PARAMETERS
+
 % how long we expect the HRF to be
 lengthHRF = 26;
 % acquisition time
@@ -46,6 +48,8 @@ TS_timeSamples = 1:336;
 % stimulus duration
 stimDuration = 12;
 
+%%
+
 % derive HRF from data
 [BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
 
@@ -58,6 +62,7 @@ stimValuesSorted_B = [] ;
 
 % for each run
 for i = 1:size(startTimesSorted,1)
+    
     % Stores A & B sequences-- For labeling Time Series by Stimulus Period
    if strfind(char(tsFileNames(i)),'_A_') & isempty(stimValuesSorted_A)
       startTimesSorted_A = startTimesSorted(i,startTimesSorted(i,:)~=-1);  
@@ -68,19 +73,23 @@ for i = 1:size(startTimesSorted,1)
    else
       stimOrderMarker = [] ; 
    end
-    % and each stimulus
+   
+    % for each stimulus
    for j = 1:length(actualStimulusValues)
        % grab the starting times
        startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
        % create stimulus model for each one, and sum those models together
        % to get the stimulus model for each stimulus type
        for k = 1:length(startTimesForGivenStimValue)
-           halfCosine(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
+           singleStimModel(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
                         stimDuration,stepFunctionRes,cosRamp);
        end
-       vectorForOneStim(i,j,:) = sum(halfCosine);
+       % there is a vector for each run and stimulus
+       singleStimModelAllRuns(i,j,:) = sum(singleStimModel);
    end
 end
+
+%% RESOLUTION AT WHICH CONVOLUTION OCCURS
 
 % Total Duration is simply Largest time value
 modelDuration=floor(max(TS_timeSamples)) ; 
@@ -89,7 +98,10 @@ modelResolution=20 ;
 % Time Samples to Interpolate
 t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
 
-% in case we use the FIR extracted HRF 
+%%
+
+% in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
+% used
 if strcmp(subj_name,'HERO_asb1')
   hrf = BOLDHRF(1:10);
 elseif strcmp(subj_name,'HERO_gka1')
@@ -99,28 +111,32 @@ else
 end
        
 if bCanonicalHRF == 1     
-   % Double Gamma HRF
+   % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
    clear BOLDHRF
    BOLDHRF = createCanonicalHRF(t,6,12,10);
 else 
+   % initialize vector for HRF
    BOLDHRF_unInterp = zeros([1 length(avgTS(i,:))]);
-   % ALIGN HRF WITH 0 MARK
+   % align HRF with 0 mark
    hrf = hrf-hrf(1);
+   % make it the right size
    BOLDHRF_unInterp(1:length(hrf)) = hrf;
-   % UPSAMPLE HRF
+   % upsample the HRF
    BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
    BOLDHRF(isnan(BOLDHRF)) = 0;       
 end
 
 % LOOP OVER RUNS
-for i = 1:size(vectorForOneStim,1)
+for i = 1:size(singleStimModelAllRuns,1)   
     % LOOP OVER STIMULI WITHIN EACH RUN
-   for j = 1:size(vectorForOneStim,2)
-       regressor = createRegressor(squeeze(vectorForOneStim(i,j,:))',TS_timeSamples,BOLDHRF,t);
+   for j = 1:size(singleStimModelAllRuns,2)
+       regressor = createRegressor(squeeze(singleStimModelAllRuns(i,j,:))',TS_timeSamples,BOLDHRF,t);
+       % create design matrix (ones to be added later)
        designMatrixPreOnes(:,j) = regressor-mean(regressor);
    end
+   % add ones regressor
    designMatrix = [ones([size(designMatrixPreOnes,1) 1]) designMatrixPreOnes] ;
-    % Obtain Beta Weights & Plot
+    % Obtain Beta Weights
    betaWeights = designMatrix\cleanedData(i,:)' ; 
 
    % Beta Weights Sans Weight for the first Regressor
