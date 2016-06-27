@@ -23,7 +23,7 @@ session = 'all' ;
         
 bCanonicalHRF = 0;
 
-%% Defining Paths, Order, etc
+%% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
 % load time series
 [avgTS, avgTSprc, tsFileNames, stimTypeArr, runOrder] ...
@@ -48,7 +48,7 @@ TS_timeSamples = 1:336;
 % stimulus duration
 stimDuration = 12;
 
-%%
+%% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
 [BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
@@ -89,7 +89,7 @@ for i = 1:size(startTimesSorted,1)
    end
 end
 
-%% RESOLUTION AT WHICH CONVOLUTION OCCURS
+%% DEFINE RESOLUTION AT WHICH CONVOLUTION OCCURS
 
 % Total Duration is simply Largest time value
 modelDuration=floor(max(TS_timeSamples)) ; 
@@ -98,7 +98,7 @@ modelResolution=20 ;
 % Time Samples to Interpolate
 t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
 
-%%
+%% GET THE APPROPRIATE HRF, GET REGRESSORS, AND GET BETA
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
