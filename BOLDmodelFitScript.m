@@ -121,6 +121,7 @@ for i = 1:size(startTimesSorted,1)
        startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
        % create stimulus model for each one, and sum those models together
        % to get the stimulus model for each stimulus type
+       singleStimModel = [];
        for k = 1:length(startTimesForGivenStimValue)
            singleStimModel(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
                         stimDuration,stepFunctionRes,cosRamp);
