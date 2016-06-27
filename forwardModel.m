@@ -6,9 +6,25 @@ function [betaMatrix,reconstructedTSmatrix,startTimesSorted_A, ...
           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, ...
           t_convolve,BOLDHRF,cleanedData)
 
-% function forwardModel(startTimesSorted,stimValuesSorted,tsFileNames)
+% function [betaMatrix,reconstructedTSmatrix,startTimesSorted_A, ...
+%           stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, ...
+%           actualStimulusValues] ...
+%                                       = ...
+%           forwardModel(startTimesSorted,stimValuesSorted,tsFileNames, ...
+%           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, ...
+%           t_convolve,BOLDHRF,cleanedData)
 %
 % implements forward model for BOLD fitting project
+%
+% startTimesSorted: vector of starting times
+% stimValuesSorted: stimulus values corresponding to startTimesSorted
+% tsFileNames     : names of time series files corresponding to above
+% TS_timesamples  : time samples for time series
+% stimDuration    : stimulus duration
+% stepFunctionRes : resolution for constructing stimulus vector
+% cosRamp         : duration of cosine ramp, in seconds
+% t_convolve      : time samples of convolution vectors
+% cleanedData     : clean time series data
 
 % get unique stimulus values
 actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
