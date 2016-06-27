@@ -21,6 +21,7 @@ session = 'all' ;
 %     '041416' ...
 %     '041516' ...
         
+% 1 -> use canonical HRF, 0 -> extract HRF using FIR
 bCanonicalHRF = 0;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
@@ -41,10 +42,11 @@ TS_timeSamples = 1:336;
 % how long we expect the HRF to be
 lengthHRF = 26;
 
-% acquisition time
+% acquisition time (only useful for HRF so far)
 T_R = 1;
 
-% Total Duration is simply Largest time value
+% These parameters pertain to the HRF. Total Duration is simply Largest 
+% time value
 modelDuration=floor(max(TS_timeSamples)) ; 
 modelResolution=20 ; 
 
