@@ -21,9 +21,10 @@ session = 'all' ;
 %     '041416' ...
 %     '041516' ...
         
+% 1 -> use canonical HRF, 0 -> extract HRF using FIR
 bCanonicalHRF = 0;
 
-%% Defining Paths, Order, etc
+%% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
 % load time series
 [avgTS, avgTSprc, tsFileNames, stimTypeArr, runOrder] ...
@@ -33,25 +34,65 @@ bCanonicalHRF = 0;
 % start times
 [startTimesSorted, stimValuesSorted, attnStartTimes] = orderStartTimes(subj_name,session);
 
-%% HRF AND STIMULUS PARAMETERS
+% Time Series sampling points
+TS_timeSamples = 1:336;
+
+%% HRF PARAMETERS
 
 % how long we expect the HRF to be
 lengthHRF = 26;
-% acquisition time
+
+% acquisition time (only useful for HRF so far)
 T_R = 1;
+
+% These parameters pertain to the HRF. Total Duration is simply Largest 
+% time value
+modelDuration=floor(max(TS_timeSamples)) ; 
+modelResolution=20 ; 
+
+% Time Samples to Interpolate
+t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
+
+%% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
+
+% derive HRF from data
+[BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
+
+% in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
+% used
+if strcmp(subj_name,'HERO_asb1')
+  hrf = BOLDHRF(1:10);
+elseif strcmp(subj_name,'HERO_gka1')
+  hrf = BOLDHRF(1:14);
+else
+  error('BOLDmodelFitScript: invalid subject');
+end
+       
+if bCanonicalHRF == 1     
+   % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
+   clear BOLDHRF
+   clear hrf
+   BOLDHRF = createCanonicalHRF(t,6,12,10);
+else 
+   % initialize vector for HRF
+   BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
+   % align HRF with 0 mark
+   hrf = hrf-hrf(1);
+   % make it the right size
+   BOLDHRF_unInterp(1:length(hrf)) = hrf;
+   % upsample the HRF
+   BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
+   BOLDHRF(isnan(BOLDHRF)) = 0;       
+end
+
+%% STIMULUS VECTOR CREATION
+
 % resolution to sample stimulus step function
 stepFunctionRes = 50;
 % length of cosine ramp (seconds)
 cosRamp = 3;
-% Time Series sampling points
-TS_timeSamples = 1:336;
 % stimulus duration
 stimDuration = 12;
-
-%%
-
-% derive HRF from data
-[BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
 
 % get unique stimulus values
 actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
@@ -80,6 +121,7 @@ for i = 1:size(startTimesSorted,1)
        startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
        % create stimulus model for each one, and sum those models together
        % to get the stimulus model for each stimulus type
+       singleStimModel = [];
        for k = 1:length(startTimesForGivenStimValue)
            singleStimModel(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
                         stimDuration,stepFunctionRes,cosRamp);
@@ -89,45 +131,11 @@ for i = 1:size(startTimesSorted,1)
    end
 end
 
-%% RESOLUTION AT WHICH CONVOLUTION OCCURS
-
-% Total Duration is simply Largest time value
-modelDuration=floor(max(TS_timeSamples)) ; 
-modelResolution=20 ; 
-
-% Time Samples to Interpolate
-t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
-
-%%
-
-% in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
-% used
-if strcmp(subj_name,'HERO_asb1')
-  hrf = BOLDHRF(1:10);
-elseif strcmp(subj_name,'HERO_gka1')
-  hrf = BOLDHRF(1:14);
-else
-  error('BOLDmodelFitScript: invalid subject');
-end
-       
-if bCanonicalHRF == 1     
-   % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
-   clear BOLDHRF
-   BOLDHRF = createCanonicalHRF(t,6,12,10);
-else 
-   % initialize vector for HRF
-   BOLDHRF_unInterp = zeros([1 length(avgTS(i,:))]);
-   % align HRF with 0 mark
-   hrf = hrf-hrf(1);
-   % make it the right size
-   BOLDHRF_unInterp(1:length(hrf)) = hrf;
-   % upsample the HRF
-   BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
-   BOLDHRF(isnan(BOLDHRF)) = 0;       
-end
+%% GET BETA AND MODEL FIT
 
 % LOOP OVER RUNS
 for i = 1:size(singleStimModelAllRuns,1)   
+    designMatrixPreOnes = [];
     % LOOP OVER STIMULI WITHIN EACH RUN
    for j = 1:size(singleStimModelAllRuns,2)
        regressor = createRegressor(squeeze(singleStimModelAllRuns(i,j,:))',TS_timeSamples,BOLDHRF,t);
