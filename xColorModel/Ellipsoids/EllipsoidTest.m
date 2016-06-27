@@ -1,3 +1,4 @@
+function EllipsoidTest
 % EllipsoidTest
 %
 % Test the ellipsoid code
@@ -18,7 +19,7 @@ xlabel('X'); ylabel('Y'); zlabel('Z'); title('Unit Sphere');
 
 %% Generate the ellipsoid matrices from a vector
 % of ellipsoid parameters
-ellParams = [4 0.5 2 pi/4 pi/8 pi]';
+ellParams = [3 0.8 2 pi/4 pi/8 pi]';
 [A,Ainv,Q] = GenerateEllipsoidMatrices(ellParams);
 
 %% Map the unit sphere into the ellipsoid
@@ -41,3 +42,42 @@ plot3(xSphereCheck(1,:),xSphereCheck(2,:),xSphereCheck(3,:),'ro','MarkerSize',8,
 axis('square');
 xlabel('X'); ylabel('Y'); zlabel('Z'); title('Unit Sphere Check');
 
+%% Add some noise to the ellipsoid, so we can try to fit it
+noiseSd = 0.2;
+xEllipsoid = GenerateEllipsoid(ellParams,nTheta,nPhi);
+xNoisyEllipsoid = xEllipsoid + normrnd(0,noiseSd,size(xEllipsoid));
+figure; clf; hold on
+plot3(xNoisyEllipsoid(1,:),xNoisyEllipsoid(2,:),xNoisyEllipsoid(3,:),'ro','MarkerSize',8,'MarkerFaceColor','r');
+axis('square');
+xlabel('X'); ylabel('Y'); zlabel('Z'); title('Noisy Ellipsoid');
+
+%% Fit that sucker
+%
+% Options
+options = optimset('fmincon');
+options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
+
+a = 0.5;
+b = 0.1;
+x0 = [a b];
+
+% Set reasonable bounds on parameters
+ellParams0 = [1 1 1 0 0 0]';
+vlb = [0.1 0.1 0.1 0 0 0]';
+vub = [1e3 1e3 1e3 2*pi 2*pi 2*pi]';
+
+% Fit
+ellParamsFit = fmincon(@(x)FitEllipseFunction(x,xNoisyEllipsoid),ellParams0,[],[],[],[],vlb,vub,[],options);
+xFitEllipsoid = GenerateEllipsoid(ellParamsFit,nTheta,nPhi);
+plot3(xFitEllipsoid(1,:),xFitEllipsoid(2,:),xFitEllipsoid(3,:),'go','MarkerSize',8,'MarkerFaceColor','g');
+surf([xFitEllipsoid(1,:)',xFitEllipsoid(2,:)',xFitEllipsoid(3,:)']);
+
+
+end
+
+function f = FitEllipseFunction(ellParams,x)
+
+[A,Ainv,Q] = GenerateEllipsoidMatrices(ellParams);
+vectorLengths = diag(x'*Q*x);
+f = sqrt(mean((vectorLengths-1).^2));
+end
