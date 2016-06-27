@@ -113,6 +113,7 @@ end
 if bCanonicalHRF == 1     
    % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
    clear BOLDHRF
+   clear hrf
    BOLDHRF = createCanonicalHRF(t,6,12,10);
 else 
    % initialize vector for HRF
