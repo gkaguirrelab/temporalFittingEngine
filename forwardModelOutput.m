@@ -1,10 +1,6 @@
-function [reconstructedTSmatrix,startTimesSorted_A, ...
-          stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, ...
-          actualStimulusValues,f] ...
-                                      = ...
-          forwardModel(startTimesSorted,stimValuesSorted,tsFileNames, ...
-          TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,stimTypeArr, ...
-          t_convolve,BOLDHRF,cleanedData,neuralParams)
+function f = forwardModelOutput(startTimesSorted,stimValuesSorted,tsFileNames, ...
+          TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, ...
+          t_convolve,BOLDHRF,cleanedData,paramVec)
 
 % function [betaMatrix,reconstructedTSmatrix,startTimesSorted_A, ...
 %           stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, ...
@@ -25,6 +21,11 @@ function [reconstructedTSmatrix,startTimesSorted_A, ...
 % cosRamp         : duration of cosine ramp, in seconds
 % t_convolve      : time samples of convolution vectors
 % cleanedData     : clean time series data
+
+param = paramVec2structZhou(paramVec);
+param.afterResponseTiming = 10;
+param.MRamplitude = 1;
+param.rectify = 1;
 
 % get unique stimulus values
 actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
@@ -48,38 +49,51 @@ for i = 1:size(startTimesSorted,1)
    end
    
     % for each stimulus
-   % for each stimulus
    for j = 1:length(actualStimulusValues)
        % grab the starting times
        startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
        % create stimulus model for each one, and sum those models together
        % to get the stimulus model for each stimulus type
-       singleStimModel = [];
+       singleStimNeuralModel = [];
        for k = 1:length(startTimesForGivenStimValue)
-           % create the stimulus model
-           singleStimModel(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
+           singleStimModel = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
                         stimDuration,stepFunctionRes,cosRamp);
+           yNeural = createNeuralTemporalModel(TS_timeSamples, singleStimModel, 0, param);
+           singleStimNeuralModel(k,:) = yNeural;
        end
        % there is a vector for each run and stimulus
-       singleStimModelAllRuns(i,j,:) = sum(singleStimModel).*neuralParams(stimTypeArr(i),j);
+       singleStimModelNeuralAllRuns(i,j,:) = sum(singleStimNeuralModel);
    end
 end
 
 sumSquaredError = [];
 
-reconstructedTSmatrix = [];
-
 % LOOP OVER RUNS
-for i = 1:size(singleStimModelAllRuns,1)   
-    stimMatrixForOneRun = squeeze(singleStimModelAllRuns(i,:,:));
-    neuralVec = sum(stimMatrixForOneRun);
-    reconstructedTS = createRegressor(neuralVec,TS_timeSamples,BOLDHRF,t_convolve);
-    reconstructedTSmatrix(i,:) = reconstructedTS;
-   % get the error, square it, and sum
-   sumSquaredError(i) = sum((reconstructedTS - cleanedData(i,:)).^2);
+for i = 1:size(singleStimModelNeuralAllRuns,1)   
+    designMatrixPreOnes = [];
+    % LOOP OVER STIMULI WITHIN EACH RUN
+   for j = 1:size(singleStimModelNeuralAllRuns,2)
+       regressor = createRegressor(squeeze(singleStimModelNeuralAllRuns(i,j,:))',TS_timeSamples,BOLDHRF,t_convolve);
+       % create design matrix (ones to be added later)
+       designMatrixPreOnes(:,j) = regressor-mean(regressor);
+   end
+   % add ones regressor
+   designMatrix = [ones([size(designMatrixPreOnes,1) 1]) designMatrixPreOnes] ;
+    % Obtain Beta Weights
+   betaWeights = designMatrix\cleanedData(i,:)' ; 
+
+   % Beta Weights Sans Weight for the first Regressor
+   betaMatrix(i,:) = betaWeights(2:length(betaWeights)) ;
+
+   % Reconstruct Time Series According to Model 
+   reconstructedTS = sum(repmat(betaWeights',[size(designMatrix,1) 1]).*designMatrix,2) ;
+
+   % Store all reconstructed Time Series
+   reconstructedTSmatrix(i,:) = reconstructedTS' ;
+   
+   sumSquaredError(i) = sum((reconstructedTS' - cleanedData(i,:)).^2);
 end
 
-% sum sum-squared-error across all runs
 f = sum(sumSquaredError);
 
 gribble = 1;

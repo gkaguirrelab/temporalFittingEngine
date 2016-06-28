@@ -1,8 +1,4 @@
-function [reconstructedTSmatrix,startTimesSorted_A, ...
-          stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, ...
-          actualStimulusValues,f] ...
-                                      = ...
-          forwardModel(startTimesSorted,stimValuesSorted,tsFileNames, ...
+function f = forwardModelObjectiveFunction(startTimesSorted,stimValuesSorted, ...
           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,stimTypeArr, ...
           t_convolve,BOLDHRF,cleanedData,neuralParams)
 
@@ -14,7 +10,7 @@ function [reconstructedTSmatrix,startTimesSorted_A, ...
 %           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, ...
 %           t_convolve,BOLDHRF,cleanedData)
 %
-% implements forward model for BOLD fitting project
+% implements objective function for forward model for BOLD fitting project
 %
 % startTimesSorted: vector of starting times
 % stimValuesSorted: stimulus values corresponding to startTimesSorted
@@ -29,26 +25,10 @@ function [reconstructedTSmatrix,startTimesSorted_A, ...
 % get unique stimulus values
 actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
 
-% Stire Stimulus Order A & B
-stimValuesSorted_A = [] ;
-stimValuesSorted_B = [] ;
-
 % for each run
 for i = 1:size(startTimesSorted,1)
-    
-    % Stores A & B sequences-- For labeling Time Series by Stimulus Period
-   if strfind(char(tsFileNames(i)),'_A_') & isempty(stimValuesSorted_A)
-      startTimesSorted_A = startTimesSorted(i,startTimesSorted(i,:)~=-1);  
-      stimValuesSorted_A = stimValuesSorted(i,stimValuesSorted(i,:)~=-1); 
-   elseif strfind(char(tsFileNames(i)),'_B_') & isempty(stimValuesSorted_B)
-      startTimesSorted_B = startTimesSorted(i,startTimesSorted(i,:)~=-1); 
-      stimValuesSorted_B = stimValuesSorted(i,stimValuesSorted(i,:)~=-1); 
-   else
-      stimOrderMarker = [] ; 
-   end
    
     % for each stimulus
-   % for each stimulus
    for j = 1:length(actualStimulusValues)
        % grab the starting times
        startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
@@ -67,14 +47,11 @@ end
 
 sumSquaredError = [];
 
-reconstructedTSmatrix = [];
-
 % LOOP OVER RUNS
 for i = 1:size(singleStimModelAllRuns,1)   
     stimMatrixForOneRun = squeeze(singleStimModelAllRuns(i,:,:));
     neuralVec = sum(stimMatrixForOneRun);
     reconstructedTS = createRegressor(neuralVec,TS_timeSamples,BOLDHRF,t_convolve);
-    reconstructedTSmatrix(i,:) = reconstructedTS;
    % get the error, square it, and sum
    sumSquaredError(i) = sum((reconstructedTS - cleanedData(i,:)).^2);
 end
