@@ -8,9 +8,9 @@ function EllipsoidTest
 %% Clear
 clear; close all;
 
-%% Generate points on unit sphere
-nTheta = 20;
-nPhi = 20;
+%% Generate points on unit sphere for simulating data
+nTheta = 10;
+nPhi = 10;
 xSphere = GeneratePointsOn3DUnitSphere(nTheta,nPhi);
 figure; clf; hold on
 plot3(xSphere(1,:),xSphere(2,:),xSphere(3,:),'ro','MarkerSize',8,'MarkerFaceColor','r');
@@ -49,7 +49,7 @@ xNoisyEllipsoid = xEllipsoid + normrnd(0,noiseSd,size(xEllipsoid));
 figure; clf; hold on
 plot3(xNoisyEllipsoid(1,:),xNoisyEllipsoid(2,:),xNoisyEllipsoid(3,:),'ro','MarkerSize',8,'MarkerFaceColor','r');
 axis('square');
-xlabel('X'); ylabel('Y'); zlabel('Z'); title('Noisy Ellipsoid');
+xlabel('X'); ylabel('Y'); zlabel('Z'); title('Noisy Ellipsoid With Fit');
 
 %% Fit that sucker
 %
@@ -57,20 +57,30 @@ xlabel('X'); ylabel('Y'); zlabel('Z'); title('Noisy Ellipsoid');
 options = optimset('fmincon');
 options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
 
-a = 0.5;
-b = 0.1;
-x0 = [a b];
+% Have a go at reasonable initial values
+ellRanges = max(xNoisyEllipsoid,[],2)-min(xNoisyEllipsoid,[],2);
+ellParams0 = [ellRanges' 0 0 0]';
 
 % Set reasonable bounds on parameters
-ellParams0 = [1 1 1 0 0 0]';
 vlb = [0.1 0.1 0.1 0 0 0]';
 vub = [1e3 1e3 1e3 2*pi 2*pi 2*pi]';
 
 % Fit
+nThetaFit = 50;
+nPhiFit = 50;
 ellParamsFit = fmincon(@(x)FitEllipseFunction(x,xNoisyEllipsoid),ellParams0,[],[],[],[],vlb,vub,[],options);
-xFitEllipsoid = GenerateEllipsoid(ellParamsFit,nTheta,nPhi);
-plot3(xFitEllipsoid(1,:),xFitEllipsoid(2,:),xFitEllipsoid(3,:),'go','MarkerSize',8,'MarkerFaceColor','g');
-surf([xFitEllipsoid(1,:)',xFitEllipsoid(2,:)',xFitEllipsoid(3,:)']);
+xFitEllipsoid = GenerateEllipsoid(ellParamsFit,nThetaFit,nPhiFit);
+
+% Plot the fit as a nice surface
+xCoords = squeeze(xFitEllipsoid(1,:));
+yCoords = squeeze(xFitEllipsoid(2,:));
+zCoords = squeeze(xFitEllipsoid(3,:));
+tri = delaunay(xCoords, yCoords, zCoords);
+h = trisurf(tri, xCoords, yCoords, zCoords);
+set(h,'FaceAlpha',0.25)
+set(h,'EdgeColor',[0.5 0.5 0.5])
+set(h,'FaceColor',[0.6 0.6 0.6]);
+lighting phong;
 
 
 end
