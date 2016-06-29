@@ -48,15 +48,15 @@ T_R = 1;
 % These parameters pertain to the HRF. Total Duration is simply Largest 
 % time value
 modelDuration=floor(max(TS_timeSamples)) ; 
-modelResolution=20 ; 
+modelSampleFreq=20 ; 
 
 % Time Samples to Interpolate
-t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
+modelUpsampled_t = linspace(1,modelDuration,modelDuration.*modelSampleFreq) ;
 
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
+[BOLDHRF, cleanedData]= fitHRF_FIR(avgTSprc,attnStartTimes,lengthHRF,T_R);
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
@@ -72,7 +72,7 @@ if bCanonicalHRF == 1
    % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
    clear BOLDHRF
    clear hrf
-   BOLDHRF = createCanonicalHRF(t,6,12,10);
+   BOLDHRF = createCanonicalHRF(modelUpsampled_t,6,12,10);
 else 
    % initialize vector for HRF
    BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
@@ -81,7 +81,7 @@ else
    % make it the right size
    BOLDHRF_unInterp(1:length(hrf)) = hrf;
    % upsample the HRF
-   BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,t);
+   BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,modelUpsampled_t);
    BOLDHRF(isnan(BOLDHRF)) = 0;       
 end
 
@@ -104,7 +104,7 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
 % store the HRF, its time samples, and the amplitudes in the struct
 paramStruct.HRF = BOLDHRF;
-paramStruct.HRFtimeSamples = t;
+paramStruct.HRFtimeSamples = modelUpsampled_t;
 paramStruct.Amplitude = 0.1.*ones([1 6]);
 
 % store amplitudes

@@ -10,7 +10,7 @@ function f = forwardModelObjectiveFunction(stimMatrix,t,data,paramVecFit,paramSt
 neuralVec = sum(repmat(paramVecFit',[1 size(stimMatrix,2)]).*stimMatrix);
 
 % neural to BOLD
-reconstructedTS = createRegressor(neuralVec,t,paramStructFixed.HRF,paramStructFixed.HRFtimeSamples);
+reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStructFixed.HRF,paramStructFixed.HRFtimeSamples);
 
 % get error
 f = mean((data-reconstructedTS).^2);
