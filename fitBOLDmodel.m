@@ -22,7 +22,7 @@ session = 'all' ;
 %     '041516' ...
         
 % 1 -> use canonical HRF, 0 -> extract HRF using FIR
-bCanonicalHRF = 1;
+bCanonicalHRF = 0;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
@@ -96,57 +96,74 @@ stimDuration = 12;
 
 %% GET BETA AND MODEL FIT
 
-% [betaMatrix,reconstructedTSmat,startTimesSorted_A, ...
-%           stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, actualStimulusValues,f] ...
-%                                       = ...
-%           forwardModel(startTimesSorted,stimValuesSorted,tsFileNames, ...
-%           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, ...
-%           t,BOLDHRF,cleanedData);
+% create stimulus vector
+[stimMatrix,startTimesSorted_A,startTimesSorted_B, ...
+stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
+= createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
+TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
-neuralParamsVec = 0.1.*ones([3 6]);
+% store the HRF, its time samples, and the amplitudes in the struct
+paramStruct.HRF = BOLDHRF;
+paramStruct.HRFtimeSamples = t;
+paramStruct.Amplitude = 0.1.*ones([1 6]);
 
-[neuralParamsVec, fval, reconstructedTSmatrix,startTimesSorted_A, ...
-stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B, ...
-actualStimulusValues] ...
-          = ...
-fitNeuralParams(startTimesSorted,stimValuesSorted,tsFileNames, ...
-TS_timeSamples,stimDuration,stepFunctionRes,cosRamp, stimTypeArr, ...
-t,BOLDHRF,cleanedData,neuralParamsVec);
+% store amplitudes
+ampStore = [];
+
+for i = 1:size(stimMatrix,1)
+    [paramStruct,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
+    ampStore(i,:) = paramStruct.Amplitude;
+end
+
+%%
+% Self-Explanatory Variable Names
+numberOfRuns = 12 ;
+numRunsPerStimOrder = 6 ;   % Stim order A -or- B
+
+%% Calculations (Means and Standard Errors)
+
+% Convert Mean-Subtracted Beta values to Percentages
+LightFluxBeta =  mean(ampStore(stimTypeArr == 1,:));
+L_minus_M_Beta = mean(ampStore(stimTypeArr == 2,:));
+S_Beta =         mean(ampStore(stimTypeArr == 3,:));
+
+% Compute Standard Error
+LightFluxBetaSE =  ((std(ampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
+L_minus_M_BetaSE = ((std(ampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
+S_BetaSE =         ((std(ampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
       
 %% TTF & HRF Plots
 
 % Light Flux
-[wftd1, fp1] = fitWatsonToTTF(actualStimulusValues',neuralParamsVec(1,:),1); hold on
+[wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,1); hold on
+errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
 set(gca,'Xtick',actualStimulusValues'); title('Light flux');
 
-[wftd2, fp2] = fitWatsonToTTF(actualStimulusValues',neuralParamsVec(2,:),1); hold on
+[wftd2, fp2] = fitWatsonToTTF_errorGuided(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
+errorbar(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,'ko');
 set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
 % S
-[wftd3, fp3] = fitWatsonToTTF(actualStimulusValues',neuralParamsVec(3,:),1); hold on
+[wftd3, fp3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,1); hold on
+errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
 set(gca,'Xtick',actualStimulusValues'); title('S');
-%% Calculations (Means and Standard Errors)
 
-% % Self-Explanatory Variable Names
-% numberOfRuns = 12 ;
-% numRunsPerStimOrder = 6 ;   % Stim order A -or- B
-% 
-% % Average Time Series for Each Combination of Stimulus Type & Run order
-% LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
-% L_minus_M_AvgTS_A = mean(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)) ;
-% S_AvgTS_A =         mean(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)) ;
-% 
-% LightFluxAvgTS_B =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)) ;
-% L_minus_M_AvgTS_B = mean(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)) ;
-% S_AvgTS_B =         mean(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)) ;
-% 
-% % Standard Error of Time Series
-% LightFluxStdTS_A =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
-% L_minus_M_StdTS_A = (std(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
-% S_StdTS_A =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
-% 
-% LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
-% L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
-% S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
+% Average Time Series for Each Combination of Stimulus Type & Run order
+LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
+L_minus_M_AvgTS_A = mean(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)) ;
+S_AvgTS_A =         mean(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)) ;
+
+LightFluxAvgTS_B =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)) ;
+L_minus_M_AvgTS_B = mean(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)) ;
+S_AvgTS_B =         mean(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)) ;
+
+% Standard Error of Time Series
+LightFluxStdTS_A =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
+L_minus_M_StdTS_A = (std(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
+S_StdTS_A =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)))./sqrt(numRunsPerStimOrder) ;
+
+LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
+L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
+S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 % 
 % % Do the Same for 'Reconstructed' Time Series
 % LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:)) ;
