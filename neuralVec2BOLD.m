@@ -1,6 +1,6 @@
-function regressor = createRegressor(stimulus,stimTimeSamples,hrf,t)
+function regressor = neuralVec2BOLD(stimulus,stimTimeSamples,hrf,t)
 
-% function regressor = createRegressor(stimulus,stimTimeSamples,hrf,t)
+% function regressor = neuralVec2BOLD(stimulus,stimTimeSamples,hrf,t)
 %
 % upsamples the stimulus to the same resolution as HRF, then convolves
 

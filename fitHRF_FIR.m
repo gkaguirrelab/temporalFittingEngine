@@ -1,6 +1,6 @@
-function [HRF, cleanedData] = deriveHRF(timeSeries,attnStartTimes,lengthAttnHRF,T_R)
+function [HRF, cleanedData] = fitHRF_FIR(timeSeries,attnStartTimes,lengthAttnHRF,T_R)
 
-% function HRF = deriveHRF(timeSeries,attnStartTimes)
+% function HRF = fitHRF_FIR(timeSeries,attnStartTimes)
 %
 % derives HRF across multiple runs
 
