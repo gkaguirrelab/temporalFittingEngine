@@ -109,10 +109,13 @@ paramStruct.Amplitude = 0.1.*ones([1 6]);
 
 % store amplitudes
 ampStore = [];
+reconstructedTSmat = [];
 
 for i = 1:size(stimMatrix,1)
     [paramStruct,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
     ampStore(i,:) = paramStruct.Amplitude;
+    [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
+    reconstructedTSmat(i,:) = reconstructedTS;
 end
 
 %%
@@ -131,21 +134,6 @@ S_Beta =         mean(ampStore(stimTypeArr == 3,:));
 LightFluxBetaSE =  ((std(ampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
 L_minus_M_BetaSE = ((std(ampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
 S_BetaSE =         ((std(ampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
-      
-%% TTF & HRF Plots
-
-% Light Flux
-[wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,1); hold on
-errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
-set(gca,'Xtick',actualStimulusValues'); title('Light flux');
-
-[wftd2, fp2] = fitWatsonToTTF_errorGuided(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
-errorbar(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,'ko');
-set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
-% S
-[wftd3, fp3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,1); hold on
-errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
-set(gca,'Xtick',actualStimulusValues'); title('S');
 
 % Average Time Series for Each Combination of Stimulus Type & Run order
 LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
@@ -164,69 +152,84 @@ S_StdTS_A =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)))./sq
 LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
-% 
-% % Do the Same for 'Reconstructed' Time Series
-% LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:)) ;
-% L_minus_M_AvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'A',:)) ;
-% S_AvgTS_Model_A =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'A',:)) ;
-% 
-% LightFluxAvgTS_Model_B =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'B',:)) ;
-% L_minus_M_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'B',:)) ;
-% S_AvgTS_Model_B =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:)) ;
-% 
-% yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])] ;
-% 
-% %% Time Series plots 
-% % Use Function for plotting Data:
-% % -- plotLinModelFits -- 
-% 
-% % Create Cells for Labeling Plots
-% stimValuesMatSorted_A_cell = {} ;
-% for i = 1:length(stimValuesSorted_A)
-%    stimValuesMatSorted_A_cell{i} = num2str(stimValuesSorted_A(i)) ; 
-% end
-% 
-% stimValuesMatSorted_B_cell = {} ;
-% for i = 1:length(stimValuesSorted_B)
-%    stimValuesMatSorted_B_cell{i} = num2str(stimValuesSorted_B(i)) ; 
-% end
-% 
-% % Set Figure Dimensions
-% figure;
-% set(gcf,'Position',[156 372 1522 641])
-% 
-% % Light Flux -A
-% subplot(3,2,1)
-% plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
-%                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A);
-% title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
-% 
-% % L minus M -A
-% subplot(3,2,3)
-% plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
-%                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A);
-% title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
-% 
-% % S -A
-% subplot(3,2,5)
-% plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
-%                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A);
-% title('S A'); xlabel('Time / s'); ylabel('% signal change');
-% 
-% % Light Flux -B
-% subplot(3,2,2)
-% plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
-%                  startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B);
-% title('Light flux B');
-% 
-% % L minus M -B
-% subplot(3,2,4)
-% plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
-%                  startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B);
-% title('L - M B');
-% 
-% % S -B
-% subplot(3,2,6)
-% plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
-%                  startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
-% title('S B');
+ 
+% Do the Same for 'Reconstructed' Time Series
+LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:)) ;
+L_minus_M_AvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'A',:)) ;
+S_AvgTS_Model_A =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'A',:)) ;
+
+LightFluxAvgTS_Model_B =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'B',:)) ;
+L_minus_M_AvgTS_Model_B = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'B',:)) ;
+S_AvgTS_Model_B =         mean(reconstructedTSmat(stimTypeArr == 3 & runOrder == 'B',:)) ;
+
+yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])] ;
+
+%% TTF & HRF Plots
+
+% Light Flux
+[wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,1); hold on
+errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
+set(gca,'Xtick',actualStimulusValues'); title('Light flux');
+
+[wftd2, fp2] = fitWatsonToTTF_errorGuided(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
+errorbar(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,'ko');
+set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
+% S
+[wftd3, fp3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,1); hold on
+errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
+set(gca,'Xtick',actualStimulusValues'); title('S');
+
+%% Time Series plots 
+% Use Function for plotting Data:
+% -- plotLinModelFits -- 
+
+% Create Cells for Labeling Plots
+stimValuesMatSorted_A_cell = {} ;
+for i = 1:length(stimValuesSorted_A)
+   stimValuesMatSorted_A_cell{i} = num2str(stimValuesSorted_A(i)) ; 
+end
+
+stimValuesMatSorted_B_cell = {} ;
+for i = 1:length(stimValuesSorted_B)
+   stimValuesMatSorted_B_cell{i} = num2str(stimValuesSorted_B(i)) ; 
+end
+
+% Set Figure Dimensions
+figure;
+set(gcf,'Position',[156 372 1522 641])
+
+% Light Flux -A
+subplot(3,2,1)
+plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A);
+title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
+
+% L minus M -A
+subplot(3,2,3)
+plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A);
+title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
+
+% S -A
+subplot(3,2,5)
+plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A);
+title('S A'); xlabel('Time / s'); ylabel('% signal change');
+
+% Light Flux -B
+subplot(3,2,2)
+plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B);
+title('Light flux B');
+
+% L minus M -B
+subplot(3,2,4)
+plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B);
+title('L - M B');
+
+% S -B
+subplot(3,2,6)
+plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
+title('S B');
