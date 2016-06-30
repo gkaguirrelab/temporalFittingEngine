@@ -105,17 +105,25 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 % store the HRF, its time samples, and the amplitudes in the struct
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
-paramStruct.Amplitude = 0.1.*ones([1 6]);
 
+paramStruct.neuralParams = repmat([1 0.25 0.5],[length(actualStimulusValues) 1]);
+
+% parameters of the stimulus
+paramStruct.afterResponseTiming = 10; % Time after stimulus onset at which the offset response occurs.
+% parameters of the neural filters
+paramStruct.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
+paramStruct.tau1 = 0.005;              % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0011:5] 
+paramStruct.rectify = true;       % controls if rectification is performed upon the neural model.
+%%
 % store amplitudes
 ampStore = [];
 reconstructedTSmat = [];
 
 for i = 1:size(stimMatrix,1)
-    [paramStruct,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
-    ampStore(i,:) = paramStruct.Amplitude;
-    [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
-    reconstructedTSmat(i,:) = reconstructedTS;
+    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
+     ampStore(i,:,:) = paramStructFit.neuralParams;
+%     [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStruct);
+%     reconstructedTSmat(i,:) = reconstructedTS;
 end
 
 %%
