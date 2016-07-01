@@ -1,4 +1,4 @@
-function [stimMatrix,startTimesSorted_A,startTimesSorted_B, ...
+function [stimMatrix,stimRef,startTimesSorted_A,startTimesSorted_B, ...
           stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
           = createStimMatrix(startTimesSorted,stimValuesSorted, ...
           tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
@@ -14,9 +14,12 @@ actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValues
 % Stire Stimulus Order A & B
 stimValuesSorted_A = [] ;
 stimValuesSorted_B = [] ;
+stimRef = [];
+stimMatrix = [];
 
 % for each run
 for i = 1:size(startTimesSorted,1)   
+    
     % Stores A & B sequences-- For labeling Time Series by Stimulus Period
    if strfind(char(tsFileNames(i)),'_A_') & isempty(stimValuesSorted_A)
       startTimesSorted_A = startTimesSorted(i,startTimesSorted(i,:)~=-1);  
@@ -27,19 +30,16 @@ for i = 1:size(startTimesSorted,1)
    else
       stimOrderMarker = [] ; 
    end
+   
+   startTimesForRun = startTimesSorted(i,stimValuesSorted(i,:)>0);
+   stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)>0);
+   
     % for each stimulus
-   for j = 1:length(actualStimulusValues)
-       % grab the starting times
-       startTimesForGivenStimValue = startTimesSorted(i,stimValuesSorted(i,:)==actualStimulusValues(j));
-       % create stimulus model for each one, and sum those models together
-       % to get the stimulus model for each stimulus type
-       singleStimModel = [];
-       for k = 1:length(startTimesForGivenStimValue)
+   for j = 1:length(stimValuesForRun)
            % create the stimulus model
-           singleStimModel(k,:) = createStimVector(TS_timeSamples,startTimesForGivenStimValue(k), ...
-                        stimDuration,stepFunctionRes,cosRamp);
-       end
-       stimMatrix(i,j,:) = sum(singleStimModel);       
+           stimMatrix(i,j,:) = createStimVector(TS_timeSamples,startTimesForRun(j), ...
+                        stimDuration,stepFunctionRes,cosRamp); 
+           stimRef(i,j) = stimValuesForRun(j);
    end
 end
       
