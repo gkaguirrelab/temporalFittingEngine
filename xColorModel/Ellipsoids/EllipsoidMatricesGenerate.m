@@ -1,5 +1,5 @@
-function [A,Ainv,Q] = GenerateEllipsoidMatrices(ellParams)
-% A = GenerateEllipsoidMatrices(ellParams)
+function [A,Ainv,Q] = EllipsoidMatricesGenerate(ellParams)
+% A = EllipsoidMatricesGenerate(ellParams)
 % 
 % Generate the 3 by 3 matrix A from a 6-vector of parameters.  When applied to points on 
 % the ellipsoid it specifies, the matrix A maps these points to the unit sphere in 3D.

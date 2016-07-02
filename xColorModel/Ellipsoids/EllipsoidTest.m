@@ -11,7 +11,7 @@ clear; close all;
 %% Generate points on unit sphere for simulating data
 nTheta = 10;
 nPhi = 10;
-xSphere = GeneratePointsOn3DUnitSphere(nTheta,nPhi);
+xSphere = UnitSphereGenerate(nTheta,nPhi);
 figure; clf; hold on
 plot3(xSphere(1,:),xSphere(2,:),xSphere(3,:),'ro','MarkerSize',8,'MarkerFaceColor','r');
 axis('square');
@@ -20,7 +20,7 @@ xlabel('X'); ylabel('Y'); zlabel('Z'); title('Unit Sphere');
 %% Generate the ellipsoid matrices from a vector
 % of ellipsoid parameters
 ellParams = [3 0.8 2 pi/4 pi/8 pi]';
-[A,Ainv,Q] = GenerateEllipsoidMatrices(ellParams);
+[A,Ainv,Q] = EllipsoidMatricesGenerate(ellParams);
 
 %% Map the unit sphere into the ellipsoid
 xEllipsoid = Ainv*xSphere;
@@ -44,7 +44,7 @@ xlabel('X'); ylabel('Y'); zlabel('Z'); title('Unit Sphere Check');
 
 %% Add some noise to the ellipsoid, so we can try to fit it
 noiseSd = 0.2;
-xEllipsoid = GenerateEllipsoid(ellParams,nTheta,nPhi);
+xEllipsoid = EllipsoidGenerate(ellParams,nTheta,nPhi);
 xNoisyEllipsoid = xEllipsoid + normrnd(0,noiseSd,size(xEllipsoid));
 figure; clf; hold on
 plot3(xNoisyEllipsoid(1,:),xNoisyEllipsoid(2,:),xNoisyEllipsoid(3,:),'ro','MarkerSize',8,'MarkerFaceColor','r');
@@ -69,7 +69,7 @@ vub = [1e3 1e3 1e3 2*pi 2*pi 2*pi]';
 nThetaFit = 50;
 nPhiFit = 50;
 ellParamsFit = fmincon(@(x)FitEllipseFunction(x,xNoisyEllipsoid),ellParams0,[],[],[],[],vlb,vub,[],options);
-xFitEllipsoid = GenerateEllipsoid(ellParamsFit,nThetaFit,nPhiFit);
+xFitEllipsoid = EllipsoidGenerate(ellParamsFit,nThetaFit,nPhiFit);
 
 % Plot the fit as a nice surface
 xCoords = squeeze(xFitEllipsoid(1,:));
@@ -87,7 +87,7 @@ end
 
 function f = FitEllipseFunction(ellParams,x)
 
-[A,Ainv,Q] = GenerateEllipsoidMatrices(ellParams);
+[A,Ainv,Q] = EllipsoidMatricesGenerate(ellParams);
 vectorLengths = diag(x'*Q*x);
 f = sqrt(mean((vectorLengths-1).^2));
 end

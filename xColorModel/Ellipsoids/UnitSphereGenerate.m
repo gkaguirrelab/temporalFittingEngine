@@ -1,5 +1,5 @@
-function x = GeneratePointsOn3DUnitSphere(nTheta,nPhi)
-% x = GeneratePointsOn3DUnitSphere(nTheta,nPhi)
+function x = UnitSphereGenerate(nTheta,nPhi)
+% x = UnitSphereGenerate(nTheta,nPhi)
 %
 % Generate a set of points on the unit sphere in three
 % dimensions.
