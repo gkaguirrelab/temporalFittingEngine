@@ -56,7 +56,7 @@ t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData]= deriveHRF(avgTSprc,attnStartTimes,lengthHRF,T_R);
+[BOLDHRF, cleanedData]= fitHRF_FIR(avgTSprc,attnStartTimes,lengthHRF,T_R);
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
@@ -138,7 +138,7 @@ for i = 1:size(singleStimModelAllRuns,1)
     designMatrixPreOnes = [];
     % LOOP OVER STIMULI WITHIN EACH RUN
    for j = 1:size(singleStimModelAllRuns,2)
-       regressor = createRegressor(squeeze(singleStimModelAllRuns(i,j,:))',TS_timeSamples,BOLDHRF,t);
+       regressor = neuralVec2BOLD(squeeze(singleStimModelAllRuns(i,j,:))',TS_timeSamples,BOLDHRF,t);
        % create design matrix (ones to be added later)
        designMatrixPreOnes(:,j) = regressor-mean(regressor);
    end

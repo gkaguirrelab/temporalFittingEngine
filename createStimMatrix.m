@@ -39,7 +39,8 @@ for i = 1:size(startTimesSorted,1)
            % create the stimulus model
            stimMatrix(i,j,:) = createStimVector(TS_timeSamples,startTimesForRun(j), ...
                         stimDuration,stepFunctionRes,cosRamp); 
-           stimRef(i,j) = stimValuesForRun(j);
+           assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
+           stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
 end
       

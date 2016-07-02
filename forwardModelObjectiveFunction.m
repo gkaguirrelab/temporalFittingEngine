@@ -6,14 +6,8 @@ function f = forwardModelObjectiveFunction(stimMatrix,t,stimRef,data,paramVecFit
 % a parameter vector, not a struct, to fit. However, note paramStructFixed,
 % which contains parameters that are locked down, like the HRF
 
-% one row of parameters for each stimulus
-numberOfParamRows = length(paramStructFixed.stimTag);
-
-% reshape the vector into a matrix 
-paramMatFit = reshape(paramVecFit,[numberOfParamRows length(paramVecFit)./numberOfParamRows]);
-
 % scale each neural vector by the amplitude parameter, then sum
-neuralVec = stim2neural(stimMatrix,t,stimRef,paramMatFit,paramStructFixed);
+neuralVec = stim2neural(stimMatrix,t,stimRef,paramVecFit,paramStructFixed);
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStructFixed.HRF,paramStructFixed.HRFtimeSamples);
