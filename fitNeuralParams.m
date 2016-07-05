@@ -9,8 +9,8 @@ prmVec0 = paramStruct.neuralParams;
 f = @(prmVec)forwardModelObjectiveFunction(stimMatrix,t,stimRef,data,prmVec,paramStruct);
 
 % set bounds
-vlb = zeros([length(prmVec0) 1]);
-vub = repmat(2,[length(prmVec0) 1]);
+vlb = repmat(-10,[length(prmVec0) 1]);
+vub = repmat(10,[length(prmVec0) 1]);
 
 % fit parameters will also come out in a vector
 [paramVec, fval] = fmincon(f,prmVec0,[],[],[],[],vlb,vub,[],options);
