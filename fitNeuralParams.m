@@ -4,7 +4,7 @@ function [paramStruct,fval]= fitNeuralParams(stimMatrix,t,paramLockMatrix,data,p
 options = optimoptions('fmincon','Diagnostics','on','Display','iter','Algorithm','active-set','MaxIter',100);
 
 % grab neural parameters
-prmVec0 = paramStruct.neuralParams;
+prmVec0 = paramStruct.Amplitude;
 
 f = @(prmVec)forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStruct);
 
@@ -18,6 +18,6 @@ beq = zeros([size(paramLockMatrix,1) 1]);
 [paramVec, fval] = fmincon(f,prmVec0,[],[],Aeq,beq,vlb,vub,[],options);
 
 % we are fitting amplitudes for now
-paramStruct.neuralParams = paramVec;
+paramStruct.Amplitude = paramVec;
       
 gribble = 1;

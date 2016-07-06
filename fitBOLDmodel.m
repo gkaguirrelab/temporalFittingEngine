@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -107,7 +107,7 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
-paramStruct.neuralParams = 1.*ones([size(paramLockMatrix,3) 1]);
+paramStruct.Amplitude = 1.*ones([size(paramLockMatrix,3) 1]);
 
 %%
 % store amplitudes
@@ -117,7 +117,7 @@ reconstructedTSmat = [];
 for i = 1:size(stimMatrix,1)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(paramLockMatrix(i,:,:)),cleanedData(i,:),paramStruct);
-    amp = paramStructFit.neuralParams;
+    amp = paramStructFit.Amplitude;
      % Determine which stimulus values went with which parameter
    if strfind(char(tsFileNames(i)),'_A_')
       valueLookup = stimValuesSorted_A(stimValuesSorted_A>0);
