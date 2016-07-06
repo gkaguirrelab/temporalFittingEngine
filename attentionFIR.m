@@ -18,11 +18,10 @@ timeShiftScale = [1:HRFduration./HRFsampleInterval];
 
 % MATRIX OF START TIMES TO BE SHIFTED
 timesToBeShifted = repmat(attnStartTimes,[1 HRFduration]);
+timesToBeShifted = round(timesToBeShifted);
 
 % IMPLEMENT SHIFT
 timeShiftedMatrix = timesToBeShifted+repmat(timeShiftScale,[size(timesToBeShifted,1) 1]).*HRFsampleInterval;
-
-timeShiftedMatrix = round(timeShiftedMatrix);
 
 % CREATES DESIGN MATRIX
 for i = 1:length(timeShiftScale);
