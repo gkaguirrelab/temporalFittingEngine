@@ -26,34 +26,40 @@ timeShiftScale = [1:HRFduration./HRFsampleInterval];
 % t = Time Points (HRF duration)
 n = HRFduration ;
 
-if mod(n,2) == 1                        % n is odd
+% n -- Is odd -------------------------------------------------------------
+if mod(n,2) == 1                   
 
-    t      = linspace(0,n-1,n);
-    m      = zeros(n,n);
-    m(1,:) = ones(n,1);
+    t      = linspace(0,n-1,n);             % Create Time(s) Array
+    m      = zeros(n,n);                    % Create blank Fourier Set
+    m(1,:) = ones(n,1);                     % Create DC component
 
-    for i = 1:(n-1)/2
-        m(i*2,:)   = sin(t/n*2*pi*i); 
-        m(i*2+1,:) = cos(t/n*2*pi*i);
+    for i = 1:floor(n/2)-1
+        m(i*2,:)   = sin(t/n*2*pi*i);       % Create Sin waves for each Fq 
+        m(i*2+1,:) = cos(t/n*2*pi*i);       % Create Cos waves for each Fq
     end
-    
-elseif mod(n,2) == 0                    % n is even
 
-    t      = linspace(0,n-1,n);
-    m      = zeros(n,n);
-    m(1,:) = ones(n,1);
+% n -- Is even ------------------------------------------------------------
+elseif mod(n,2) == 0                    
 
-    for i = 1:n/2-1
-        m(i*2,:)   = sin(t/(n-1)*2*pi*i);
-        m(i*2+1,:) = cos(t/(n-1)*2*pi*i);
+    t      = linspace(0,n-1,n);             % Create Time(s) Array
+    m      = zeros(n,n);                    % Create blank Fourier Set
+    m(1,:) = ones(n,1);                     % Create DC component
+
+    for i = 1:floor(n/2)-1
+        m(i*2,:)   = sin(t/(n-1)*2*pi*i);   % Create Sin waves for each Fq
+        m(i*2+1,:) = cos(t/(n-1)*2*pi*i);   % Create Cos waves for each Fq
     end
     
 else
-    t = linspace(0,n-1,n);
-    m = zeros(n,n);
+% Leave Fourier set Blank -------------------------------------------------
+    t = linspace(0,n-1,n);                  % Create Time(s) Array
+    m = zeros(n,n);                         % Create blank Fourier Set
 end
 
+% Nyquist Frequency -------------------------------------------------------
 m(n,:) = sin(t/(n-1)*2*pi*(n/2));
+
+% Change Dimensions
 m = m' ;
 
 %% Design Matrix
@@ -68,18 +74,45 @@ for i = 1:length(RndAttnTimes)
     TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration) =  ...
     TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration) + m(1:length(m),2:HRFduration) ;
     
-    % Crop off Extra points. Leave at length of Original Time series
+    % Crop off Extra points. Leave length of Original Time series
     DesignMatrix = TimeSeriesMatrix(1:length(originalTimeSamplesNormalized),:) ;
 end 
 
 
-%% GET BETA VALUES
+%% GET BETA VALUES & HRF
 betaValues = DesignMatrix\timeSeries';
 
-% HRF IS ALL BETA VALUES EXCEPT FOR THE MEAN VECTOR
-hrf = betaValues(2:length(betaValues))';
+% HRF -- Fourier Transform (Reconstruct waves with Beta values)
+HRF_Matrix = [] ;
+betaValues = betaValues' ;
 
-% REGRESS ATTENTION FROM TIMES SERIES
-timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,2:size(DesignMatrix,2)).*repmat(hrf,[size(DesignMatrix,1) 1]),2)';
+% Weight each wave with its corresponidng beta value
+for i = 1:length(betaValues)
+    HRF_Matrix(:,i) = DesignMatrix(:,i) .* betaValues(:,i) ;
+end
+
+% Reconstruct HRF with weigthed beta values (From every Fourier Set)
+HRF = [] ;
+for i = 1:length(originalTimeSamplesNormalized)
+    HRF(i) = sum(HRF_Matrix(i,:)) ;
+end 
+
+%% Design Matrix with NO Overlaping attention tasks
+HRF_No_Ovrlap = [] ;
+
+% Weight single Fourier Set
+for i = 1:length(betaValues)
+    HRF_No_Ovrlap(:,i) = m(:,i) .* betaValues(:,i) ;
+end
+
+% Reconstruct HRF from single Fourier Set
+for j = 1:length(m)
+    HRF_No_Ovrlap(j) = sum(HRF_No_Ovrlap(j,:)) ;
+end
+% Save the first column -- Summed & weighted Fourier Set.
+HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;
+
+%% REGRESS ATTENTION FROM TIMES SERIES
+timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,2:size(DesignMatrix,2)).*repmat(HRF_No_Ovrlap,[size(DesignMatrix,1) 1]),2)';
 
 gribble = 1;
