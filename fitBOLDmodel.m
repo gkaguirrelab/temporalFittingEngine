@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -97,7 +97,7 @@ stimDuration = 12;
 %% GET BETA AND MODEL FIT
 
 % create stimulus vector
-[stimMatrix,stimRef,startTimesSorted_A,startTimesSorted_B, ...
+[stimMatrix,paramLockMatrix,startTimesSorted_A,startTimesSorted_B, ...
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
 TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
@@ -107,7 +107,7 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
-paramStruct.neuralParams = 1.*ones([6 1]);
+paramStruct.neuralParams = 1.*ones([size(paramLockMatrix,3) 1]);
 
 %%
 % store amplitudes
@@ -116,11 +116,23 @@ reconstructedTSmat = [];
 
 for i = 1:size(stimMatrix,1)
     % call fitting routine
-    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(stimRef(i,:,:)),cleanedData(i,:),paramStruct);
+    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(paramLockMatrix(i,:,:)),cleanedData(i,:),paramStruct);
+    amp = paramStructFit.neuralParams;
+     % Determine which stimulus values went with which parameter
+   if strfind(char(tsFileNames(i)),'_A_')
+      valueLookup = stimValuesSorted_A(stimValuesSorted_A>0);
+   elseif strfind(char(tsFileNames(i)),'_B_')
+      valueLookup = stimValuesSorted_B(stimValuesSorted_B>0);
+   else
+      valueLookup = [] ; 
+   end
+   % get only unique stim values, and their corresponding locked params
+   [stimValueToPlot,ia] = unique(valueLookup);
+   
     % store fit amplitudes 
-    ampStore(i,:) = paramStructFit.neuralParams;
+    ampStore(i,:) = amp(ia);
     % store reconstructed time series
-     [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(stimRef(i,:,:)),cleanedData(i,:),paramStructFit);
+     [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStructFit);
      reconstructedTSmat(i,:) = reconstructedTS;
 end
 

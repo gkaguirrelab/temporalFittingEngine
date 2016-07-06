@@ -1,4 +1,4 @@
-function f = forwardModelObjectiveFunction(stimMatrix,t,stimRef,data,paramVecFit,paramStructFixed)
+function f = forwardModelObjectiveFunction(stimMatrix,t,data,paramVecFit,paramStructFixed)
 
 % function f = forwardModelObjectiveFunction(stimMatrix,t,data,paramVec)
 %
@@ -7,7 +7,7 @@ function f = forwardModelObjectiveFunction(stimMatrix,t,stimRef,data,paramVecFit
 % which contains parameters that are locked down, like the HRF
 
 % scale each neural vector by the amplitude parameter, then sum
-neuralVec = stim2neural(stimMatrix,t,stimRef,paramVecFit,paramStructFixed);
+neuralVec = stim2neural(stimMatrix,t,paramVecFit,paramStructFixed);
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStructFixed.HRF,paramStructFixed.HRFtimeSamples);

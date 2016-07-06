@@ -1,4 +1,4 @@
-function [stimMatrix,stimRef,startTimesSorted_A,startTimesSorted_B, ...
+function [stimMatrix,paramLockMatrix,startTimesSorted_A,startTimesSorted_B, ...
           stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
           = createStimMatrix(startTimesSorted,stimValuesSorted, ...
           tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
@@ -16,6 +16,8 @@ stimValuesSorted_A = [] ;
 stimValuesSorted_B = [] ;
 stimRef = [];
 stimMatrix = [];
+% Matrix for locking parameters
+paramLockMatrix = [];
 
 % for each run
 for i = 1:size(startTimesSorted,1)   
@@ -43,6 +45,22 @@ for i = 1:size(startTimesSorted,1)
            assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
            stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
+   % initialize for just this one run
+   paramLockMatrixSub = [];
+   % for each stimulus value
+   for j = 1:length(actualStimulusValues)
+      % find the indices at which that value occurs
+      stimToBeChained = find(stimValuesForRun == actualStimulusValues(j));
+      % then for each index, daisy-chain the linear equalities
+      for k = 1:length(stimToBeChained)-1
+         constraintVec = zeros([1 length(stimValuesForRun)]);
+         constraintVec(stimToBeChained(k)) = 1;
+         constraintVec(stimToBeChained(k+1)) = -1;
+         paramLockMatrixSub(size(paramLockMatrixSub,1)+1,:) = constraintVec;
+      end
+   end
+   % this only does the constraints for one run, so store it
+   paramLockMatrix(i,:,:) = paramLockMatrixSub;
 end
       
 gribble = 1;
