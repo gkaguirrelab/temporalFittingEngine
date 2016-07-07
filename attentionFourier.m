@@ -16,8 +16,6 @@ originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 % Time Matrix
 RndAttnTimes = floor(attnStartTimes) ;
 
-% HELPER VECTOR FOR SHIFT
-timeShiftScale = [1:HRFduration./HRFsampleInterval];
 
 %% Fourier Set
 
@@ -57,14 +55,17 @@ else
 end
 
 % Nyquist Frequency -------------------------------------------------------
-m(n,:) = sin(t/(n-1)*2*pi*(n/2));
+% m(n,:) = sin(t/(n-1)*2*pi*(n/2));
+% ********************************* Leaving OUT Nyquist
+
 
 % Change Dimensions
 m = m' ;
 
 %% Design Matrix
 
-TimeSeriesMatrix = zeros(length(originalTimeSamplesNormalized),HRFduration) ;
+TimeSeriesMatrix = zeros(length(originalTimeSamplesNormalized)+HRFduration,HRFduration) ;
+% Make matrix not change
 
 for i = 1:length(RndAttnTimes)
     % DC component -- column of 1's
@@ -78,6 +79,11 @@ for i = 1:length(RndAttnTimes)
     DesignMatrix = TimeSeriesMatrix(1:length(originalTimeSamplesNormalized),:) ;
 end 
 
+DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
+% ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize
+% Orthogonalize
+% DesignMatrix =  orth(DesignMatrix) ;
+% Add column of 1's before orthogonalising
 
 %% GET BETA VALUES & HRF
 betaValues = DesignMatrix\timeSeries';
@@ -109,11 +115,13 @@ end
 for j = 1:length(m)
     HRF_No_Ovrlap(j) = sum(HRF_No_Ovrlap(j,:)) ;
 end
+
 % Save the first column -- Summed & weighted Fourier Set.
 HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;
 HRF_No_Ovrlap = HRF_No_Ovrlap' ;
+hrf           = HRF_No_Ovrlap ;         % Compatibility with rest of code
 
 %% REGRESS ATTENTION FROM TIMES SERIES
-timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,2:size(DesignMatrix,2)).*repmat(HRF_No_Ovrlap(:,2:size(HRF_No_Ovrlap,2)),[size(DesignMatrix,1) 1]),2)';
+timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,1:size(DesignMatrix,2)).*repmat(hrf(:,2:size(hrf,2)),[size(DesignMatrix,1) 1]),2)';
 
 gribble = 1;
