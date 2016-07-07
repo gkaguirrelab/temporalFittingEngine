@@ -107,11 +107,13 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
-paramStruct.Amplitude = 1.*ones([size(paramLockMatrix,3) 1]);
+paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
+paramStruct.tau2 = 0.2.*ones([size(stimMatrix,2) 1]);
 
 %%
 % store amplitudes
 ampStore = [];
+tau2store = [];
 reconstructedTSmat = [];
 
 for i = 1:size(stimMatrix,1)
@@ -131,6 +133,7 @@ for i = 1:size(stimMatrix,1)
    
     % store fit amplitudes 
     ampStore(i,:) = amp(ia);
+    tau2store(i,:) = paramStructFit.tau2;
     % store reconstructed time series
      [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStructFit);
      reconstructedTSmat(i,:) = reconstructedTS;

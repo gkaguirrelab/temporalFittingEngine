@@ -1,4 +1,4 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, paramStructFixed)
+function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec,tau2vec, paramStructFixed)
 
 
 %% createNeuralTemporalModelFromStimMatrix
@@ -85,10 +85,11 @@ for s=1:stimDimension
     
     yStimulus=stimMatrix(s,:)';
     
-    offset=yStimulus(1);
-    yStimulus=yStimulus-offset;
+%     offset=yStimulus(1);
+%     yStimulus=yStimulus-offset;
     
-    param.MRAmplitude=ampVec(s);
+    param.MRamplitude=ampVec(s);
+    param.tau2 = tau2vec(s);
     
     %% Implement the neural stage
     % Define the neuralIRF, which is a gamma function that transforms the
@@ -200,9 +201,7 @@ for s=1:stimDimension
         yNeural=abs(yNeural);
     end
     
-    yNeural=yNeural+offset;
-    
-    neuralMatrix(s,:)=yNeural;
+    neuralMatrix(s,:)=yNeural - mean(yNeural);
     
 end % loop over columns of the stimulus matrix
 

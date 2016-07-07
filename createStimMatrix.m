@@ -41,11 +41,12 @@ for i = 1:size(startTimesSorted,1)
            % create the stimulus model
            stimVec = createStimVector(TS_timeSamples,startTimesForRun(j), ...
                         stimDuration,stepFunctionRes,cosRamp);
-           stimMatrix(i,j,:) = stimVec - mean(stimVec); 
+           stimMatrix(i,j,:) = stimVec; 
            assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
            stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
    % initialize for just this one run
+   paramLockMatrixSubForCons1 = [];
    paramLockMatrixSub = [];
    % for each stimulus value
    for j = 1:length(actualStimulusValues)
@@ -56,7 +57,10 @@ for i = 1:size(startTimesSorted,1)
          constraintVec = zeros([1 length(stimValuesForRun)]);
          constraintVec(stimToBeChained(k)) = 1;
          constraintVec(stimToBeChained(k+1)) = -1;
-         paramLockMatrixSub(size(paramLockMatrixSub,1)+1,:) = constraintVec;
+         paramLockMatrixSubForCons1(size(paramLockMatrixSubForCons1,1)+1,:) = constraintVec;
+         paramLockMatrixSub = [paramLockMatrixSubForCons1 zeros(size(paramLockMatrixSubForCons1)); ...
+                               zeros(size(paramLockMatrixSubForCons1)) paramLockMatrixSubForCons1];
+         % testb = kron(eye(3),testa)
       end
    end
    % this only does the constraints for one run, so store it
