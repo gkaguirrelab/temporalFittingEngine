@@ -112,7 +112,7 @@ paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
 
 %%
 % store amplitudes
-ampStore = [];k
+ampStore = [];
 tau2store = [];
 reconstructedTSmat = [];
 

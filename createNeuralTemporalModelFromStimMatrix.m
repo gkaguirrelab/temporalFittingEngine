@@ -89,24 +89,26 @@ for s=1:stimDimension
 %     yStimulus=yStimulus-offset;
     
     param.MRamplitude=ampVec(s);
+    
+    yNeural = yStimulus.*param.MRamplitude;
 %    param.tau2 = tau2vec(s);
     
     %% Implement the neural stage
     % Define the neuralIRF, which is a gamma function that transforms the
     % stimulus input into a profile of neural activity (e.g., LFP)
-    neuralIRF = t .* exp(-t/param.tau1);
+%    neuralIRF = t .* exp(-t/param.tau1);
     
     % scale to unit sum to preserve amplitude of y following convolution
-    neuralIRF=neuralIRF/sum(neuralIRF);
+%    neuralIRF=neuralIRF/sum(neuralIRF);
     
     % Obtain first stage, linear model, which is the stimulus vector with a
     % multiplicative amplitude parameter, then convolved by the neural IRF.
     
-    yLinear = conv(yStimulus*param.MRamplitude,neuralIRF);
+%    yLinear = conv(yStimulus*param.MRamplitude,neuralIRF);
     
     % Truncate the convolved vector to the input length. Not sure why I have to
     % do this. Probably mis-using the conv function.
-    yLinear = yLinear(1:modelLength);
+%    yLinear = yLinear(1:modelLength);
     
     %% Implement the compressive non-linearity stage
     % Obtain second stage, CTS model, which is the output of the linear stage
@@ -114,7 +116,7 @@ for s=1:stimDimension
     % as a power law function, it is worth noting that very similar functions
     % are produced by implementing this as an instantaneous divisive
     % normalization.
-    yCTS = yLinear.^param.epsilon;
+%    yCTS = yLinear.^param.epsilon;
     
     %% As we are modeling MRI data, we are currently skipping several features
     % of the Zhou & Winawer model. We use the decaying exponential only as a
@@ -133,19 +135,21 @@ for s=1:stimDimension
     % % where '*' indicates here convolution and decay is a decaying exponential
     % % that is defined by the parameter tau2
     % %
-    % % Create the exponential low-pass function that defines the time-domain
-    % % properties of the normalization
-    %  decayingExponential=(exp(-1*param.tau2*t));
+    % Create the exponential low-pass function that defines the time-domain
+    % properties of the normalization
+      decayingExponential=(exp(-1*param.tau2*t));
     %
-    % % scale to have unit sum to preserve amplitude after convolution
-    % decayingExponential=decayingExponential/sum(decayingExponential);
+    % scale to have unit sum to preserve amplitude after convolution
+    decayingExponential=decayingExponential/sum(decayingExponential);
     %
     % % convolve the neural response by the decaying exponential
     % yCTSDecayed=conv(yCTS,decayingExponential);
+    yNeural=conv(yNeural,decayingExponential);
     %
     % % Truncate the convolved vector to the input length. Not sure why I have to
     % % do this. Probably mis-using the conv function.
     % yCTSDecayed=yCTSDecayed(1:modelLength);
+    yNeural=yNeural(1:modelLength);
     %
     % % Assemble the delayed, divisive normalization response
     % yNeuralMR = (yCTS.^param.n) ./ ... % the numerator
@@ -160,35 +164,35 @@ for s=1:stimDimension
     % scaling.
     %
     
-    % Create the exponential low-pass function that defines the time-domain
-    % properties of the normalization
-    decayingExponential=(exp(-1*param.tau2*t));
+%     % Create the exponential low-pass function that defines the time-domain
+%     % properties of the normalization
+%     decayingExponential=(exp(-1*param.tau2*t));
+%     
+%     % Shift and scale the exponential so that the peak coincides with the
+%     % initial peak response in the yCTS model. This is needed to unconfound the
+%     % overall amplitude response parameter from the exponential decay
+%     % parameter.
+%     
+%     initialPeak=find(yCTS==max(yCTS));
+%     initialPeak=initialPeak(1);
+%     decayingExponential=circshift(decayingExponential,[0,initialPeak]);
+%     decayingExponential=decayingExponential/max(decayingExponential);
+%     decayingExponential(1:initialPeak)=1;
     
-    % Shift and scale the exponential so that the peak coincides with the
-    % initial peak response in the yCTS model. This is needed to unconfound the
-    % overall amplitude response parameter from the exponential decay
-    % parameter.
-    
-    initialPeak=find(yCTS==max(yCTS));
-    initialPeak=initialPeak(1);
-    decayingExponential=circshift(decayingExponential,[0,initialPeak]);
-    decayingExponential=decayingExponential/max(decayingExponential);
-    decayingExponential(1:initialPeak)=1;
-    
-    % Apply the exponential function as a mulitiplicative scaling of the
-    % response.
-    
-    yNeuralMR = yCTS.*decayingExponential;
+%     % Apply the exponential function as a mulitiplicative scaling of the
+%     % response.
+%     
+%     yNeuralMR = yCTS.*decayingExponential;
     
     %% Create the after-response
     % This is assumed to be a shifted, scaled version of the main response.
     
-    % Scale, invert, shift, and blank out the circular wrapping)
-    yNeuralAR = yNeuralMR * param.ARampRelative * (-1);
-    yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
-    yNeuralAR(1:param.afterResponseTiming)=NaN;
-    
-    yNeural = nansum([yNeuralMR;yNeuralAR]);
+%     % Scale, invert, shift, and blank out the circular wrapping)
+%     yNeuralAR = yNeuralMR * param.ARampRelative * (-1);
+%     yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
+%     yNeuralAR(1:param.afterResponseTiming)=NaN;
+%     
+%     yNeural = nansum([yNeuralMR;yNeuralAR]);
     
     %% Rectify yNeural
     
@@ -197,9 +201,9 @@ for s=1:stimDimension
     % a rectified measure to reflect total total synaptic activity, which may
     % be the better model for input to the BOLD system.
     
-    if param.rectify
-        yNeural=abs(yNeural);
-    end
+%     if param.rectify
+%         yNeural=abs(yNeural);
+%     end
     
     neuralMatrix(s,:)=yNeural - mean(yNeural);
     
