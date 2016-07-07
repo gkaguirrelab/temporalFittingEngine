@@ -111,8 +111,9 @@ for j = 1:length(m)
 end
 % Save the first column -- Summed & weighted Fourier Set.
 HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;
+HRF_No_Ovrlap = HRF_No_Ovrlap' ;
 
 %% REGRESS ATTENTION FROM TIMES SERIES
-timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,2:size(DesignMatrix,2)).*repmat(HRF_No_Ovrlap,[size(DesignMatrix,1) 1]),2)';
+timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,2:size(DesignMatrix,2)).*repmat(HRF_No_Ovrlap(:,2:size(HRF_No_Ovrlap,2)),[size(DesignMatrix,1) 1]),2)';
 
 gribble = 1;
