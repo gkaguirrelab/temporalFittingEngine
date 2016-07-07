@@ -58,13 +58,13 @@ for i = 1:size(startTimesSorted,1)
          constraintVec(stimToBeChained(k)) = 1;
          constraintVec(stimToBeChained(k+1)) = -1;
          paramLockMatrixSubForCons1(size(paramLockMatrixSubForCons1,1)+1,:) = constraintVec;
-         paramLockMatrixSub = [paramLockMatrixSubForCons1 zeros(size(paramLockMatrixSubForCons1)); ...
-                               zeros(size(paramLockMatrixSubForCons1)) paramLockMatrixSubForCons1];
+%          paramLockMatrixSub = [paramLockMatrixSubForCons1 zeros(size(paramLockMatrixSubForCons1)); ...
+%                                zeros(size(paramLockMatrixSubForCons1)) paramLockMatrixSubForCons1];
          % testb = kron(eye(3),testa)
       end
    end
    % this only does the constraints for one run, so store it
-   paramLockMatrix(i,:,:) = paramLockMatrixSub;
+   paramLockMatrix(i,:,:) = paramLockMatrixSubForCons1;
 end
       
 gribble = 1;
