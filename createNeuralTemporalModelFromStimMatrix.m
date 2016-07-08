@@ -140,16 +140,22 @@ for s=1:stimDimension
       decayingExponential=(exp(-1*param.tau2*t));
     %
     % scale to have unit sum to preserve amplitude after convolution
-    decayingExponential=decayingExponential/sum(decayingExponential);
+ %   decayingExponential=decayingExponential/sum(decayingExponential);
+    
+    initialPeak=find(yNeural==max(yNeural));
+    initialPeak=initialPeak(1);
+    decayingExponential=circshift(decayingExponential,[0,initialPeak]);
+    decayingExponential=decayingExponential/max(decayingExponential);
+    decayingExponential(1:initialPeak)=1;
     %
     % % convolve the neural response by the decaying exponential
     % yCTSDecayed=conv(yCTS,decayingExponential);
-    yNeural=conv(yNeural,decayingExponential);
+    yNeural=yNeural.*decayingExponential';
     %
     % % Truncate the convolved vector to the input length. Not sure why I have to
     % % do this. Probably mis-using the conv function.
     % yCTSDecayed=yCTSDecayed(1:modelLength);
-    yNeural=yNeural(1:modelLength);
+    %yNeural=yNeural(1:modelLength);
     %
     % % Assemble the delayed, divisive normalization response
     % yNeuralMR = (yCTS.^param.n) ./ ... % the numerator

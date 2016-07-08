@@ -11,10 +11,10 @@ f = @(prmVec)forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStruct)
 
 % set bounds
 vlb(:,1) = repmat(-3,[size(prmVec0,1) 1]);
-vlb(:,2) = repmat(0.001,[size(prmVec0,1) 1]);
+vlb(:,2) = repmat(0.0001,[size(prmVec0,1) 1]);
 
 vub(:,1) = repmat(3,[size(prmVec0,1) 1]);
-vub(:,2) = repmat(5,[size(prmVec0,1) 1]);
+vub(:,2) = repmat(0.01,[size(prmVec0,1) 1]);
 
 % make parameter matrix into vector so can set equality constraints
 prmVec0 = prmVec0(:);

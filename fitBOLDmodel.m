@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -108,7 +108,7 @@ paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
 paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
-paramStruct.tau2 = 2.*ones([size(stimMatrix,2) 1]);
+paramStruct.tau2 = 0.0001.*ones([size(stimMatrix,2) 1]);
 
 %%
 % store amplitudes
@@ -121,6 +121,7 @@ for i = 1:size(stimMatrix,1)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(paramLockMatrix(i,:,:)),cleanedData(i,:),paramStruct);
     amp = paramStructFit.Amplitude;
+    tau2forStim = paramStructFit.tau2;
     MSEstore(i) = fval;
      % Determine which stimulus values went with which parameter
    if strfind(char(tsFileNames(i)),'_A_')
@@ -135,7 +136,7 @@ for i = 1:size(stimMatrix,1)
    
     % store fit amplitudes 
     ampStore(i,:) = amp(ia);
-    tau2store(i,:) = paramStructFit.tau2;
+    tau2store(i,:) = tau2forStim(ia);
     % store reconstructed time series
      [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStructFit);
      reconstructedTSmat(i,:) = reconstructedTS;
@@ -157,6 +158,16 @@ S_Beta =         mean(ampStore(stimTypeArr == 3,:));
 LightFluxBetaSE =  ((std(ampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
 L_minus_M_BetaSE = ((std(ampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
 S_BetaSE =         ((std(ampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
+
+% Convert Mean-Subtracted Beta values to Percentages
+LightFluxtau2 =  mean(tau2store(stimTypeArr == 1,:));
+L_minus_M_tau2 = mean(tau2store(stimTypeArr == 2,:));
+S_tau2 =         mean(tau2store(stimTypeArr == 3,:));
+
+% Compute Standard Error
+LightFluxtau2SE =  ((std(tau2store(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
+L_minus_M_tau2SE = ((std(tau2store(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
+S_tau2SE =         ((std(tau2store(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
 
 %%
 % Average Time Series for Each Combination of Stimulus Type & Run order
@@ -212,6 +223,15 @@ set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
 [wftd3, fp3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,1); hold on
 errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
 set(gca,'Xtick',actualStimulusValues'); title('S');
+
+%%
+figure;
+errorbar(actualStimulusValues,LightFluxtau2,LightFluxtau2SE,'ko'); set(gca,'FontSize',15); hold on
+set(gca,'Xtick',actualStimulusValues'); title('Light flux');
+errorbar(actualStimulusValues,L_minus_M_tau2,L_minus_M_tau2SE,'ro'); set(gca,'FontSize',15);
+errorbar(actualStimulusValues,S_tau2,S_tau2SE,'bo'); set(gca,'FontSize',15);
+set(gca,'Xscale','log');
+xlabel('Temporal frequency'); ylabel('\tau_2');
 
 %% Time Series plots 
 % Use Function for plotting Data:
