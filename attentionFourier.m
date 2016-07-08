@@ -61,6 +61,7 @@ end
 
 % Change Dimensions
 m = m' ;
+m = m(:,1:size(m,2)-1);
 
 %% Design Matrix
 
@@ -72,8 +73,8 @@ for i = 1:length(RndAttnTimes)
     TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),1) = m(1:length(m),1) ;    
 
     % Everything else
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration) =  ...
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration) + m(1:length(m),2:HRFduration) ;
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration-1) =  ...
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration-1) + m(1:length(m),2:HRFduration-1) ;
     
     % Crop off Extra points. Leave length of Original Time series
     DesignMatrix = TimeSeriesMatrix(1:length(originalTimeSamplesNormalized),:) ;
@@ -89,21 +90,9 @@ DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
 betaValues = DesignMatrix\timeSeries';
 
 % HRF -- Fourier Transform (Reconstruct waves with Beta values)
-HRF_Matrix = [] ;
 betaValues = betaValues' ;
 
-% Weight each wave with its corresponidng beta value
-for i = 1:length(betaValues)
-    HRF_Matrix(:,i) = DesignMatrix(:,i) .* betaValues(:,i) ;
-end
-
-% Reconstruct HRF with weigthed beta values (From every Fourier Set)
-HRF = [] ;
-for i = 1:length(originalTimeSamplesNormalized)
-    HRF(i) = sum(HRF_Matrix(i,:)) ;
-end 
-
-%% Design Matrix with NO Overlaping attention tasks
+% Design Matrix with NO Overlaping attention tasks
 HRF_No_Ovrlap = [] ;
 
 % Weight single Fourier Set
@@ -117,11 +106,25 @@ for j = 1:length(m)
 end
 
 % Save the first column -- Summed & weighted Fourier Set.
-HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;
+HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;    % Take 1st column (Reconstructed hrf)
 HRF_No_Ovrlap = HRF_No_Ovrlap' ;
 hrf           = HRF_No_Ovrlap ;         % Compatibility with rest of code
 
 %% REGRESS ATTENTION FROM TIMES SERIES
-% timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,1:size(DesignMatrix,2)).*repmat(hrf(:,2:size(hrf,2)),[size(DesignMatrix,1) 1]),2)';
+
+HRF_Matrix = [] ;
+% Weight each wave with its corresponidng beta value
+for i = 1:length(betaValues)
+    HRF_Matrix(:,i) = DesignMatrix(:,i) .* betaValues(:,i) ;
+end
+
+% Reconstruct HRF with weigthed beta values (From every Fourier Set)
+HRF = [] ;
+for i = 1:length(originalTimeSamplesNormalized)
+    HRF(i) = sum(HRF_Matrix(i,:)) ;
+end 
+
+% Timeseries With HRF substracted
+timeSeriesNoAttn = timeSeries - HRF ;
 
 gribble = 1;
