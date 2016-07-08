@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -40,7 +40,7 @@ TS_timeSamples = 1:336;
 %% HRF PARAMETERS
 
 % how long we expect the HRF to be
-lengthHRF = 26;
+lengthHRF = 16;
 
 % acquisition time (only useful for HRF so far)
 T_R = 1;
@@ -61,9 +61,9 @@ t = linspace(1,modelDuration,modelDuration.*modelResolution) ;
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
 if strcmp(subj_name,'HERO_asb1')
-  hrf = BOLDHRF(1:10);
+  hrf = BOLDHRF(1:lengthHRF);
 elseif strcmp(subj_name,'HERO_gka1')
-  hrf = BOLDHRF(1:14);
+  hrf = BOLDHRF(1:lengthHRF);
 else
   error('BOLDmodelFitScript: invalid subject');
 end
@@ -239,35 +239,35 @@ set(gcf,'Position',[156 372 1522 641])
 % Light Flux -A
 subplot(3,2,1)
 plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A,[]);
 title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 
 % L minus M -A
 subplot(3,2,3)
 plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A,[]);
 title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
 
 % S -A
 subplot(3,2,5)
 plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A,[]);
 title('S A'); xlabel('Time / s'); ylabel('% signal change');
 
 % Light Flux -B
 subplot(3,2,2)
 plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B,[]);
 title('Light flux B');
 
 % L minus M -B
 subplot(3,2,4)
 plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B,[]);
 title('L - M B');
 
 % S -B
 subplot(3,2,6)
 plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B,[]);
 title('S B');

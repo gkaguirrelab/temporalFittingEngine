@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -40,7 +40,7 @@ TS_timeSamples = 1:336;
 %% HRF PARAMETERS
 
 % how long we expect the HRF to be
-lengthHRF = 26;
+lengthHRF = 16;
 
 % acquisition time (only useful for HRF so far)
 T_R = 1;
@@ -61,9 +61,9 @@ modelUpsampled_t = linspace(1,modelDuration,modelDuration.*modelSampleFreq) ;
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
 if strcmp(subj_name,'HERO_asb1')
-  hrf = BOLDHRF(1:10);
+  hrf = BOLDHRF(1:lengthHRF);
 elseif strcmp(subj_name,'HERO_gka1')
-  hrf = BOLDHRF(1:14);
+  hrf = BOLDHRF(1:lengthHRF);
 else
   error('BOLDmodelFitScript: invalid subject');
 end

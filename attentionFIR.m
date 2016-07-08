@@ -14,7 +14,7 @@ function [hrf, timeSeriesNoAttn] = attentionFIR(originalTimeSamples,timeSeries,a
 originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 
 % HELPER VECTOR FOR SHIFT
-timeShiftScale = [1:HRFduration./HRFsampleInterval];
+timeShiftScale = [1:HRFduration./HRFsampleInterval]-1;
 
 % MATRIX OF START TIMES TO BE SHIFTED
 timesToBeShifted = repmat(attnStartTimes,[1 HRFduration]);

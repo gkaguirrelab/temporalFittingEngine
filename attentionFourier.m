@@ -14,7 +14,7 @@ function [hrf, timeSeriesNoAttn] = attentionFourier(originalTimeSamples,timeSeri
 originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 
 % Time Matrix
-RndAttnTimes = floor(attnStartTimes) ;
+RndAttnTimes = round(attnStartTimes) ;
 
 
 %% Fourier Set
