@@ -80,10 +80,10 @@ for i = 1:length(RndAttnTimes)
 end 
 
 DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
-% ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize
-% Orthogonalize
-% DesignMatrix =  orth(DesignMatrix) ;
-% Add column of 1's before orthogonalising
+% ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize ^^
+%       Orthogonalize
+%       DesignMatrix =  orth(DesignMatrix) ;
+%       Add column of 1's before orthogonalising
 
 %% GET BETA VALUES & HRF
 betaValues = DesignMatrix\timeSeries';
@@ -122,6 +122,6 @@ HRF_No_Ovrlap = HRF_No_Ovrlap' ;
 hrf           = HRF_No_Ovrlap ;         % Compatibility with rest of code
 
 %% REGRESS ATTENTION FROM TIMES SERIES
-timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,1:size(DesignMatrix,2)).*repmat(hrf(:,2:size(hrf,2)),[size(DesignMatrix,1) 1]),2)';
+% timeSeriesNoAttn = timeSeries - sum(DesignMatrix(:,1:size(DesignMatrix,2)).*repmat(hrf(:,2:size(hrf,2)),[size(DesignMatrix,1) 1]),2)';
 
 gribble = 1;
