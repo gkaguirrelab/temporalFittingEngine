@@ -115,11 +115,13 @@ paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
 ampStore = [];
 tau2store = [];
 reconstructedTSmat = [];
+MSEstore = [];
 
 for i = 1:size(stimMatrix,1)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(paramLockMatrix(i,:,:)),cleanedData(i,:),paramStruct);
     amp = paramStructFit.Amplitude;
+    MSEstore(i) = fval;
      % Determine which stimulus values went with which parameter
    if strfind(char(tsFileNames(i)),'_A_')
       valueLookup = stimValuesSorted_A(stimValuesSorted_A>0);
@@ -174,7 +176,17 @@ S_StdTS_A =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)))./sq
 LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
- 
+%%
+LightFluxMSE_A =  mean(MSEstore(stimTypeArr == 1 & runOrder == 'A')) ;
+L_minus_M_MSE_A = mean(MSEstore(stimTypeArr == 2 & runOrder == 'A')) ;
+S_MSE_A =         mean(MSEstore(stimTypeArr == 3 & runOrder == 'A')) ;
+
+LightFluxMSE_B =  mean(MSEstore(stimTypeArr == 1 & runOrder == 'B')) ;
+L_minus_M_MSE_B = mean(MSEstore(stimTypeArr == 2 & runOrder == 'B')) ;
+S_MSE_B =         mean(MSEstore(stimTypeArr == 3 & runOrder == 'B')) ;
+
+%%
+
 % Do the Same for 'Reconstructed' Time Series
 LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:)) ;
 L_minus_M_AvgTS_Model_A = mean(reconstructedTSmat(stimTypeArr == 2 & runOrder == 'A',:)) ;
@@ -223,35 +235,35 @@ set(gcf,'Position',[156 372 1522 641])
 % Light Flux -A
 subplot(3,2,1)
 plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A,LightFluxMSE_A);
 title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 
 % L minus M -A
 subplot(3,2,3)
 plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A,L_minus_M_MSE_A);
 title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
 
 % S -A
 subplot(3,2,5)
 plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
-                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A);
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A,S_MSE_A);
 title('S A'); xlabel('Time / s'); ylabel('% signal change');
 
 % Light Flux -B
 subplot(3,2,2)
 plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B,LightFluxMSE_B);
 title('Light flux B');
 
 % L minus M -B
 subplot(3,2,4)
 plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B,L_minus_M_MSE_B);
 title('L - M B');
 
 % S -B
 subplot(3,2,6)
 plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
-                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B);
+                 startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B,S_MSE_B);
 title('S B');
