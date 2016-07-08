@@ -73,7 +73,7 @@ param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the ma
 param.ARampRelative = 0;%0.25; % multiplicative scaling of the after-response, relative to main. Reasonable bounds [0:1]
 param.tau1 = 0.005;         % time constant of the neural IRF (in seconds). In fMRI data modeling, this will be held fixed.
 param.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
-param.tau2 = 0.2;             % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0011:5]
+param.tau2 = 5;             % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0011:5]
 param.rectify = true;       % controls if rectification is performed upon the neural model.
 
 % currently unused parameters Zhou & Winawer neural model

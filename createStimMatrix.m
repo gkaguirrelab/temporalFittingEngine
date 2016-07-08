@@ -45,26 +45,9 @@ for i = 1:size(startTimesSorted,1)
            assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
            stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
-   % initialize for just this one run
-   paramLockMatrixSubForCons1 = [];
-   paramLockMatrixSub = [];
-   % for each stimulus value
-   for j = 1:length(actualStimulusValues)
-      % find the indices at which that value occurs
-      stimToBeChained = find(stimValuesForRun == actualStimulusValues(j));
-      % then for each index, daisy-chain the linear equalities
-      for k = 1:length(stimToBeChained)-1
-         constraintVec = zeros([1 length(stimValuesForRun)]);
-         constraintVec(stimToBeChained(k)) = 1;
-         constraintVec(stimToBeChained(k+1)) = -1;
-         paramLockMatrixSubForCons1(size(paramLockMatrixSubForCons1,1)+1,:) = constraintVec;
-%          paramLockMatrixSub = [paramLockMatrixSubForCons1 zeros(size(paramLockMatrixSubForCons1)); ...
-%                                zeros(size(paramLockMatrixSubForCons1)) paramLockMatrixSubForCons1];
-         % testb = kron(eye(3),testa)
-      end
-   end
+   paramLockMatrixForCons1 = createParamLockMatrix(actualStimulusValues,stimValuesForRun,1);
    % this only does the constraints for one run, so store it
-   paramLockMatrix(i,:,:) = paramLockMatrixSubForCons1;
+   paramLockMatrix(i,:,:) = paramLockMatrixForCons1;
 end
       
 gribble = 1;
