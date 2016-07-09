@@ -117,7 +117,8 @@ tau2store = [];
 reconstructedTSmat = [];
 MSEstore = [];
 
-bDEBUG = 1;
+% Boolean: 1 -> go into debug mode--only fit light flux A
+bDEBUG = 0;
 
 if bDEBUG == 1
    runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
@@ -159,6 +160,26 @@ if bDEBUG == 1
    StdTS = std(cleanedData(runsToFit,:))./sqrt(size(ampStore,1));
    MSE = mean(MSEstore);
    AvgTS_model = mean(reconstructedTSmat);
+   
+   stimValuesMatSorted_A_cell = {} ;
+    for j = 1:length(stimValuesSorted_A)
+       stimValuesMatSorted_A_cell{j} = num2str(stimValuesSorted_A(j)) ; 
+    end
+   
+   figure;
+   errorbar(actualStimulusValues',Beta,BetaSE,'-ko'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
+    xlabel('Temporal frequency (Hz)'); ylabel('Amplitude');
+    
+    figure;
+    errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
+    xlabel('Temporal frequency (Hz)'); ylabel('\tau_2');
+    
+    figure;
+    plotLinModelFits(T_R.*(1:length(AvgTS)),AvgTS,AvgTS_model, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,MSE);
+    title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 end
 
 %%
