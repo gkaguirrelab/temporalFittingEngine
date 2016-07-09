@@ -108,7 +108,7 @@ paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
 paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
-paramStruct.tau2 = 0.0001.*ones([size(stimMatrix,2) 1]);
+paramStruct.tau2 = 0.001.*ones([size(stimMatrix,2) 1]);
 
 %%
 % store amplitudes
@@ -117,16 +117,24 @@ tau2store = [];
 reconstructedTSmat = [];
 MSEstore = [];
 
-for i = 1:size(stimMatrix,1)
+bDEBUG = 1;
+
+if bDEBUG == 1
+   runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
+else
+   runsToFit = 1:size(stimMatrix,1);  
+end
+
+for i = 1:length(runsToFit)
     % call fitting routine
-    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(i,:,:)),TS_timeSamples,squeeze(paramLockMatrix(i,:,:)),cleanedData(i,:),paramStruct);
+    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
     amp = paramStructFit.Amplitude;
     tau2forStim = paramStructFit.tau2;
-    MSEstore(i) = fval;
+    MSEstore(length(MSEstore)+1) = fval;
      % Determine which stimulus values went with which parameter
-   if strfind(char(tsFileNames(i)),'_A_')
+   if strfind(char(tsFileNames(runsToFit(i))),'_A_')
       valueLookup = stimValuesSorted_A(stimValuesSorted_A>0);
-   elseif strfind(char(tsFileNames(i)),'_B_')
+   elseif strfind(char(tsFileNames(runsToFit(i))),'_B_')
       valueLookup = stimValuesSorted_B(stimValuesSorted_B>0);
    else
       valueLookup = [] ; 
@@ -135,11 +143,22 @@ for i = 1:size(stimMatrix,1)
    [stimValueToPlot,ia] = unique(valueLookup);
    
     % store fit amplitudes 
-    ampStore(i,:) = amp(ia);
-    tau2store(i,:) = tau2forStim(ia);
+    ampStore(size(ampStore,1)+1,:) = amp(ia);
+    tau2store(size(tau2store,1)+1,:) = tau2forStim(ia);
     % store reconstructed time series
-     [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(i,:,:)),TS_timeSamples,cleanedData(i,:),paramStructFit);
-     reconstructedTSmat(i,:) = reconstructedTS;
+     [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,cleanedData(runsToFit(i),:),paramStructFit);
+     reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = reconstructedTS;
+end
+%%
+if bDEBUG == 1
+   Beta = mean(ampStore); 
+   BetaSE = std(ampStore)./sqrt(size(ampStore,1));
+   tau2 = mean(tau2store); 
+   tau2SE = std(tau2store)./sqrt(size(tau2store,1));
+   AvgTS = mean(cleanedData(runsToFit,:));
+   StdTS = std(cleanedData(runsToFit,:))./sqrt(size(ampStore,1));
+   MSE = mean(MSEstore);
+   AvgTS_model = mean(reconstructedTSmat);
 end
 
 %%
@@ -187,7 +206,7 @@ S_StdTS_A =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'A',:)))./sq
 LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
 S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
-%%
+%% MEAN SQUARED ERROR VALUES
 LightFluxMSE_A =  mean(MSEstore(stimTypeArr == 1 & runOrder == 'A')) ;
 L_minus_M_MSE_A = mean(MSEstore(stimTypeArr == 2 & runOrder == 'A')) ;
 S_MSE_A =         mean(MSEstore(stimTypeArr == 3 & runOrder == 'A')) ;
@@ -224,7 +243,7 @@ set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
 errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
 set(gca,'Xtick',actualStimulusValues'); title('S');
 
-%%
+%% TAU VALUES
 figure;
 errorbar(actualStimulusValues,LightFluxtau2,LightFluxtau2SE,'ko'); set(gca,'FontSize',15); hold on
 set(gca,'Xtick',actualStimulusValues'); title('Light flux');
