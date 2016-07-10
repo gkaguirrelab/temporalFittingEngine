@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -38,7 +38,7 @@ bDEBUG = 1;
 [startTimesSorted, stimValuesSorted, attnStartTimes] = orderStartTimes(subj_name,session);
 
 % Time Series sampling points
-TS_timeSamples = 1:336;
+TS_timeSamples = [1:336];
 
 %% HRF PARAMETERS
 
