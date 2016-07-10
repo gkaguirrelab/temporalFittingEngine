@@ -16,7 +16,6 @@ originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 % Time Matrix
 RndAttnTimes = round(attnStartTimes) ;
 
-
 %% Fourier Set
 
 % n = HRF duration-- Time Set (seconds)
@@ -31,7 +30,7 @@ if mod(n,2) == 1
     m      = zeros(n,n);                    % Create blank Fourier Set
     m(1,:) = ones(n,1);                     % Create DC component
 
-    for i = 1:floor(n/2)-1
+    for i = 1:(n-1)/2
         m(i*2,:)   = sin(t/n*2*pi*i);       % Create Sin waves for each Fq 
         m(i*2+1,:) = cos(t/n*2*pi*i);       % Create Cos waves for each Fq
     end
@@ -48,20 +47,18 @@ elseif mod(n,2) == 0
         m(i*2+1,:) = cos(t/(n-1)*2*pi*i);   % Create Cos waves for each Fq
     end
     
+    m(n,:)=sin(t/(n-1)*2*pi*(n/2));         % Add the Nyquist
+    
+    
 else
 % Leave Fourier set Blank -------------------------------------------------
     t = linspace(0,n-1,n);                  % Create Time(s) Array
     m = zeros(n,n);                         % Create blank Fourier Set
 end
 
-% Nyquist Frequency -------------------------------------------------------
-% m(n,:) = sin(t/(n-1)*2*pi*(n/2));
-% ********************************* Leaving OUT Nyquist
-
 
 % Change Dimensions
 m = m' ;
-m = m(:,1:size(m,2)-1);
 
 %% Design Matrix
 
@@ -69,22 +66,15 @@ TimeSeriesMatrix = zeros(length(originalTimeSamplesNormalized)+HRFduration,HRFdu
 % Make matrix not change
 
 for i = 1:length(RndAttnTimes)
-    % DC component -- column of 1's
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),1) = m(1:length(m),1) ;    
 
-    % Everything else
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration-1) =  ...
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration - 1),2:HRFduration-1) + m(1:length(m),2:HRFduration-1) ;
+    % At the time of each attention event, add in the model matrix
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1),1:HRFduration) =  ...
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1),1:HRFduration) + m(1:length(m),1:HRFduration) ;
     
     % Crop off Extra points. Leave length of Original Time series
     DesignMatrix = TimeSeriesMatrix(1:length(originalTimeSamplesNormalized),:) ;
 end 
 
-DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
-% ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize ^^
-%       Orthogonalize
-%       DesignMatrix =  orth(DesignMatrix) ;
-%       Add column of 1's before orthogonalising
 
 %% GET BETA VALUES & HRF
 betaValues = DesignMatrix\timeSeries';
