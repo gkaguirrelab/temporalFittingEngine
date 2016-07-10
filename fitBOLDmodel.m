@@ -121,7 +121,7 @@ reconstructedTSmat = [];
 MSEstore = [];
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 1;
+bDEBUG = 0;
 
 if bDEBUG == 1
    runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
@@ -150,16 +150,19 @@ for i = 1:length(runsToFit)
     % store fit amplitudes 
     ampStore(size(ampStore,1)+1,:) = amp(ia);
     tau2store(size(tau2store,1)+1,:) = tau2forStim(ia);
+    ARampStore(size(ARampStore,1)+1,:) = ARamp(ia);
     % store reconstructed time series
      [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,cleanedData(runsToFit(i),:),paramStructFit);
      reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = reconstructedTS;
 end
 %%
 if bDEBUG == 1
-   Beta = mean(ampStore); 
+   Beta = median(ampStore); 
    BetaSE = std(ampStore)./sqrt(size(ampStore,1));
-   tau2 = mean(tau2store); 
+   tau2 = median(tau2store); 
    tau2SE = std(tau2store)./sqrt(size(tau2store,1));
+   AR = median(ARampStore); 
+   ARSE = std(ARampStore)./sqrt(size(ARampStore,1));
    AvgTS = mean(cleanedData(runsToFit,:));
    StdTS = std(cleanedData(runsToFit,:))./sqrt(size(ampStore,1));
    MSE = mean(MSEstore);
@@ -173,13 +176,18 @@ if bDEBUG == 1
    figure;
    errorbar(actualStimulusValues',Beta,BetaSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('Amplitude');
+    xlabel('Temporal frequency (Hz)'); ylabel('median main-response amplitude');
     
     figure;
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('\tau_2');
-    
+    xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2');
+
+    figure;
+    errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
+    xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude');    
+
     figure;
     plotLinModelFits(T_R.*(1:length(AvgTS)),AvgTS,AvgTS_model, ...
                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,MSE);
