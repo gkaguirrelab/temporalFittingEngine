@@ -86,28 +86,28 @@ for s=1:stimDimension
     %% Implement the initial neural stage
     % The neural response begins with the stimulus scaled by the main
     % response amplitude parameter
-    yNeural = stimMatrix(s,:)'.*param.MRamplitude;
+    yNeural = stimMatrix(s,:).*param.MRamplitude;
     
-    %% Apply gamma convolution
-    % Define a gamma function that transforms the
-    % stimulus input into a profile of neural activity (e.g., LFP)
-    gammaIRF = t .* exp(-t/param.tau1);
-    
-    % scale to unit sum to preserve amplitude of y following convolution
-    gammaIRF=gammaIRF/sum(gammaIRF);
-    
-    % Obtain first stage, linear model, which is the scaled stimulus
-    % convolved by the neural IRF.
-    yNeural = conv(yNeural,gammaIRF);
-    yNeural = yNeural(1:modelLength);
-    
-    %% Implement the compressive non-linearity stage
-    % Obtain second stage, CTS model, which is the output of the linear stage
-    % subjected to a compressive non-linearity. While this is implemented here
-    % as a power law function, it is worth noting that very similar functions
-    % are produced by implementing this as an instantaneous divisive
-    % normalization.
-    yNeural = yNeural.^param.epsilon;
+%     %% Apply gamma convolution
+%     % Define a gamma function that transforms the
+%     % stimulus input into a profile of neural activity (e.g., LFP)
+%     gammaIRF = t .* exp(-t/param.tau1);
+%     
+%     % scale to unit sum to preserve amplitude of y following convolution
+%     gammaIRF=gammaIRF/sum(gammaIRF);
+%     
+%     % Obtain first stage, linear model, which is the scaled stimulus
+%     % convolved by the neural IRF.
+%     yNeural = conv(yNeural,gammaIRF);
+%     yNeural = yNeural(1:modelLength);
+%     
+%     %% Implement the compressive non-linearity stage
+%     % Obtain second stage, CTS model, which is the output of the linear stage
+%     % subjected to a compressive non-linearity. While this is implemented here
+%     % as a power law function, it is worth noting that very similar functions
+%     % are produced by implementing this as an instantaneous divisive
+%     % normalization.
+%     yNeural = yNeural.^param.epsilon;
     
     % Create the exponential low-pass function that defines the time-domain
     % properties of the normalization
@@ -124,12 +124,12 @@ for s=1:stimDimension
     % Apply the exponential decay as a multiplicative scaling
     yNeural=yNeural.*decayingExponential;
     
-    %% Create the after-response
-    % This is assumed to be a shifted, scaled version of the main response.
-    yNeuralAR = yNeural * param.ARampRelative;
-    yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
-    yNeuralAR(1:param.afterResponseTiming)=NaN;
-    yNeural = nansum([yNeural;yNeuralAR]);
+%     %% Create the after-response
+%     % This is assumed to be a shifted, scaled version of the main response.
+%     yNeuralAR = yNeural * param.ARampRelative;
+%     yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
+%     yNeuralAR(1:param.afterResponseTiming)=NaN;
+%     yNeural = nansum([yNeural;yNeuralAR]);
     
     %% Place yNeural into the growing neuralMatrix
     neuralMatrix(s,:)=yNeural - mean(yNeural);
