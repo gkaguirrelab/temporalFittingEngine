@@ -98,7 +98,7 @@ for s=1:stimDimension
     
     % Obtain first stage, linear model, which is the scaled stimulus
     % convolved by the neural IRF.
-    yNeural = conv(yStimulus,gammaIRF);
+    yNeural = conv(yNeural,gammaIRF);
     yNeural = yNeural(1:modelLength);
     
     %% Implement the compressive non-linearity stage
@@ -122,7 +122,7 @@ for s=1:stimDimension
     decayingExponential(1:initialPeak)=1;
     
     % Apply the exponential decay as a multiplicative scaling
-    yNeural=yNeural.*decayingExponential';
+    yNeural=yNeural.*decayingExponential;
     
     %% Create the after-response
     % This is assumed to be a shifted, scaled version of the main response.
