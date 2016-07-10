@@ -79,23 +79,25 @@ param.tau2 = 0.001;         % time constant of the low-pass (exponential decay) 
 % We loop through each column of the stimulus matrix
 for s=1:stimDimension
     
-    % Obtain the moel parameters for this stimulus
+    % Obtain the model parameters for this stimulus
     param.MRamplitude=ampVec(s);
     param.tau2 = tau2vec(s);
     
-    %% Implement the initial neural stage
-    % The neural response begins with the stimulus scaled by the main
-    % response amplitude parameter
+    %% The neural response begins as the stimulus input
+    % scaled by the main response amplitude parameter
     yNeural = stimMatrix(s,:).*param.MRamplitude;
-    
+
+%     %% retain the signed, abs(peak) amplitude of yNeural before convolution
+%     % All subsequent stages retain the peak amplitude set by MRamplitude *
+%     % the maximum value of the stimulus
+%     prePeakPoint=find(abs(yNeural)==max(abs(yNeural)));
+%     prePeakValue=yNeural(prePeakPoint(1));
+%     
 %     %% Apply gamma convolution
 %     % Define a gamma function that transforms the
 %     % stimulus input into a profile of neural activity (e.g., LFP)
 %     gammaIRF = t .* exp(-t/param.tau1);
-%     
-%     % scale to unit sum to preserve amplitude of y following convolution
-%     gammaIRF=gammaIRF/sum(gammaIRF);
-%     
+%         
 %     % Obtain first stage, linear model, which is the scaled stimulus
 %     % convolved by the neural IRF.
 %     yNeural = conv(yNeural,gammaIRF);
@@ -108,6 +110,11 @@ for s=1:stimDimension
 %     % are produced by implementing this as an instantaneous divisive
 %     % normalization.
 %     yNeural = yNeural.^param.epsilon;
+% 
+%     % Restore the peak signed, abs amplitude
+%     postPeakPoint=find(abs(yNeural)==max(abs(yNeural)));
+%     postPeakValue=yNeural(postPeakPoint(1));
+%     yNeural=(yNeural/postPeakValue)*prePeakValue;
     
     % Create the exponential low-pass function that defines the time-domain
     % properties of the normalization
@@ -124,12 +131,12 @@ for s=1:stimDimension
     % Apply the exponential decay as a multiplicative scaling
     yNeural=yNeural.*decayingExponential;
     
-%     %% Create the after-response
-%     % This is assumed to be a shifted, scaled version of the main response.
-%     yNeuralAR = yNeural * param.ARampRelative;
-%     yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
-%     yNeuralAR(1:param.afterResponseTiming)=NaN;
-%     yNeural = nansum([yNeural;yNeuralAR]);
+    %% Create the after-response
+    % This is assumed to be a shifted, scaled version of the main response.
+    yNeuralAR = yNeural * param.ARampRelative;
+    yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
+    yNeuralAR(1:param.afterResponseTiming)=NaN;
+    yNeural = nansum([yNeural;yNeuralAR]);
     
     %% Place yNeural into the growing neuralMatrix
     neuralMatrix(s,:)=yNeural - mean(yNeural);
