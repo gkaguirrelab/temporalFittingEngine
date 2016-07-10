@@ -16,7 +16,7 @@ vlb(:,2) = repmat(0.0001,[size(prmVec0,1) 1]);
 vlb(:,3) = repmat(-10,[size(prmVec0,1) 1]);
 
 vub(:,1) = repmat(10,[size(prmVec0,1) 1]);
-vub(:,2) = repmat(0.1,[size(prmVec0,1) 1]);
+vub(:,2) = repmat(1,[size(prmVec0,1) 1]);
 vub(:,3) = repmat(10,[size(prmVec0,1) 1]);
 
 % make parameter matrix into vector so can set equality constraints
