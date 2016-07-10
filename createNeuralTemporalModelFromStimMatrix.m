@@ -1,4 +1,4 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec, paramStructFixed)
+function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec, ARampVec, paramStructFixed)
 
 
 %% createNeuralTemporalModelFromStimMatrix
@@ -82,15 +82,14 @@ for s=1:stimDimension
     % Obtain the model parameters for this stimulus
     param.MRamplitude=ampVec(s);
     param.tau2 = tau2vec(s);
+    param.ARampRelative = ARampVec(s);
     
     %% The neural response begins as the stimulus input
     % scaled by the main response amplitude parameter
     yStimulus = stimMatrix(s,:);
     yNeural = yStimulus.*param.MRamplitude;
-
-    %% retain the signed, abs(peak) amplitude of yNeural before convolution
-    % All subsequent stages retain the peak amplitude set by MRamplitude *
-    % the maximum value of the stimulus
+    
+    %% find the initial peak of the scaled stimulus
     initialPeakPoint=find(abs(yNeural)==max(abs(yNeural)));
     initialPeakPoint=initialPeakPoint(1);
     initialPeakValue=yNeural(initialPeakPoint);
@@ -99,7 +98,10 @@ for s=1:stimDimension
 %     % Define a gamma function that transforms the
 %     % stimulus input into a profile of neural activity (e.g., LFP)
 %     gammaIRF = t .* exp(-t/param.tau1);
-%         
+%     
+%     %scale the IRF to preserve area of response after convolution
+%     gammaIRF=gammaIRF./sum(gammaIRF);
+%     
 %     % Obtain first stage, linear model, which is the scaled stimulus
 %     % convolved by the neural IRF.
 %     yNeural = conv(yNeural,gammaIRF);
@@ -112,7 +114,7 @@ for s=1:stimDimension
 %     % are produced by implementing this as an instantaneous divisive
 %     % normalization.
 %     yNeural = yNeural.^param.epsilon;
-% 
+%     
 %     % Restore the peak signed, abs amplitude
 %     yNeural=(yNeural/yNeural(initialPeakPoint))*initialPeakValue;
     

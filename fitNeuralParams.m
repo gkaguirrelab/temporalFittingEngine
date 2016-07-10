@@ -6,15 +6,18 @@ options = optimoptions('fmincon','Diagnostics','on','Display','iter','Algorithm'
 % grab neural parameters
 prmVec0(:,1) = paramStruct.Amplitude;
 prmVec0(:,2) = paramStruct.tau2;
+prmVec0(:,3) = paramStruct.ARAmplitude;
 
 f = @(prmVec)forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStruct);
 
 % set bounds
 vlb(:,1) = repmat(-3,[size(prmVec0,1) 1]);
 vlb(:,2) = repmat(0.0001,[size(prmVec0,1) 1]);
+vlb(:,3) = repmat(-2,[size(prmVec0,1) 1]);
 
 vub(:,1) = repmat(3,[size(prmVec0,1) 1]);
 vub(:,2) = repmat(0.1,[size(prmVec0,1) 1]);
+vub(:,3) = repmat(2,[size(prmVec0,1) 1]);
 
 % make parameter matrix into vector so can set equality constraints
 prmVec0 = prmVec0(:);
@@ -31,5 +34,6 @@ beq = zeros([size(paramLockMatrix,1) 1]);
 paramVec = reshape(paramVec,[length(paramStruct.Amplitude) length(paramVec)./length(paramStruct.Amplitude)]);
 paramStruct.Amplitude = paramVec(:,1);
 paramStruct.tau2 = paramVec(:,2);
-      
+paramStruct.ARAmplitude = paramVec(:,3);
+
 gribble = 1;

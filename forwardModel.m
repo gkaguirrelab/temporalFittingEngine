@@ -7,9 +7,10 @@ function [f,reconstructedTS] = forwardModel(stimMatrix,t,data,paramStruct)
 
 ampVec = paramStruct.Amplitude;
 tau2vec = paramStruct.tau2;
+ARampVec = paramStruct.ARAmplitude;
 
 % scale each neural vector by the amplitude parameter, then sum
-neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,paramStruct));
+neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStruct));
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStruct.HRF,paramStruct.HRFtimeSamples);

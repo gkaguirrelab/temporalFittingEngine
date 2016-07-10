@@ -109,11 +109,14 @@ paramStruct.HRFtimeSamples = modelUpsampled_t;
 
 paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
 paramStruct.tau2 = 0.001.*ones([size(stimMatrix,2) 1]);
+paramStruct.ARAmplitude = (-0.125).*ones([size(stimMatrix,2) 1]);
 
 %%
 % store amplitudes
 ampStore = [];
 tau2store = [];
+ARampStore = [];
+
 reconstructedTSmat = [];
 MSEstore = [];
 
@@ -130,6 +133,7 @@ for i = 1:length(runsToFit)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
     amp = paramStructFit.Amplitude;
+    ARamp = paramStructFit.ARAmplitude;
     tau2forStim = paramStructFit.tau2;
     MSEstore(length(MSEstore)+1) = fval;
      % Determine which stimulus values went with which parameter

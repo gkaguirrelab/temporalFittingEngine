@@ -45,7 +45,7 @@ for i = 1:size(startTimesSorted,1)
            assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
            stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
-   paramLockMatrixForCons1 = createParamLockMatrix(actualStimulusValues,stimValuesForRun,2);
+   paramLockMatrixForCons1 = createParamLockMatrix(actualStimulusValues,stimValuesForRun,3);
    % this only does the constraints for one run, so store it
    paramLockMatrix(i,:,:) = paramLockMatrixForCons1;
 end

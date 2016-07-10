@@ -10,9 +10,10 @@ prmVecReshaped = reshape(prmVec,[size(stimMatrix,1) length(prmVec)./size(stimMat
 
 ampVec = prmVecReshaped(:,1);
 tau2vec = prmVecReshaped(:,2);
+ARampVec = prmVecReshaped(:,3);
 
 % scale each neural vector by the amplitude parameter, then sum
-neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,paramStructFixed));
+neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStructFixed));
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStructFixed.HRF,paramStructFixed.HRFtimeSamples);
