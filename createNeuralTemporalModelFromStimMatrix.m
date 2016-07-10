@@ -70,7 +70,7 @@ param.afterResponseTiming = 10; % Time after stimulus onset at which the offset 
 
 % parameters of the neural filters
 param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response. Should be unbounded.
-param.ARampRelative = 0;    % multiplicative scaling of the after-response, relative to main. Reasonable bounds [-1:1]
+param.ARampRelative = -0.25;    % multiplicative scaling of the after-response, relative to main. Reasonable bounds [-1:1]
 param.tau1 = 0.005;         % time constant of the neural IRF (in seconds). In fMRI data modeling, this will be held fixed.
 param.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
 param.tau2 = 0.001;         % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0001:0.1]
@@ -85,14 +85,16 @@ for s=1:stimDimension
     
     %% The neural response begins as the stimulus input
     % scaled by the main response amplitude parameter
-    yNeural = stimMatrix(s,:).*param.MRamplitude;
+    yStimulus = stimMatrix(s,:);
+    yNeural = yStimulus.*param.MRamplitude;
 
-%     %% retain the signed, abs(peak) amplitude of yNeural before convolution
-%     % All subsequent stages retain the peak amplitude set by MRamplitude *
-%     % the maximum value of the stimulus
-%     prePeakPoint=find(abs(yNeural)==max(abs(yNeural)));
-%     prePeakValue=yNeural(prePeakPoint(1));
-%     
+    %% retain the signed, abs(peak) amplitude of yNeural before convolution
+    % All subsequent stages retain the peak amplitude set by MRamplitude *
+    % the maximum value of the stimulus
+    initialPeakPoint=find(abs(yNeural)==max(abs(yNeural)));
+    initialPeakPoint=initialPeakPoint(1);
+    initialPeakValue=yNeural(initialPeakPoint);
+    
 %     %% Apply gamma convolution
 %     % Define a gamma function that transforms the
 %     % stimulus input into a profile of neural activity (e.g., LFP)
@@ -112,21 +114,17 @@ for s=1:stimDimension
 %     yNeural = yNeural.^param.epsilon;
 % 
 %     % Restore the peak signed, abs amplitude
-%     postPeakPoint=find(abs(yNeural)==max(abs(yNeural)));
-%     postPeakValue=yNeural(postPeakPoint(1));
-%     yNeural=(yNeural/postPeakValue)*prePeakValue;
+%     yNeural=(yNeural/yNeural(initialPeakPoint))*initialPeakValue;
     
     % Create the exponential low-pass function that defines the time-domain
     % properties of the normalization
     decayingExponential=(exp(-1*param.tau2*t));
     
-    % Find the initial peak of the response and position the decaying
-    % exponential to have unit value at that time point.
-    initialPeak=find(yNeural==max(yNeural));
-    initialPeak=initialPeak(1);
-    decayingExponential=circshift(decayingExponential,[0,initialPeak]);
+    % Position the decaying exponential to have unit value at that time
+    % point of the initial peak.
+    decayingExponential=circshift(decayingExponential,[0,initialPeakPoint]);
     decayingExponential=decayingExponential/max(decayingExponential);
-    decayingExponential(1:initialPeak)=1;
+    decayingExponential(1:initialPeakPoint)=1;
     
     % Apply the exponential decay as a multiplicative scaling
     yNeural=yNeural.*decayingExponential;
@@ -139,7 +137,7 @@ for s=1:stimDimension
     yNeural = nansum([yNeural;yNeuralAR]);
     
     %% Place yNeural into the growing neuralMatrix
-    neuralMatrix(s,:)=yNeural - mean(yNeural);
+    neuralMatrix(s,:)=yNeural;
     
 end % loop over columns of the stimulus matrix
 

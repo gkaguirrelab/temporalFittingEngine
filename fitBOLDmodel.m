@@ -118,7 +118,7 @@ reconstructedTSmat = [];
 MSEstore = [];
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 0;
+bDEBUG = 1;
 
 if bDEBUG == 1
    runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
