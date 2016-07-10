@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -106,7 +106,7 @@ stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
 %%
-% store the HRF, its time samples, and the amplitudes in the struct
+% store the HRF, its time samples, and the neural parameters
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
@@ -115,7 +115,7 @@ paramStruct.tau2 = 0.001.*ones([size(stimMatrix,2) 1]);
 paramStruct.ARAmplitude = (-0.125).*ones([size(stimMatrix,2) 1]);
 
 %%
-% store amplitudes
+% store parameters--initialize matrices
 ampStore = [];
 tau2store = [];
 ARampStore = [];
@@ -157,6 +157,7 @@ for i = 1:length(runsToFit)
 end
 %%
 if bDEBUG == 1
+    % getting statistics over runs
    Beta = median(ampStore); 
    BetaSE = std(ampStore)./sqrt(size(ampStore,1));
    tau2 = median(tau2store); 
@@ -168,26 +169,27 @@ if bDEBUG == 1
    MSE = mean(MSEstore);
    AvgTS_model = mean(reconstructedTSmat);
    
+   % create cell for plotting stimulus starts
    stimValuesMatSorted_A_cell = {} ;
     for j = 1:length(stimValuesSorted_A)
        stimValuesMatSorted_A_cell{j} = num2str(stimValuesSorted_A(j)) ; 
     end
     
-    % Light Flux
+    % amplitudes
     [wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',Beta,BetaSE,1); hold on
     errorbar(actualStimulusValues',Beta,BetaSE,'ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux');
-    
+    % tau2
     figure;
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light Flux'); set(gca,'Xscale','log');
     xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2');
-
+    % after response
     figure;
     errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
     xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude');    
-
+    % plot full time series
     figure;
     plotLinModelFits(T_R.*(1:length(AvgTS)),AvgTS,AvgTS_model, ...
                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,MSE);
@@ -197,29 +199,29 @@ else
     numberOfRuns = 12 ;
     numRunsPerStimOrder = 6 ;   % Stim order A -or- B
 
-    %% Calculations (Means and Standard Errors)
+    %% Parameter averaging
 
-    % Convert Mean-Subtracted Beta values to Percentages
+    % amplitudes
     LightFluxBeta =  mean(ampStore(stimTypeArr == 1,:));
     L_minus_M_Beta = mean(ampStore(stimTypeArr == 2,:));
     S_Beta =         mean(ampStore(stimTypeArr == 3,:));
 
-    % Compute Standard Error
+    % amplitude Standard Error
     LightFluxBetaSE =  ((std(ampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
     L_minus_M_BetaSE = ((std(ampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
     S_BetaSE =         ((std(ampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
 
-    % Convert Mean-Subtracted Beta values to Percentages
+    % tau2
     LightFluxtau2 =  mean(tau2store(stimTypeArr == 1,:));
     L_minus_M_tau2 = mean(tau2store(stimTypeArr == 2,:));
     S_tau2 =         mean(tau2store(stimTypeArr == 3,:));
 
-    % Compute Standard Error
+    % Compute tau2 Standard Error
     LightFluxtau2SE =  ((std(tau2store(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
     L_minus_M_tau2SE = ((std(tau2store(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
     S_tau2SE =         ((std(tau2store(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
 
-    %%
+    %%  TIME SERIES MEAN AND STD ERROR
     % Average Time Series for Each Combination of Stimulus Type & Run order
     LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
     L_minus_M_AvgTS_A = mean(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)) ;
@@ -246,7 +248,7 @@ else
     L_minus_M_MSE_B = mean(MSEstore(stimTypeArr == 2 & runOrder == 'B')) ;
     S_MSE_B =         mean(MSEstore(stimTypeArr == 3 & runOrder == 'B')) ;
 
-    %%
+    %% MEANS FOR MODEL FITS
 
     % Do the Same for 'Reconstructed' Time Series
     LightFluxAvgTS_Model_A =  mean(reconstructedTSmat(stimTypeArr == 1 & runOrder == 'A',:)) ;
