@@ -77,7 +77,10 @@ end
 
 
 %% GET BETA VALUES & HRF
+% suppress warnings regarding a rank deficient matrix. It's OK 
+warning('off','MATLAB:rankDeficientMatrix')
 betaValues = DesignMatrix\timeSeries';
+warning('on','MATLAB:rankDeficientMatrix')
 
 % HRF -- Fourier Transform (Reconstruct waves with Beta values)
 betaValues = betaValues' ;
