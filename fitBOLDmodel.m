@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -38,7 +38,7 @@ bDEBUG = 1;
 [startTimesSorted, stimValuesSorted, attnStartTimes] = orderStartTimes(subj_name,session);
 
 % Time Series sampling points
-TS_timeSamples = [1:336];
+TS_timeSamples = [1:336]-1;
 
 %% HRF PARAMETERS
 
@@ -54,12 +54,12 @@ modelDuration=floor(max(TS_timeSamples)) ;
 modelSampleFreq=20 ; 
 
 % Time Samples to Interpolate
-modelUpsampled_t = linspace(1,modelDuration,modelDuration.*modelSampleFreq) ;
+modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
 
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,T_R,'Fourier');
+[BOLDHRF, cleanedData]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'Fourier');
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
@@ -191,7 +191,7 @@ if bDEBUG == 1
     xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude');    
     % plot full time series
     figure;
-    plotLinModelFits(T_R.*(1:length(AvgTS)),AvgTS,AvgTS_model, ...
+    plotLinModelFits(TS_timeSamples,AvgTS,AvgTS_model, ...
                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,MSE);
     title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 else
@@ -307,37 +307,37 @@ else
 
     % Light Flux -A
     subplot(3,2,1)
-    plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_A)),LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
+    plotLinModelFits(TS_timeSamples,LightFluxAvgTS_A,LightFluxAvgTS_Model_A, ...
                      startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,LightFluxStdTS_A,LightFluxMSE_A);
     title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 
     % L minus M -A
     subplot(3,2,3)
-    plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_A)),L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
+    plotLinModelFits(TS_timeSamples,L_minus_M_AvgTS_A,L_minus_M_AvgTS_Model_A, ...
                      startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,L_minus_M_StdTS_A,L_minus_M_MSE_A);
     title('L - M A'); xlabel('Time / s'); ylabel('% signal change');
 
     % S -A
     subplot(3,2,5)
-    plotLinModelFits(T_R.*(1:length(S_AvgTS_A)),S_AvgTS_A,S_AvgTS_Model_A, ...
+    plotLinModelFits(TS_timeSamples,S_AvgTS_A,S_AvgTS_Model_A, ...
                      startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,S_StdTS_A,S_MSE_A);
     title('S A'); xlabel('Time / s'); ylabel('% signal change');
 
     % Light Flux -B
     subplot(3,2,2)
-    plotLinModelFits(T_R.*(1:length(LightFluxAvgTS_B)),LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
+    plotLinModelFits(TS_timeSamples,LightFluxAvgTS_B,LightFluxAvgTS_Model_B, ...
                      startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,LightFluxStdTS_B,LightFluxMSE_B);
     title('Light flux B');
 
     % L minus M -B
     subplot(3,2,4)
-    plotLinModelFits(T_R.*(1:length(L_minus_M_AvgTS_B)),L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
+    plotLinModelFits(TS_timeSamples,L_minus_M_AvgTS_B,L_minus_M_AvgTS_Model_B, ...
                      startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,L_minus_M_StdTS_B,L_minus_M_MSE_B);
     title('L - M B');
 
     % S -B
     subplot(3,2,6)
-    plotLinModelFits(T_R.*(1:length(S_AvgTS_B)),S_AvgTS_B,S_AvgTS_Model_B, ...
+    plotLinModelFits(TS_timeSamples,S_AvgTS_B,S_AvgTS_Model_B, ...
                      startTimesSorted_B,stimValuesMatSorted_B_cell,stimValuesSorted_B,S_StdTS_B,S_MSE_B);
     title('S B');
 end

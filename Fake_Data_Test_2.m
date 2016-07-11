@@ -24,7 +24,7 @@ session = 'all' ;
 [startTimesSorted, stimValuesSorted, attnStartTimes] = orderStartTimes(subj_name,session);
 
 % Time Series sampling points
-t = 1:336;
+t = 0:335;
 
 %% PICK JUST ONE RUN
 
@@ -64,13 +64,14 @@ t,stimDuration,stepFunctionRes,cosRamp);
 
 % get just one stimulus
 curStimMatrix = squeeze(stimMatrix(testIndex,:,:));
-
+%%
 % random amplitudes
 ampRand = rand([size(curStimMatrix,1) 1]).*2 - 1;
 
 % create neural vector
 neuralVec = sum(repmat(ampRand,[1 size(curStimMatrix,2)]).*curStimMatrix);
 
+%%
 % round attention start times
 curAttnStartTimesRound = round(curAttnStartTimes);
 

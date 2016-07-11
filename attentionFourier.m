@@ -68,8 +68,8 @@ TimeSeriesMatrix = zeros(length(originalTimeSamplesNormalized)+HRFduration,HRFdu
 for i = 1:length(RndAttnTimes)
 
     % At the time of each attention event, add in the model matrix
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1),1:HRFduration) =  ...
-    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1),1:HRFduration) + m(1:length(m),1:HRFduration) ;
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1)+1,1:HRFduration) =  ...
+    TimeSeriesMatrix(RndAttnTimes(i)+(0:HRFduration-1)+1,1:HRFduration) + m(1:length(m),1:HRFduration) ;
     
     % Crop off Extra points. Leave length of Original Time series
     DesignMatrix = TimeSeriesMatrix(1:length(originalTimeSamplesNormalized),:) ;
