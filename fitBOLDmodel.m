@@ -120,6 +120,10 @@ ampStore = [];
 tau2store = [];
 ARampStore = [];
 
+ampStoreAll = [];
+tau2storeAll = [];
+ARampStoreAll = [];
+
 reconstructedTSmat = [];
 MSEstore = [];
 
@@ -135,6 +139,11 @@ for i = 1:length(runsToFit)
     amp = paramStructFit.Amplitude;
     ARamp = paramStructFit.ARAmplitude;
     tau2forStim = paramStructFit.tau2;
+    
+    ampStoreAll(size(ampStoreAll,1)+1,:) = amp;
+    tau2storeAll(size(tau2storeAll,1)+1,:) = tau2forStim;
+    ARampStoreAll(size(ARampStoreAll,1)+1,:) = ARamp;
+    
     MSEstore(length(MSEstore)+1) = fval;
      % Determine which stimulus values went with which parameter
    if strfind(char(tsFileNames(runsToFit(i))),'_A_')

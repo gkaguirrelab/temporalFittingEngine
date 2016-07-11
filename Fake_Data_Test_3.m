@@ -1,15 +1,16 @@
 %% RUN fitBOLDmodel FIRST, AND THEN SET THE INDEX IMMEDIATELY BELOW TO WHAT
 %  RUN YOU WANT, THEN JUST CALL THE ENTIRE THING
 
-% pick a run
-indexToTest = 12;
+% pick a run index: between 1 and 6, if debugging (only light flux A)
+indexToTest = 4;
 
 % get the stimulus matrix
 curStimMatrix = squeeze(stimMatrix(indexToTest,:,:));
 
 % scale each neural vector by the amplitude parameter, then sum
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(TS_timeSamples,curStimMatrix, ...
-                paramStructFit.Amplitude,paramStructFit.tau2,paramStructFit.ARAmplitude,paramStructFit));
+                ampStoreAll(indexToTest,:)',tau2storeAll(indexToTest,:)', ...
+               ARampStoreAll(indexToTest,:)',paramStructFit));
 
 % get attention start times for that run
 curAttnStartTimes = attnStartTimes(indexToTest,:);
