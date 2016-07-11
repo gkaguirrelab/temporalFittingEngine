@@ -59,7 +59,7 @@ modelUpsampled_t = linspace(1,modelDuration,modelDuration.*modelSampleFreq) ;
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData]= fitHRF_FIR(avgTSprc,attnStartTimes,lengthHRF,T_R);
+[BOLDHRF, cleanedData]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,T_R,'Fourier');
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
