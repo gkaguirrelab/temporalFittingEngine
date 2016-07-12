@@ -2,10 +2,10 @@
 %  RUN YOU WANT, THEN JUST CALL THE ENTIRE THING
 
 % pick a run index: between 1 and 6, if debugging (only light flux A)
-indexToTest = 4;
+indexToTest = 6;
 
 % get the stimulus matrix
-curStimMatrix = squeeze(stimMatrix(indexToTest,:,:));
+curStimMatrix = squeeze(stimMatrix(runsToFit(indexToTest),:,:));
 
 % scale each neural vector by the amplitude parameter, then sum
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(TS_timeSamples,curStimMatrix, ...
@@ -13,7 +13,7 @@ neuralVec = sum(createNeuralTemporalModelFromStimMatrix(TS_timeSamples,curStimMa
                ARampStoreAll(indexToTest,:)',paramStructFit));
 
 % get attention start times for that run
-curAttnStartTimes = attnStartTimes(indexToTest,:);
+curAttnStartTimes = attnStartTimes(runsToFit(indexToTest),:);
 
 % get rid of filler values
 curAttnStartTimes = curAttnStartTimes(curAttnStartTimes>-1);
