@@ -1,4 +1,4 @@
-function [watsonFitToData, fitParams] = fitWatsonToTTF_errorGuided(frequenciesHz, data, stdError, displayFitPlotIn, initialParamsIn)
+function [watsonFitToData, fitParams,frequenciesHz_fine,y,offset] = fitWatsonToTTF_errorGuided(frequenciesHz, data, stdError, displayFitPlotIn, initialParamsIn)
 
 %% fitWatsonToTTF
 %
@@ -84,10 +84,12 @@ watsonFitToData = abs(WatsonLinearModel(frequenciesHz, fitParams));
 
 % If the user requested a plot, give it to them
 
+frequenciesHz_fine = linspace(frequenciesHz(1), frequenciesHz(end), 100);
+y = abs(WatsonLinearModel(frequenciesHz_fine, fitParams));
+    
 if displayFitPlot
     figure;
-    frequenciesHz_fine = linspace(frequenciesHz(1), frequenciesHz(end), 100);
-    y = abs(WatsonLinearModel(frequenciesHz_fine, fitParams));
+    
     % Plot the data
     r1 = semilogx(frequenciesHz, data+offset, 'sr', 'MarkerFaceColor', 'r'); hold on;
     
@@ -199,3 +201,5 @@ function Hsub = nStageLowPassFilter(tau,frequenciesHz,filterOrder)
 %                the model
 
 Hsub = (1i*2*pi*frequenciesHz*tau + 1) .^ (-filterOrder);
+
+gribble = 1;

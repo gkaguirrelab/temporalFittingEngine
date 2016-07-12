@@ -1,4 +1,4 @@
-function [HRF, cleanedData] = fitHRF(timeSeries,attnStartTimes,lengthAttnHRF,TS_timeSamples,T_R,type)
+function [HRF, cleanedData, SEHRF] = fitHRF(timeSeries,attnStartTimes,lengthAttnHRF,TS_timeSamples,T_R,type)
 
 % function HRF = fitHRF_FIR(timeSeries,attnStartTimes)
 %
@@ -22,5 +22,6 @@ for i = 1:size(timeSeries,1)
 end
 
 HRF = mean(hrfStore);
+SEHRF = std(hrfStore)./sqrt(size(hrfStore,1));
 
 gribble = 1;

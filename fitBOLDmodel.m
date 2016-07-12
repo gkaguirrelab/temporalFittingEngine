@@ -25,7 +25,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 1;
+bDEBUG = 0;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
@@ -59,7 +59,7 @@ modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'Fourier');
+[BOLDHRF, cleanedData, SEHRF]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'Fourier');
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
@@ -70,7 +70,7 @@ elseif strcmp(subj_name,'HERO_gka1')
 else
   error('BOLDmodelFitScript: invalid subject');
 end
-       
+
 if bCanonicalHRF == 1     
    % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
    clear BOLDHRF
@@ -81,6 +81,10 @@ else
    BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
    % align HRF with 0 mark
    hrf = hrf-hrf(1);
+   figure;
+   errorbar(0:lengthHRF-1,hrf,SEHRF,'LineWidth',2)
+   xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
+   title('HRF');
    % make it the right size
    BOLDHRF_unInterp(1:length(hrf)) = hrf;
    % upsample the HRF
@@ -184,17 +188,17 @@ if bDEBUG == 1
        stimValuesMatSorted_A_cell{j} = num2str(stimValuesSorted_A(j)) ; 
     end
     
+    figure;
+    set(gcf,'Position',[392 190 1094 855]);
     % amplitudes
     [wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',Beta,BetaSE,1); hold on
     errorbar(actualStimulusValues',Beta,BetaSE,'ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux');
     % tau2
-    figure;
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light Flux'); set(gca,'Xscale','log');
     xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2');
     % after response
-    figure;
     errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
     xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude');    
@@ -271,29 +275,47 @@ else
     yLimits = [min([LightFluxBeta L_minus_M_Beta S_Beta]) max([LightFluxBeta L_minus_M_Beta S_Beta])] ;
 
     %% TTF & HRF Plots
-
     % Light Flux
-    [wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,1); hold on
-    errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
-    set(gca,'Xtick',actualStimulusValues'); title('Light flux');
-
-    [wftd2, fp2] = fitWatsonToTTF_errorGuided(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,1); hold on
-    errorbar(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,'ko');
-    set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M');
-    % S
-    [wftd3, fp3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,1); hold on
-    errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
-    set(gca,'Xtick',actualStimulusValues'); title('S');
-
-    %% TAU VALUES
+    [wftd1, fp1, frequenciesHz_fine1,y1,offset1] = fitWatsonToTTF_errorGuided(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,0); 
+    
+    [wftd2, fp2,frequenciesHz_fine2,y2,offset2] = fitWatsonToTTF_errorGuided(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,0);  
+    % S  
+    [wftd3, fp3,frequenciesHz_fine3,y3,offset3] = fitWatsonToTTF_errorGuided(actualStimulusValues',S_Beta,S_BetaSE,0);
+        
     figure;
+    set(gcf,'Position',[321 200 1179 845])
+    subplot(3,3,1)
+    plot(frequenciesHz_fine1,y1+offset1,'-k'); hold on
+    errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues'); title('Light flux'); axis square;
+    set(gca,'Xscale','log'); xlabel('Temporal frequency'); ylabel('Amplitude');
+
+    subplot(3,3,2)
+    plot(frequenciesHz_fine2,y2+offset2,'-k'); hold on
+    errorbar(actualStimulusValues',L_minus_M_Beta,L_minus_M_BetaSE,'ko');
+    set(gca,'FontSize',15); set(gca,'Xtick',actualStimulusValues'); title('L - M'); axis square;
+    set(gca,'Xscale','log');
+    
+    subplot(3,3,3)
+    plot(frequenciesHz_fine3,y3+offset3,'-k'); hold on
+    errorbar(actualStimulusValues',S_Beta,S_BetaSE,'ko'); set(gca,'FontSize',15);
+        set(gca,'Xtick',actualStimulusValues'); title('S'); axis square; 
+        set(gca,'Xscale','log');
+    
+    % TAU VALUES
+    subplot(3,3,4)
     errorbar(actualStimulusValues,LightFluxtau2,LightFluxtau2SE,'ko'); set(gca,'FontSize',15); hold on
-    set(gca,'Xtick',actualStimulusValues'); title('\tau_2 fits');
+    set(gca,'Xtick',actualStimulusValues'); title('\tau_2 fits');  set(gca,'Xscale','log');
+    xlabel('Temporal frequency'); ylabel('\tau_2'); axis square; title('Light flux');
+    
+    subplot(3,3,5)
     errorbar(actualStimulusValues,L_minus_M_tau2,L_minus_M_tau2SE,'ro'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; title('L - M');
+    
+    subplot(3,3,6)
     errorbar(actualStimulusValues,S_tau2,S_tau2SE,'bo'); set(gca,'FontSize',15);
     set(gca,'Xscale','log');
-    xlabel('Temporal frequency'); ylabel('\tau_2');
-    legend('Light Flux','L - M','S');
+    set(gca,'Xtick',actualStimulusValues'); axis square; title('S');
 
     %% Time Series plots 
     % Use Function for plotting Data:
