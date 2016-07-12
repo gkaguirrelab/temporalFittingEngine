@@ -1,6 +1,11 @@
 %% RUN fitBOLDmodel FIRST, AND THEN SET THE INDEX IMMEDIATELY BELOW TO WHAT
 %  RUN YOU WANT, THEN JUST CALL THE ENTIRE THING
 
+clear curStimMatrix
+clear neuralVec
+clear curAttnStartTimes
+clear curAttnStartTimesRound
+
 % pick a run index: between 1 and 6, if debugging (only light flux A)
 indexToTest = 6;
 
@@ -22,10 +27,10 @@ curAttnStartTimes = curAttnStartTimes(curAttnStartTimes>-1);
 curAttnStartTimesRound = round(curAttnStartTimes);
 
 % give an arbitrary value to the attention parameter
-estimatedAttnAmplitude = 0.05;
+estimatedAttnAmplitude = 0.1;
             
 % throw them in--amplitude can vary
-neuralVec(curAttnStartTimesRound+1) = neuralVec(curAttnStartTimesRound)+estimatedAttnAmplitude;
+neuralVec(curAttnStartTimesRound+1) = neuralVec(curAttnStartTimesRound+1)+estimatedAttnAmplitude;
 
 %% EXAMPLE HRF, THEN CONVOLVE
 gamma1 = 6; gamma2 = 12; gammaScale = 10; HRFexpectedLength = 16;
