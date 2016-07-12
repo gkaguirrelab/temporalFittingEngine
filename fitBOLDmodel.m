@@ -25,7 +25,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 0;
+bDEBUG = 1;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
@@ -188,16 +188,21 @@ if bDEBUG == 1
        stimValuesMatSorted_A_cell{j} = num2str(stimValuesSorted_A(j)) ; 
     end
     
+    [wftd1, fp1, frequenciesHz_fine1,y1,offset1] = fitWatsonToTTF_errorGuided(actualStimulusValues',Beta,BetaSE,0);
     figure;
-    set(gcf,'Position',[392 190 1094 855]);
-    % amplitudes
-    [wftd1, fp1] = fitWatsonToTTF_errorGuided(actualStimulusValues',Beta,BetaSE,1); hold on
-    errorbar(actualStimulusValues',Beta,BetaSE,'ko'); set(gca,'FontSize',15);
-    set(gca,'Xtick',actualStimulusValues'); title('Light flux');
+    set(gcf,'Position',[321 200 1179 845])
+
+    subplot(3,3,1)
+    plot(frequenciesHz_fine1,y1+offset1,'-k'); hold on
+    errorbar(actualStimulusValues',Beta,Beta,'ko'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues'); title('Light flux A'); axis square;
+    set(gca,'Xscale','log'); xlabel('Temporal frequency'); ylabel('Maintained response amplitude');
+    subplot(3,3,4)
     % tau2
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light Flux'); set(gca,'Xscale','log');
     xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2');
+    subplot(3,3,7)
     % after response
     errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
