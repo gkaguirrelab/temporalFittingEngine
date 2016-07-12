@@ -234,6 +234,15 @@ else
     L_minus_M_tau2SE = ((std(tau2store(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
     S_tau2SE =         ((std(tau2store(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
 
+    % AR
+    LightFluxARamp =  mean(ARampStore(stimTypeArr == 1,:));
+    L_minus_M_ARamp = mean(ARampStore(stimTypeArr == 2,:));
+    S_ARamp =         mean(ARampStore(stimTypeArr == 3,:));
+
+    % Compute AR Standard Error
+    LightFluxARampSE =  ((std(ARampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
+    L_minus_M_ARampSE = ((std(ARampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
+    S_ARampSE =         ((std(ARampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
     %%  TIME SERIES MEAN AND STD ERROR
     % Average Time Series for Each Combination of Stimulus Type & Run order
     LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
@@ -288,7 +297,7 @@ else
     plot(frequenciesHz_fine1,y1+offset1,'-k'); hold on
     errorbar(actualStimulusValues',LightFluxBeta,LightFluxBetaSE,'ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); axis square;
-    set(gca,'Xscale','log'); xlabel('Temporal frequency'); ylabel('Amplitude');
+    set(gca,'Xscale','log'); xlabel('Temporal frequency'); ylabel('Maintained response amplitude');
 
     subplot(3,3,2)
     plot(frequenciesHz_fine2,y2+offset2,'-k'); hold on
@@ -314,6 +323,20 @@ else
     
     subplot(3,3,6)
     errorbar(actualStimulusValues,S_tau2,S_tau2SE,'bo'); set(gca,'FontSize',15);
+    set(gca,'Xscale','log');
+    set(gca,'Xtick',actualStimulusValues'); axis square; title('S');
+    
+    subplot(3,3,7)
+    errorbar(actualStimulusValues,LightFluxARamp,LightFluxARampSE,'ko'); set(gca,'FontSize',15); hold on
+    set(gca,'Xtick',actualStimulusValues'); title('\tau_2 fits');  set(gca,'Xscale','log');
+    xlabel('Temporal frequency'); ylabel('After response amplitude'); axis square; title('Light flux');
+    
+    subplot(3,3,8)
+    errorbar(actualStimulusValues,L_minus_M_ARamp,L_minus_M_ARampSE,'ro'); set(gca,'FontSize',15);
+    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; title('L - M');
+    
+    subplot(3,3,9)
+    errorbar(actualStimulusValues,S_ARamp,S_ARampSE,'bo'); set(gca,'FontSize',15);
     set(gca,'Xscale','log');
     set(gca,'Xtick',actualStimulusValues'); axis square; title('S');
 
