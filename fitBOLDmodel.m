@@ -109,7 +109,8 @@ stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
 TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
-%%
+%% SPECIFY PARAMETERS TO FIT 
+
 % put HRF in parameter struct
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
@@ -201,6 +202,7 @@ if bDEBUG == 1
    tau2SE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2')))./sqrt(size(storeUnique,1));
    AR = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))); 
    ARSE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')))./sqrt(size(storeUnique,1));
+   
    AvgTS = mean(cleanedData(runsToFit,:));
    StdTS = std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
    MSE = mean(MSEstore);
@@ -213,6 +215,7 @@ if bDEBUG == 1
     end
     
     [wftd1, fp1, frequenciesHz_fine1,y1,offset1] = fitWatsonToTTF_errorGuided(actualStimulusValues',Beta,BetaSE,0);
+    
     figure;
     set(gcf,'Position',[321 200 1179 845])
 
