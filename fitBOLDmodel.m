@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -201,12 +201,12 @@ if bDEBUG == 1
     % tau2
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light Flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2');
+    xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2'); axis square;
     subplot(3,3,7)
     % after response
     errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude');    
+    xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude'); axis square;
     % plot full time series
     figure;
     plotLinModelFits(TS_timeSamples,AvgTS,AvgTS_model, ...
