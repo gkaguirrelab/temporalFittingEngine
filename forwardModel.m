@@ -5,9 +5,9 @@ function [f,reconstructedTS] = forwardModel(stimMatrix,t,data,paramStruct)
 % takes stimuli and data with a set of parameters, and sees how well those
 % parameters allow the model to fit the data
 
-ampVec = paramStruct.Amplitude;
-tau2vec = paramStruct.tau2;
-ARampVec = paramStruct.ARAmplitude;
+ampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'Amplitude'));
+tau2vec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'tau2'));
+ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));
 
 % scale each neural vector by the amplitude parameter, then sum
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStruct));

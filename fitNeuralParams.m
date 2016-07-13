@@ -4,20 +4,14 @@ function [paramStruct,fval]= fitNeuralParams(stimMatrix,t,paramLockMatrix,data,p
 options = optimoptions('fmincon','Diagnostics','on','Display','iter','Algorithm','active-set');
 
 % grab neural parameters
-prmVec0(:,1) = paramStruct.Amplitude;
-prmVec0(:,2) = paramStruct.tau2;
-prmVec0(:,3) = paramStruct.ARAmplitude;
+prmVec0 = paramStruct.paramMainMatrix;
 
 f = @(prmVec)forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStruct);
 
 % set bounds
-vlb(:,1) = repmat(-10,[size(prmVec0,1) 1]);
-vlb(:,2) = repmat(0.0001,[size(prmVec0,1) 1]);
-vlb(:,3) = repmat(-10,[size(prmVec0,1) 1]);
+vlb = paramStruct.vlb;
 
-vub(:,1) = repmat(10,[size(prmVec0,1) 1]);
-vub(:,2) = repmat(1,[size(prmVec0,1) 1]);
-vub(:,3) = repmat(10,[size(prmVec0,1) 1]);
+vub = paramStruct.vub;
 
 % make parameter matrix into vector so can set equality constraints
 prmVec0 = prmVec0(:);
@@ -31,9 +25,7 @@ beq = zeros([size(paramLockMatrix,1) 1]);
 [paramVec, fval] = fmincon(f,prmVec0,[],[],Aeq,beq,vlb,vub,[],options);
 
 % we are fitting amplitudes for now
-paramVec = reshape(paramVec,[length(paramStruct.Amplitude) length(paramVec)./length(paramStruct.Amplitude)]);
-paramStruct.Amplitude = paramVec(:,1);
-paramStruct.tau2 = paramVec(:,2);
-paramStruct.ARAmplitude = paramVec(:,3);
+paramVec = reshape(paramVec,[size(paramStruct.paramMainMatrix,1) length(paramVec)./size(paramStruct.paramMainMatrix,1)]);
+paramStruct.paramMainMatrix = paramVec;
 
 gribble = 1;

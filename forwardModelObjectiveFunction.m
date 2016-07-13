@@ -8,9 +8,9 @@ function f = forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStructF
 
 prmVecReshaped = reshape(prmVec,[size(stimMatrix,1) length(prmVec)./size(stimMatrix,1)]);
 
-ampVec = prmVecReshaped(:,1);
-tau2vec = prmVecReshaped(:,2);
-ARampVec = prmVecReshaped(:,3);
+ampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'Amplitude'));
+tau2vec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'tau2'));
+ARampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'ARAmplitude'));
 
 % scale each neural vector by the amplitude parameter, then sum
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStructFixed));

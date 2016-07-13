@@ -10,7 +10,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -100,6 +100,8 @@ stepFunctionRes = 50;
 cosRamp = 3;
 % stimulus duration
 stimDuration = 12;
+% how many different types of parameters: remember to set!
+numParamTypes = 3;
 
 %% GET BETA AND MODEL FIT
 
@@ -107,26 +109,31 @@ stimDuration = 12;
 [stimMatrix,paramLockMatrix,startTimesSorted_A,startTimesSorted_B, ...
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
-TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
+TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,numParamTypes);
 
 %%
 % store the HRF, its time samples, and the neural parameters
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
-paramStruct.Amplitude = 0.5.*ones([size(stimMatrix,2) 1]);
-paramStruct.tau2 = 0.001.*ones([size(stimMatrix,2) 1]);
-paramStruct.ARAmplitude = (-0.125).*ones([size(stimMatrix,2) 1]);
+paramStruct.paramNameCell = {'Amplitude','tau2','ARAmplitude'};
+paramStruct.paramMainMatrix = [];
+paramStruct.paramMainMatrix(:,1) = 0.5.*ones([size(stimMatrix,2) 1]);
+paramStruct.paramMainMatrix(:,2) = 0.001.*ones([size(stimMatrix,2) 1]);
+paramStruct.paramMainMatrix(:,3) = (-0.125).*ones([size(stimMatrix,2) 1]);
+% set bounds
+paramStruct.vlb(:,1) = repmat(-10,[size(stimMatrix,2) 1]);
+paramStruct.vlb(:,2) = repmat(0.0001,[size(stimMatrix,2) 1]);
+paramStruct.vlb(:,3) = repmat(-10,[size(stimMatrix,2) 1]);
+
+paramStruct.vub(:,1) = repmat(10,[size(stimMatrix,2) 1]);
+paramStruct.vub(:,2) = repmat(1,[size(stimMatrix,2) 1]);
+paramStruct.vub(:,3) = repmat(10,[size(stimMatrix,2) 1]);
 
 %%
 % store parameters--initialize matrices
-ampStore = [];
-tau2store = [];
-ARampStore = [];
-
-ampStoreAll = [];
-tau2storeAll = [];
-ARampStoreAll = [];
+storeUnique = zeros([0 0 0]);
+storeAll = zeros([0 0 0]);
 
 reconstructedTSmat = [];
 MSEstore = [];
@@ -140,15 +147,11 @@ end
 for i = 1:length(runsToFit)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
-    amp = paramStructFit.Amplitude;
-    ARamp = paramStructFit.ARAmplitude;
-    tau2forStim = paramStructFit.tau2;
     
-    ampStoreAll(size(ampStoreAll,1)+1,:) = amp;
-    tau2storeAll(size(tau2storeAll,1)+1,:) = tau2forStim;
-    ARampStoreAll(size(ARampStoreAll,1)+1,:) = ARamp;
+    storeAll(size(storeAll,1)+1,:,:) = paramStructFit.paramMainMatrix; 
     
     MSEstore(length(MSEstore)+1) = fval;
+    
      % Determine which stimulus values went with which parameter
    if strfind(char(tsFileNames(runsToFit(i))),'_A_')
       valueLookup = stimValuesSorted_A(stimValuesSorted_A>0);
@@ -157,13 +160,18 @@ for i = 1:length(runsToFit)
    else
       valueLookup = [] ; 
    end
+   
    % get only unique stim values, and their corresponding locked params
    [stimValueToPlot,ia] = unique(valueLookup);
    
+   paramsForUniqueStim = [];
     % store fit amplitudes 
-    ampStore(size(ampStore,1)+1,:) = amp(ia);
-    tau2store(size(tau2store,1)+1,:) = tau2forStim(ia);
-    ARampStore(size(ARampStore,1)+1,:) = ARamp(ia);
+    for j = 1:size(paramStructFit.paramMainMatrix,2)
+       paramsForUniqueStim(:,j) = paramStructFit.paramMainMatrix(ia,j);
+    end
+    
+    storeUnique(size(storeUnique,1)+1,:,:) = paramsForUniqueStim;
+    
     % store reconstructed time series
      [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,cleanedData(runsToFit(i),:),paramStructFit);
      reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = reconstructedTS;
@@ -171,14 +179,14 @@ end
 %%
 if bDEBUG == 1
     % getting statistics over runs
-   Beta = median(ampStore); 
-   BetaSE = std(ampStore)./sqrt(size(ampStore,1));
-   tau2 = median(tau2store); 
-   tau2SE = std(tau2store)./sqrt(size(tau2store,1));
-   AR = median(ARampStore); 
-   ARSE = std(ARampStore)./sqrt(size(ARampStore,1));
+   Beta = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))); 
+   BetaSE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'Amplitude')))./sqrt(size(storeUnique,1));
+   tau2 = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2'))); 
+   tau2SE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2')))./sqrt(size(storeUnique,1));
+   AR = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))); 
+   ARSE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')))./sqrt(size(storeUnique,1));
    AvgTS = mean(cleanedData(runsToFit,:));
-   StdTS = std(cleanedData(runsToFit,:))./sqrt(size(ampStore,1));
+   StdTS = std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
    MSE = mean(MSEstore);
    AvgTS_model = mean(reconstructedTSmat);
    
@@ -333,7 +341,7 @@ else
     
     subplot(3,3,7)
     errorbar(actualStimulusValues,LightFluxARamp,LightFluxARampSE,'ko'); set(gca,'FontSize',15); hold on
-    set(gca,'Xtick',actualStimulusValues'); title('\tau_2 fits');  set(gca,'Xscale','log');
+    set(gca,'Xtick',actualStimulusValues'); set(gca,'Xscale','log');
     xlabel('Temporal frequency'); ylabel('After response amplitude'); axis square; title('Light flux');
     
     subplot(3,3,8)
