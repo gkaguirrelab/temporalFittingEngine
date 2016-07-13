@@ -100,35 +100,47 @@ stepFunctionRes = 50;
 cosRamp = 3;
 % stimulus duration
 stimDuration = 12;
-% how many different types of parameters: remember to set!
-numParamTypes = 3;
 
 %% GET BETA AND MODEL FIT
 
 % create stimulus vector
-[stimMatrix,paramLockMatrix,startTimesSorted_A,startTimesSorted_B, ...
+[stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
-TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,numParamTypes);
+TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
 %%
-% store the HRF, its time samples, and the neural parameters
+% put HRF in parameter struct
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
+% cell for labeling each parameter column
 paramStruct.paramNameCell = {'Amplitude','tau2','ARAmplitude'};
+
+% initial values
 paramStruct.paramMainMatrix = [];
 paramStruct.paramMainMatrix(:,1) = 0.5.*ones([size(stimMatrix,2) 1]);
 paramStruct.paramMainMatrix(:,2) = 0.001.*ones([size(stimMatrix,2) 1]);
 paramStruct.paramMainMatrix(:,3) = (-0.125).*ones([size(stimMatrix,2) 1]);
-% set bounds
+
+% set lower bounds
 paramStruct.vlb(:,1) = repmat(-10,[size(stimMatrix,2) 1]);
 paramStruct.vlb(:,2) = repmat(0.0001,[size(stimMatrix,2) 1]);
 paramStruct.vlb(:,3) = repmat(-10,[size(stimMatrix,2) 1]);
 
+% set upper bounds
 paramStruct.vub(:,1) = repmat(10,[size(stimMatrix,2) 1]);
 paramStruct.vub(:,2) = repmat(1,[size(stimMatrix,2) 1]);
 paramStruct.vub(:,3) = repmat(10,[size(stimMatrix,2) 1]);
+
+% automatically get number of parameters
+numParamTypes = size(paramStruct.paramMainMatrix,2);
+
+% for each run, create a locking matrix
+for i = 1:size(stimValuesForRunStore,1)
+   paramLockMatrix(i,:,:) = createParamLockMatrix(actualStimulusValues, ...
+                            stimValuesForRunStore(i,:),numParamTypes);
+end
 
 %%
 % store parameters--initialize matrices
@@ -138,6 +150,7 @@ storeAll = zeros([0 0 0]);
 reconstructedTSmat = [];
 MSEstore = [];
 
+% if in debug mode, only fit light flux A
 if bDEBUG == 1
    runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
 else
@@ -148,8 +161,10 @@ for i = 1:length(runsToFit)
     % call fitting routine
     [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
     
+    % store all parameters for each run, regardless of daisy-chaining
     storeAll(size(storeAll,1)+1,:,:) = paramStructFit.paramMainMatrix; 
     
+    % store MSE measure
     MSEstore(length(MSEstore)+1) = fval;
     
      % Determine which stimulus values went with which parameter
@@ -164,12 +179,13 @@ for i = 1:length(runsToFit)
    % get only unique stim values, and their corresponding locked params
    [stimValueToPlot,ia] = unique(valueLookup);
    
+   % sort parameters of each type
    paramsForUniqueStim = [];
-    % store fit amplitudes 
     for j = 1:size(paramStructFit.paramMainMatrix,2)
        paramsForUniqueStim(:,j) = paramStructFit.paramMainMatrix(ia,j);
     end
     
+    % do this for each run
     storeUnique(size(storeUnique,1)+1,:,:) = paramsForUniqueStim;
     
     % store reconstructed time series

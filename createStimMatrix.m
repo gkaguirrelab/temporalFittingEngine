@@ -1,7 +1,7 @@
-function [stimMatrix,paramLockMatrix,startTimesSorted_A,startTimesSorted_B, ...
+function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
           stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
           = createStimMatrix(startTimesSorted,stimValuesSorted, ...
-          tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,numParamTypes)
+          tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
       
 % function stimMatrix = createStimMatrix(startTimesSorted,stimValuesSorted, ...
 %           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
@@ -14,10 +14,9 @@ actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValues
 % Stire Stimulus Order A & B
 stimValuesSorted_A = [] ;
 stimValuesSorted_B = [] ;
-stimRef = [];
 stimMatrix = [];
 % Matrix for locking parameters
-paramLockMatrix = [];
+stimValuesForRunStore = [];
 
 % for each run
 for i = 1:size(startTimesSorted,1)   
@@ -33,8 +32,11 @@ for i = 1:size(startTimesSorted,1)
       stimOrderMarker = [] ; 
    end
    
+   % start times and corresponding stim values--get rid of filler numbers
    startTimesForRun = startTimesSorted(i,stimValuesSorted(i,:)>0);
    stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)>0);
+   % store for param locking in main function
+   stimValuesForRunStore(i,:) = stimValuesForRun;
    
     % for each stimulus
    for j = 1:length(stimValuesForRun)
@@ -42,12 +44,8 @@ for i = 1:size(startTimesSorted,1)
            stimVec = createStimVector(TS_timeSamples,startTimesForRun(j), ...
                         stimDuration,stepFunctionRes,cosRamp);
            stimMatrix(i,j,:) = stimVec; 
-           assignmentMatrixRow = zeros([1 length(actualStimulusValues)]);
-           stimRef(i,j,:) = double(stimValuesForRun(j) == actualStimulusValues)';           
    end
-   paramLockMatrixForCons1 = createParamLockMatrix(actualStimulusValues,stimValuesForRun,numParamTypes);
-   % this only does the constraints for one run, so store it
-   paramLockMatrix(i,:,:) = paramLockMatrixForCons1;
+   
 end
       
 gribble = 1;
