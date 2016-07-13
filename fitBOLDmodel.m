@@ -196,6 +196,7 @@ for i = 1:length(runsToFit)
     % store reconstructed time series
      [~,reconstructedTS] = forwardModel(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,cleanedData(runsToFit(i),:),paramStructFit);
      reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = reconstructedTS;
+     display(['run number: ' num2str(i)]);
 end
 %%
 if bDEBUG == 1
@@ -249,7 +250,7 @@ else
     numRunsPerStimOrder = sum(stimTypeArr==1 & runOrder=='A') ;   % Stim order A -or- B
 
     %% Parameter averaging
-
+    
     % amplitudes
     LightFluxBeta =  mean(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'Amplitude')));
     L_minus_M_Beta = mean(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'Amplitude')));
