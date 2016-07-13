@@ -245,41 +245,43 @@ if bDEBUG == 1
     title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 else
     % Self-Explanatory Variable Names
-    numberOfRuns = 12 ;
-    numRunsPerStimOrder = 6 ;   % Stim order A -or- B
+    numberOfRuns = sum(stimTypeArr==1) ;
+    numRunsPerStimOrder = sum(stimTypeArr==1 & runOrder=='A') ;   % Stim order A -or- B
 
     %% Parameter averaging
 
     % amplitudes
-    LightFluxBeta =  mean(ampStore(stimTypeArr == 1,:));
-    L_minus_M_Beta = mean(ampStore(stimTypeArr == 2,:));
-    S_Beta =         mean(ampStore(stimTypeArr == 3,:));
+    LightFluxBeta =  mean(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'Amplitude')));
+    L_minus_M_Beta = mean(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'Amplitude')));
+    S_Beta =         mean(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'Amplitude')));
 
     % amplitude Standard Error
-    LightFluxBetaSE =  ((std(ampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
-    L_minus_M_BetaSE = ((std(ampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
-    S_BetaSE =         ((std(ampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
+    LightFluxBetaSE =  ((std(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))))./sqrt(numberOfRuns));
+    L_minus_M_BetaSE = ((std(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))))./sqrt(numberOfRuns));
+    S_BetaSE =         ((std(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))))./sqrt(numberOfRuns));
 
     % tau2
-    LightFluxtau2 =  mean(tau2store(stimTypeArr == 1,:));
-    L_minus_M_tau2 = mean(tau2store(stimTypeArr == 2,:));
-    S_tau2 =         mean(tau2store(stimTypeArr == 3,:));
+    LightFluxtau2 =  mean(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'tau2')));
+    L_minus_M_tau2 = mean(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'tau2')));
+    S_tau2 =         mean(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'tau2')));
 
     % Compute tau2 Standard Error
-    LightFluxtau2SE =  ((std(tau2store(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
-    L_minus_M_tau2SE = ((std(tau2store(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
-    S_tau2SE =         ((std(tau2store(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
+    LightFluxtau2SE =  ((std(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'tau2'))))./sqrt(numberOfRuns));
+    L_minus_M_tau2SE = ((std(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'tau2'))))./sqrt(numberOfRuns));
+    S_tau2SE =         ((std(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'tau2'))))./sqrt(numberOfRuns));
 
     % AR
-    LightFluxARamp =  mean(ARampStore(stimTypeArr == 1,:));
-    L_minus_M_ARamp = mean(ARampStore(stimTypeArr == 2,:));
-    S_ARamp =         mean(ARampStore(stimTypeArr == 3,:));
+    LightFluxARamp =  mean(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')));
+    L_minus_M_ARamp = mean(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')));
+    S_ARamp =         mean(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')));
 
     % Compute AR Standard Error
-    LightFluxARampSE =  ((std(ARampStore(stimTypeArr == 1,:)))./sqrt(numberOfRuns));
-    L_minus_M_ARampSE = ((std(ARampStore(stimTypeArr == 2,:)))./sqrt(numberOfRuns));
-    S_ARampSE =         ((std(ARampStore(stimTypeArr == 3,:)))./sqrt(numberOfRuns));
+    LightFluxARampSE =  ((std(storeUnique(stimTypeArr == 1,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))))./sqrt(numberOfRuns));
+    L_minus_M_ARampSE = ((std(storeUnique(stimTypeArr == 2,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))))./sqrt(numberOfRuns));
+    S_ARampSE =         ((std(storeUnique(stimTypeArr == 3,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))))./sqrt(numberOfRuns));
+    
     %%  TIME SERIES MEAN AND STD ERROR
+    
     % Average Time Series for Each Combination of Stimulus Type & Run order
     LightFluxAvgTS_A =  mean(cleanedData(stimTypeArr == 1 & runOrder == 'A',:)) ;
     L_minus_M_AvgTS_A = mean(cleanedData(stimTypeArr == 2 & runOrder == 'A',:)) ;
@@ -297,7 +299,9 @@ else
     LightFluxStdTS_B =  (std(cleanedData(stimTypeArr == 1 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
     L_minus_M_StdTS_B = (std(cleanedData(stimTypeArr == 2 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
     S_StdTS_B =         (std(cleanedData(stimTypeArr == 3 & runOrder == 'B',:)))./sqrt(numRunsPerStimOrder) ;
+    
     %% MEAN SQUARED ERROR VALUES
+    
     LightFluxMSE_A =  mean(MSEstore(stimTypeArr == 1 & runOrder == 'A')) ;
     L_minus_M_MSE_A = mean(MSEstore(stimTypeArr == 2 & runOrder == 'A')) ;
     S_MSE_A =         mean(MSEstore(stimTypeArr == 3 & runOrder == 'A')) ;
@@ -350,31 +354,31 @@ else
     % TAU VALUES
     subplot(3,3,4)
     errorbar(actualStimulusValues,LightFluxtau2,LightFluxtau2SE,'ko'); set(gca,'FontSize',15); hold on
-    set(gca,'Xtick',actualStimulusValues'); title('\tau_2 fits');  set(gca,'Xscale','log');
-    xlabel('Temporal frequency'); ylabel('\tau_2'); axis square; title('Light flux');
+    set(gca,'Xtick',actualStimulusValues'); set(gca,'Xscale','log');
+    xlabel('Temporal frequency'); ylabel('\tau_2'); axis square; 
     
     subplot(3,3,5)
     errorbar(actualStimulusValues,L_minus_M_tau2,L_minus_M_tau2SE,'ro'); set(gca,'FontSize',15);
-    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; title('L - M');
+    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; 
     
     subplot(3,3,6)
     errorbar(actualStimulusValues,S_tau2,S_tau2SE,'bo'); set(gca,'FontSize',15);
     set(gca,'Xscale','log');
-    set(gca,'Xtick',actualStimulusValues'); axis square; title('S');
+    set(gca,'Xtick',actualStimulusValues'); axis square; 
     
     subplot(3,3,7)
     errorbar(actualStimulusValues,LightFluxARamp,LightFluxARampSE,'ko'); set(gca,'FontSize',15); hold on
     set(gca,'Xtick',actualStimulusValues'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency'); ylabel('After response amplitude'); axis square; title('Light flux');
+    xlabel('Temporal frequency'); ylabel('After response amplitude'); axis square; 
     
     subplot(3,3,8)
     errorbar(actualStimulusValues,L_minus_M_ARamp,L_minus_M_ARampSE,'ro'); set(gca,'FontSize',15);
-    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; title('L - M');
+    set(gca,'Xtick',actualStimulusValues');  set(gca,'Xscale','log'); axis square; 
     
     subplot(3,3,9)
     errorbar(actualStimulusValues,S_ARamp,S_ARampSE,'bo'); set(gca,'FontSize',15);
     set(gca,'Xscale','log');
-    set(gca,'Xtick',actualStimulusValues'); axis square; title('S');
+    set(gca,'Xtick',actualStimulusValues'); axis square; 
 
     %% Time Series plots 
     % Use Function for plotting Data:
