@@ -5,6 +5,7 @@ function [f,reconstructedTS] = forwardModel(stimMatrix,t,data,paramStruct)
 % takes stimuli and data with a set of parameters, and sees how well those
 % parameters allow the model to fit the data
 
+% sort parameters
 ampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'Amplitude'));
 tau2vec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'tau2'));
 ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));

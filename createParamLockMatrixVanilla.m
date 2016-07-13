@@ -1,8 +1,10 @@
-function paramLockMatrix = createParamLockMatrix(uniqueStimValues,stimValuesInOrder,numParamTypes)
+function paramLockMatrix = createParamLockMatrixVanilla(uniqueStimValues,stimValuesInOrder,numParamTypes)
 
-% function paramLockMatrix = createParamLockMatrix(uniqueStimValues,stimValuesInOrder)
+% function paramLockMatrix = createParamLockMatrixVanilla(uniqueStimValues,stimValuesInOrder)
 %
-% creates parameter locking matrix
+% creates parameter locking matrix for the special (and frequently-used)
+% case in which all runs with the same stimulus value get the same set of
+% parameters
 
 % initialize the matrices
 paramLockMatrixSubForCons1 = [];

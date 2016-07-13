@@ -6,8 +6,10 @@ function f = forwardModelObjectiveFunction(stimMatrix,t,data,prmVec,paramStructF
 % a parameter vector, not a struct, to fit. However, note paramStructFixed,
 % which contains parameters that are locked down, like the HRF
 
+% get parameters into matrix form
 prmVecReshaped = reshape(prmVec,[size(stimMatrix,1) length(prmVec)./size(stimMatrix,1)]);
 
+% sort parameters
 ampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'Amplitude'));
 tau2vec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'tau2'));
 ARampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'ARAmplitude'));

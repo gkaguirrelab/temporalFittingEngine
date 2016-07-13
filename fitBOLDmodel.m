@@ -139,7 +139,7 @@ numParamTypes = size(paramStruct.paramMainMatrix,2);
 
 % for each run, create a locking matrix
 for i = 1:size(stimValuesForRunStore,1)
-   paramLockMatrix(i,:,:) = createParamLockMatrix(actualStimulusValues, ...
+   paramLockMatrix(i,:,:) = createParamLockMatrixVanilla(actualStimulusValues, ...
                             stimValuesForRunStore(i,:),numParamTypes);
 end
 
