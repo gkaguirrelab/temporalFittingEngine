@@ -11,13 +11,12 @@ function [hrf, timeSeriesNoAttn] = Derive_HRF_using_Fourier(originalTimeSamples,
 % NORMALIZE TIME SAMPLES TO 1
 originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 
-
 %UP-sampled Time Series
 UPS_originalTimeSamplesNormalized = ...         % up-sample Time Samples
 originalTimeSamplesNormalized * 1000 ;
-dt = 1;                                     % (1ms) UPsampled Resolution
-UP_R = 1000 ;                               % (1ms) UPsampled Resolution
-UPS_TimeSamples = ...                       % Fill with 1ms Resolution
+dt = 1;                                         % (1ms) UPsampled Resolution
+UP_R = 1000 ;                                   % (1ms) UPsampled Resolution
+UPS_TimeSamples = ...                           % Fill with 1ms Resolution
 (0:dt:UPS_originalTimeSamplesNormalized(length(UPS_originalTimeSamplesNormalized))) ;
 
 % Event Time Rounded-- For Phase Shifting
@@ -25,7 +24,7 @@ RndEventTimes = floor(EventStartTimes) ;
 RndEventTimes = RndEventTimes * UP_R ;
 
 % UP-sample Event TIme
-EventStartTimes = round(EventStartTimes,3) ;  % First Round nearest 3rd decimal
+EventStartTimes = round(EventStartTimes,3) ;    % First Round nearest 3rd decimal
 EventStartTimes = EventStartTimes * UP_R ;
 Shift_Amount = EventStartTimes - RndEventTimes ;
 
@@ -34,45 +33,46 @@ Shift_Amount = EventStartTimes - RndEventTimes ;
 % n = HRF duration-- Time Set (seconds)
 % m = Fourier Set Matrix
 % t = Time Points (HRF duration)
-HRF_TR = HRFduration *UP_R ;                       % Name conventions for waves
+HRF_TR = HRFduration *UP_R ;                    % Name conventions for waves
 
 % n -- Is odd -------------------------------------------------------------
 if mod(HRF_TR,2) == 1                   
 
-    t      = linspace(0,HRF_TR-1,HRF_TR);        % Create Time(s) Array
-    m      = zeros(HRFduration,HRF_TR);          % Create blank Fourier Set
-    m(1,:) = ones(HRF_TR,1);                     % Create DC component
+    t      = linspace(0,HRF_TR-1,HRF_TR);       % Create Time(s) Array
+    m      = zeros(HRFduration,HRF_TR);         % Create blank Fourier Set
+    m(1,:) = ones(HRF_TR,1);                    % Create DC component
 
     for i = 1:(HRFduration-1)/2
-        m(i*2,:)   = sin(t/HRF_TR*2*pi*i);       % Create Sin waves for each Fq 
-        m(i*2+1,:) = cos(t/HRF_TR*2*pi*i);       % Create Cos waves for each Fq
+        m(i*2,:)   = sin(t/HRF_TR*2*pi*i);      % Create Sin waves for each Fq 
+        m(i*2+1,:) = cos(t/HRF_TR*2*pi*i);      % Create Cos waves for each Fq
     end
 
 % n -- Is even ------------------------------------------------------------
 elseif mod(HRF_TR,2) == 0                    
 
-    t      = linspace(0,HRF_TR-1,HRF_TR);        % Create Time(s) Array
-    m      = zeros(HRFduration,HRF_TR);          % Create blank Fourier Set
-    m(1,:) = ones(HRF_TR,1);                     % Create DC component
+    t      = linspace(0,HRF_TR-1,HRF_TR);       % Create Time(s) Array
+    m      = zeros(HRFduration,HRF_TR);         % Create blank Fourier Set
+    m(1,:) = ones(HRF_TR,1);                    % Create DC component
 
     for i = 1:floor(HRFduration/2)-1
-        m(i*2,:)   = sin(t/(HRF_TR-1)*2*pi*i);   % Create Sin waves for each Fq
-        m(i*2+1,:) = cos(t/(HRF_TR-1)*2*pi*i);   % Create Cos waves for each Fq
+        m(i*2,:)   = sin(t/(HRF_TR-1)*2*pi*i);  % Create Sin waves for each Fq
+        m(i*2+1,:) = cos(t/(HRF_TR-1)*2*pi*i);  % Create Cos waves for each Fq
     end
     
 else
 % Leave Fourier set Blank -------------------------------------------------
-    t = linspace(0,HRF_TR-1,HRF_TR);             % Create Time(s) Array
-    m = zeros(HRFduration,HRF_TR);               % Create blank Fourier Set
+    t = linspace(0,HRF_TR-1,HRF_TR);            % Create Time(s) Array
+    m = zeros(HRFduration,HRF_TR);              % Create blank Fourier Set
 end
 
 % True Nyquist Frequency --------------------------------------------------
-% m(n,:) = sin(t/(n-1)*2*pi*(n/2));
-% ********************************* Leaving OUT True Nyquist
+    m(HRFduration,:) = sin(t/(HRF_TR-1)*2*pi*(HRFduration/2));
+
+% ********************************* Leaving IN True Nyquist
 
 % Change Dimensions
 m = m' ;
-m = m(:,1:size(m,2)-1);
+% m = m(:,1:size(m,2)-1);        % In case we want to leave True Nyquis OUT
 
 
 %% Design Matrix (TR 1ms) -------------------------------------------------
@@ -107,8 +107,8 @@ end
 % Crop off Excess Rows-- Leave length of Original Time series
 DesignMatrix = TimeSeriesMatrix(1:length(UPS_TimeSamples),:) ;
 
-% Crop off Excess Column-- discarded True Nyquist
-DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
+% Crop off Excess Column-- discarded True Nyquist ***** KEPT NYQUIST
+%DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
 % ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize ^^
 
 %% Downsample to 1s Resolution
@@ -118,7 +118,11 @@ DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
 DesignMatrix = interp1(UPS_TimeSamples,DesignMatrix,UPS_originalTimeSamplesNormalized) ;
 
 %% GET BETA VALUES & HRF
+
+% suppress warnings regarding a rank deficient matrix. It's OK 
+warning('off','MATLAB:rankDeficientMatrix')
 betaValues = DesignMatrix\timeSeries';
+warning('on','MATLAB:rankDeficientMatrix')
 
 % HRF -- Fourier Transform (Reconstruct waves with Beta values)
 betaValues = betaValues' ;
