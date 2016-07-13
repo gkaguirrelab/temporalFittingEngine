@@ -115,6 +115,8 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 paramStruct.HRF = BOLDHRF;
 paramStruct.HRFtimeSamples = modelUpsampled_t;
 
+% -------- SPECIFY ALL NEURAL PARAMETERS HERE --------
+
 % cell for labeling each parameter column
 paramStruct.paramNameCell = {'Amplitude','tau2','ARAmplitude'};
 
@@ -133,6 +135,8 @@ paramStruct.vlb(:,3) = repmat(-10,[size(stimMatrix,2) 1]);
 paramStruct.vub(:,1) = repmat(10,[size(stimMatrix,2) 1]);
 paramStruct.vub(:,2) = repmat(1,[size(stimMatrix,2) 1]);
 paramStruct.vub(:,3) = repmat(10,[size(stimMatrix,2) 1]);
+
+% --------
 
 % automatically get number of parameters
 numParamTypes = size(paramStruct.paramMainMatrix,2);
