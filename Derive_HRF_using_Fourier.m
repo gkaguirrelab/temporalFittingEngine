@@ -43,7 +43,7 @@ if mod(HRF_TR,2) == 1
     m      = zeros(HRFduration,HRF_TR);          % Create blank Fourier Set
     m(1,:) = ones(HRF_TR,1);                     % Create DC component
 
-    for i = 1:floor(HRFduration/2)-1
+    for i = 1:(HRFduration-1)/2
         m(i*2,:)   = sin(t/HRF_TR*2*pi*i);       % Create Sin waves for each Fq 
         m(i*2+1,:) = cos(t/HRF_TR*2*pi*i);       % Create Cos waves for each Fq
     end
@@ -92,7 +92,7 @@ for i = 1:length(EventStartTimes)
     % Wrap Around to phase shift for data resolution
     TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) = ...
     TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) + ...
-    m(Shift_Amount(i):length(m),2:HRFduration-1) ;   
+    m(length(m)-Shift_Amount(i)-1:length(m),2:HRFduration-1) ;   
     
 end 
 
