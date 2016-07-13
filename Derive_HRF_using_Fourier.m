@@ -12,13 +12,13 @@ function [hrf, timeSeriesNoAttn] = Derive_HRF_using_Fourier(originalTimeSamples,
 originalTimeSamplesNormalized = originalTimeSamples.*(1./HRFsampleInterval);
 
 
-%UP-sample Time Series
-originalTimeSamplesNormalized = ...         % up-sample Time Samples
+%UP-sampled Time Series
+UPS_originalTimeSamplesNormalized = ...         % up-sample Time Samples
 originalTimeSamplesNormalized * 1000 ;
 dt = 1;                                     % (1ms) UPsampled Resolution
-UP_R = 1000 ;                                 % (1ms) UPsampled Resolution
+UP_R = 1000 ;                               % (1ms) UPsampled Resolution
 UPS_TimeSamples = ...                       % Fill with 1ms Resolution
-(0:dt:originalTimeSamplesNormalized(length(originalTimeSamplesNormalized))-1) ;
+(0:dt:UPS_originalTimeSamplesNormalized(length(UPS_originalTimeSamplesNormalized))) ;
 
 % Event Time Rounded-- For Phase Shifting
 RndEventTimes = floor(EventStartTimes) ;
@@ -80,19 +80,27 @@ m = m(:,1:size(m,2)-1);
 % Create matrix
 TimeSeriesMatrix = zeros(length(UPS_TimeSamples)+(HRF_TR),HRFduration) ;
 
+% Create Design Matrix at UP-sampled Event Times & Phase Shift
 for i = 1:length(EventStartTimes)
     % DC component -- column of 1's
-    TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1),1) = m(1:length(m),1) ;    
+    TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1- Shift_Amount(i)),1) = ...
+    m(1:length(m)-Shift_Amount(i),1) ;    
 
     % Waves at Event Time (ms resolution)
     TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i)),2:HRFduration-1) = ...
     TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i)),2:HRFduration-1) + ...
     m(1:length(m)-Shift_Amount(i),2:HRFduration-1) ;
 
-    % Wrap Around to phase shift for data resolution
+% ---------------- Phase Shift --------------------------------------------
+
+    % Wrap Around to Phase Shift DC Component
+    TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),1) = ...
+    m(length(m)-Shift_Amount(i):length(m)-1,1) ;      
+
+    % Wrap Around to Phase Shift for data resolution
     TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) = ...
     TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) + ...
-    m(length(m)-Shift_Amount(i)-1:length(m),2:HRFduration-1) ;   
+    m(length(m)-Shift_Amount(i):length(m)-1,2:HRFduration-1) ;   
     
 end 
 
@@ -103,25 +111,11 @@ DesignMatrix = TimeSeriesMatrix(1:length(UPS_TimeSamples),:) ;
 DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
 % ^^ This Fixed the Rank Deficiency. NO need to Orthogonalize ^^
 
-%% Phase Shift Components --
-%  -- to zero, align at event time
-
-% Shift Amount per Event Time
-Shift_Amount = EventStartTimes - RndEventTimes ;
-
-for i = 1:length(EventStartTimes)
-    DesignMatrix(EventStartTimes(i)+(0:HRF_TR - 1),2:HRFduration-1) = ...
-    circshift(DesignMatrix(EventStartTimes(i)+(0:HRF_TR - 1),2:HRFduration-1),...
-    Shift_Amount(i)) ;
-end
-
-% circshift(A,K);
-
-
-
 %% Downsample to 1s Resolution
 
-DesignMatrix = downsample(DesignMatrix,UP_R) ;        % Down-sample data Resolution
+% DesignMatrix = downsample(DesignMatrix,UP_R) ;        % Down-sample data Resolution
+% Interpolate Design Matrix to downsample
+DesignMatrix = interp1(UPS_TimeSamples,DesignMatrix,UPS_originalTimeSamplesNormalized) ;
 
 %% GET BETA VALUES & HRF
 betaValues = DesignMatrix\timeSeries';
@@ -132,13 +126,19 @@ betaValues = betaValues' ;
 % Design Matrix with NO Overlaping Event Time
 HRF_No_Ovrlap = [] ;
 
+% Down-Sample Fourier 'Cassette' (m - variable)
+m_SR = 1:dt:length(m) ;                 % m- Sample Rate
+m_SR = m_SR' ;
+m_DSR = UP_R:UP_R:length(m) ;           % m- Down Sampling Rate
+m_DS = interp1(m_SR,m,m_DSR) ;          % Interpolate Fourier Cassete
+
 % Weight single Fourier Set
 for i = 1:length(betaValues)
-    HRF_No_Ovrlap(:,i) = m(:,i) .* betaValues(:,i) ;
+    HRF_No_Ovrlap(:,i) = m_DS(:,i) .* betaValues(:,i) ;
 end
 
 % Reconstruct HRF from single Fourier Set
-for j = 1:length(m)
+for j = 1:length(m_DS)
     HRF_No_Ovrlap(j) = sum(HRF_No_Ovrlap(j,:)) ;
 end
 
@@ -157,7 +157,7 @@ end
 
 % Reconstruct HRF with weigthed beta values (From every Fourier Set)
 HRF = [] ;
-for i = 1:length(originalTimeSamplesNormalized)
+for i = 1:length(UPS_originalTimeSamplesNormalized)
     HRF(i) = sum(HRF_Matrix(i,:)) ;
 end 
 
