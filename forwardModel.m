@@ -10,7 +10,7 @@ ampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'Amplitu
 tau2vec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'tau2'));
 ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));
 
-% scale each neural vector by the amplitude parameter, then sum
+% run the neural model on each stimulus, then get the full neural vector
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStruct));
 
 % neural to BOLD
