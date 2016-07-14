@@ -1,6 +1,8 @@
 %% RUN fitBOLDmodel FIRST, AND THEN SET THE INDEX IMMEDIATELY BELOW TO WHAT
 %  RUN YOU WANT, THEN JUST CALL THE ENTIRE THING
 
+addpath('/Users/Shared/mriTemporalFitting/');
+
 clear curStimMatrix
 clear neuralVec
 clear curAttnStartTimes

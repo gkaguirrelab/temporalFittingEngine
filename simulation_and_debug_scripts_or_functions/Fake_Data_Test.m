@@ -1,6 +1,8 @@
 
 %% Fake Data to test Fourier & FIR
 
+addpath('/Users/Shared/mriTemporalFitting/');
+
 Time_Samples = 0:335 ;
 Fake_Data = zeros(1,length(Time_Samples)) ;
 

@@ -2,6 +2,8 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
+addpath('/Users/Shared/mriTemporalFitting/');
+
 subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
