@@ -1,4 +1,4 @@
-function [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = paramStatistics(storeUnique,stimTypeArr,stimTypeCode,paramNamesCell)
+function [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = paramStatistics(storeUnique,stimTypeArr,paramNamesCell)
 
 % function [meanMatrix, SEmatrix] = paramStatistics(storeUnique,stimTypeArr,paramNamesCell)
 %
@@ -8,6 +8,7 @@ function [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = paramS
 % matrix for storing parameter means & SE
 meanMatrix = [];
 SEmatrix = [];
+stimTypeCode = unique(stimTypeArr);
 % number of runs assumes that each condition has the same number of runs
 numberOfRuns = sum(stimTypeArr == stimTypeCode(1));
 % tag the matrices we get out by condition (just to be sure)
