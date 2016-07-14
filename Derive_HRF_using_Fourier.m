@@ -1,5 +1,6 @@
 function [hrf, timeSeriesNoAttn] = Derive_HRF_using_Fourier(originalTimeSamples,timeSeries,EventStartTimes,HRFduration,HRFsampleInterval)
 
+
 % infers HRF from Event (Attention Task)
 %
 % originalTimeSamples: time samples for time series
@@ -72,7 +73,7 @@ end
 
 % Change Dimensions
 m = m' ;
-% m = m(:,1:size(m,2)-1);        % In case we want to leave True Nyquis OUT
+% m = m(:,1:size(m,2)-1); -----> % In case we want to leave True Nyquis OUT
 
 
 %% Design Matrix (TR 1ms) -------------------------------------------------
@@ -83,23 +84,23 @@ TimeSeriesMatrix = zeros(length(UPS_TimeSamples)+(HRF_TR),HRFduration) ;
 % Create Design Matrix at UP-sampled Event Times & Phase Shift
 for i = 1:length(EventStartTimes)
     % DC component -- column of 1's
-    TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1- Shift_Amount(i)),1) = ...
+    TimeSeriesMatrix(int64(EventStartTimes(i)+(0:HRF_TR - 1- Shift_Amount(i))),1) = ...
     m(1:length(m)-Shift_Amount(i),1) ;    
 
     % Waves at Event Time (ms resolution)
-    TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i)),2:HRFduration-1) = ...
-    TimeSeriesMatrix(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i)),2:HRFduration-1) + ...
+    TimeSeriesMatrix(int64(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i))),2:HRFduration-1) = ...
+    TimeSeriesMatrix(int64(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i))),2:HRFduration-1) + ...
     m(1:length(m)-Shift_Amount(i),2:HRFduration-1) ;
 
 % ---------------- Phase Shift --------------------------------------------
 
     % Wrap Around to Phase Shift DC Component
-    TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),1) = ...
+    TimeSeriesMatrix(int64(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1)),1) = ...
     m(length(m)-Shift_Amount(i):length(m)-1,1) ;      
 
     % Wrap Around to Phase Shift for data resolution
-    TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) = ...
-    TimeSeriesMatrix(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1),2:HRFduration-1) + ...
+    TimeSeriesMatrix(int64(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1)),2:HRFduration-1) = ...
+    TimeSeriesMatrix(int64(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-1)),2:HRFduration-1) + ...
     m(length(m)-Shift_Amount(i):length(m)-1,2:HRFduration-1) ;   
     
 end 
