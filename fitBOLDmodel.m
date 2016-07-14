@@ -201,11 +201,11 @@ end
 %%
 if bDEBUG == 1
     % getting statistics over runs
-   Beta = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))); 
+   Beta = mean(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'Amplitude'))); 
    BetaSE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'Amplitude')))./sqrt(size(storeUnique,1));
-   tau2 = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2'))); 
+   tau2 = mean(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2'))); 
    tau2SE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'tau2')))./sqrt(size(storeUnique,1));
-   AR = median(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))); 
+   AR = mean(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude'))); 
    ARSE = std(storeUnique(:,:,strcmp(paramStructFit.paramNameCell,'ARAmplitude')))./sqrt(size(storeUnique,1));
    
    AvgTS = mean(cleanedData(runsToFit,:));
@@ -233,12 +233,12 @@ if bDEBUG == 1
     % tau2
     errorbar(actualStimulusValues',tau2,tau2SE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light Flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('median \tau_2'); axis square;
+    xlabel('Temporal frequency (Hz)'); ylabel('mean \tau_2'); axis square;
     subplot(3,3,7)
     % after response
     errorbar(actualStimulusValues',AR,ARSE,'-ko'); set(gca,'FontSize',15);
     set(gca,'Xtick',actualStimulusValues'); title('Light flux'); set(gca,'Xscale','log');
-    xlabel('Temporal frequency (Hz)'); ylabel('median after-response amplitude'); axis square;
+    xlabel('Temporal frequency (Hz)'); ylabel('mean after-response amplitude'); axis square;
     % plot full time series
     figure;
     plotLinModelFits(TS_timeSamples,AvgTS,AvgTS_model, ...
