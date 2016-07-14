@@ -198,7 +198,7 @@ if bDEBUG == 1
     paramStatistics(storeUnique,stimTypeArr(runsToFit),paramStructFit.paramNameCell);
    
    AvgTS = mean(cleanedData(runsToFit,:));
-   StdTS = std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
+   StdTS =  std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
    MSE = mean(MSEstore);
    AvgTS_model = mean(reconstructedTSmat);
    
