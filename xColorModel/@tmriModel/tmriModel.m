@@ -6,52 +6,40 @@ classdef tmriModel < handle
     % Public read/write properties
     properties
         % Structure of parameters for the current model
-        params;
+        params = [];
               
         % Timebase on which to compute model predictions
-        timebase;
+        timebase = [];
         
         % Stimulus.  The exact form this takes is model dependent,
         % but it should be a vector specified on the timebase.
-        stimulus;
+        stimulus = [];
 
         % Noise flag.  Add noise to forward simulated data?
-        noiseflag;
+        noiseflag false;
     end
     
-    % Public, read-only properties.
+    % Public, read-only properties.  These can be set by methods of the
+    % parent class (that is, this class) but not by methods of subclasses.
     properties (SetAccess = private, GetAccess = public)  
 
     end
     
     % Protected properties; Methods of the parent class and all of its
     % subclasses can set these.
-    properties (SetAccess = protected)
+    properties (SetAccess = protected, GetAccess = public)
         % Prediction. The model's prediction on the timebase, given
         % the current parameters.
         prediction;
     end
     
-    % Private properties. Only methods of the parent class can set these
+    % Private properties. Only methods of the parent class can set or read these
     properties(Access = private)
         
     end
     
     % Public methods
     methods
-        function obj = tmriModel(varargin)
-            % obj.initialize(varargin{:});
-            obj.params = [];
-            obj.timebase = [];
-            obj.stimulus = [];
-            obj.noiseflag = false;
-
-        end
-        
-        % Call set through a setter function.  I don't think we need this.
-        % function obj = set(obj, varargin)
-        %     osSet(obj, varargin{:});
-        % end
        
     end
     
