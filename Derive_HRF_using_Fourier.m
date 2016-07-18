@@ -83,25 +83,28 @@ TimeSeriesMatrix = zeros(length(UPS_TimeSamples)+(HRF_TR),HRFduration) ;
 
 % Create Design Matrix at UP-sampled Event Times & Phase Shift
 for i = 1:length(EventStartTimes)
+    % Phase Shift by difference of Event time & nearest TR (lower-bound)
+    m_phased = circshift(m,int32(Shift_Amount(i))) ;  
+    
     % DC component -- column of 1's
-    TimeSeriesMatrix(int32(EventStartTimes(i)+(0:HRF_TR - 1- Shift_Amount(i))),1) = ...
-    m(1:length(m)-Shift_Amount(i),1) ;    
+    TimeSeriesMatrix(int32(RndEventTimes(i)+(0:HRF_TR - 1)),1) = ...
+    m_phased(1:length(m_phased),1) ;    
 
     % Waves at Event Time (ms resolution)
-    TimeSeriesMatrix(int32(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i))),2:HRFduration) = ...
-    TimeSeriesMatrix(int32(EventStartTimes(i)+(0:HRF_TR - 1 - Shift_Amount(i))),2:HRFduration) + ...
-    m(1:length(m)-Shift_Amount(i),2:HRFduration) ;
+    TimeSeriesMatrix(int32(RndEventTimes(i)+(0:HRF_TR - 1)),2:HRFduration) = ...
+    TimeSeriesMatrix(int32(RndEventTimes(i)+(0:HRF_TR - 1)),2:HRFduration) + ...
+    m_phased(1:length(m_phased),2:HRFduration) ;
 
 % ---------------- Phase Shift --------------------------------------------
 
-    % Wrap Around to Phase Shift DC Component
-    TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),1) = ...
-    m(int32(length(m))-int32(Shift_Amount(i)):int32(length(m))-int32((1)),1) ;      
-
-    % Wrap Around to Phase Shift for data resolution
-    TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),2:HRFduration) = ...
-    TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),2:HRFduration) + ...
-    m(int32(length(m))-int32(Shift_Amount(i)):int32(length(m))-int32(1),2:HRFduration) ;   
+%     % Wrap Around to Phase Shift DC Component
+%     TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),1) = ...
+%     m(int32(length(m))-int32(Shift_Amount(i)):int32(length(m))-int32((1)),1) ;      
+% 
+%     % Wrap Around to Phase Shift for data resolution
+%     TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),2:HRFduration) = ...
+%     TimeSeriesMatrix(int32(EventStartTimes(i) - Shift_Amount(i) +(0:Shift_Amount(i)-int32(1))),2:HRFduration) + ...
+%     m(int32(length(m))-int32(Shift_Amount(i)):int32(length(m))-int32(1),2:HRFduration) ;   
     
 end 
 
@@ -132,10 +135,10 @@ betaValues = betaValues' ;
 HRF_No_Ovrlap = [] ;
 
 % Down-Sample Fourier 'Cassette' (m - variable)
-m_SR = 1:dt:length(m) ;                 % m- Sample Rate
+m_SR = 1:dt:length(m_phased) ;                 % m- Sample Rate
 m_SR = m_SR' ;
-m_DSR = UP_R:UP_R:length(m) ;           % m- Down Sampling Rate
-m_DS = interp1(m_SR,m,m_DSR) ;          % Interpolate Fourier Cassete
+m_DSR = UP_R:UP_R:length(m_phased) ;           % m- Down Sampling Rate
+m_DS = interp1(m_SR,m_phased,m_DSR) ;          % Interpolate Fourier Cassete
 
 % Weight single Fourier Set
 for i = 1:length(betaValues)
