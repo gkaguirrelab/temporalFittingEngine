@@ -32,7 +32,7 @@ BOLDHRFtoTest = createCanonicalHRF(0:HRFexpectedLength,gamma1,gamma2,gammaScale)
 Fake_TimeSeries = conv(Fake_Data,BOLDHRF) ;
 Fake_TimeSeries = Fake_TimeSeries(1:length(Time_Samples)) ;
 
-[hrf] = attentionFourier(Time_Samples,Fake_TimeSeries,AttnStartTimes,HRFexpectedLength,1) ;
+[hrf] = Derive_HRF_using_Fourier(Time_Samples,Fake_TimeSeries,AttnStartTimes,HRFexpectedLength,1) ;
 hrf_Fourier = hrf ;
 hrf_Fourier = hrf_Fourier - hrf_Fourier(1);
 clear hrf ;
