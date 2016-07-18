@@ -12,7 +12,7 @@ function deriveHRF(timeSeries,eventTimes,sampT,HRFdur)
 
 %% Set defaults
 if ~exist('HRFdur','var') || isempty(HRFdur)
-    HRFdur      = 33000; % seconds
+    HRFdur      = 16000; % seconds
 end
 if ~exist('sampT','var') || isempty(sampT)
     sampT       = 1000; % 1 second
