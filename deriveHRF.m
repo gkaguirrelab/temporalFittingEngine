@@ -18,38 +18,38 @@ if ~exist('sampT','var') || isempty(sampT)
     sampT       = 1000; % 1 second
 end
 % For Fourier set below
-downHRFdur      = HRFdur / 1000;                % Downsampled HRF (sec)
+numFreqs        = 2 * HRFdur / 1000;            % number of frequencies
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
-m               = zeros(downHRFdur,HRFdur);     % Create blank Fourier Set
+m               = zeros(numFreqs,HRFdur);       % Create blank Fourier Set
 m(1,:)          = ones(HRFdur,1);               % Create DC component
 %% Create Fourier Set
 % if the HRF is an odd number of msecs
 if mod(HRFdur,2) == 1
-    for i = 1:(downHRFdur-1)/2
+    for i = 1:(numFreqs-1)/2
         m(i*2,:)   = sin(t/HRFdur*2*pi*i);      % Create Sin waves for each Fq
         m(i*2+1,:) = cos(t/HRFdur*2*pi*i);      % Create Cos waves for each Fq
     end
     % if the HRF is an even number of msecs
 elseif mod(HRFdur,2) == 0
-    for i = 1:floor(downHRFdur/2)-1
+    for i = 1:floor(numFreqs/2)-1
         m(i*2,:)   = sin(t/(HRFdur-1)*2*pi*i);  % Create Sin waves for each Fq
         m(i*2+1,:) = cos(t/(HRFdur-1)*2*pi*i);  % Create Cos waves for each Fq
     end
 end
 % True Nyquist Frequency
-m(downHRFdur,:)     = sin(t/(HRFdur-1)*2*pi*(downHRFdur/2));
+m(numFreqs,:)     = sin(t/(HRFdur-1)*2*pi*(numFreqs/2));
 % Rotate matrix
 m               = m';
 %% Create the design matrix
 msecTC          = size(timeSeries,1)*sampT; % length of time-series (msec) 
-tempMatrix      = zeros(msecTC+HRFdur,downHRFdur);
+tempMatrix      = zeros(msecTC+HRFdur,numFreqs);
 for i = 1:length(eventTimes)
     % DC component -- column of 1's
     tempMatrix(eventTimes(i)+(0:HRFdur - 1),1) = m(1:size(m,1),1);
     % Add each event (combines overlapping Fourier sets)
-    tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:downHRFdur) = ...
-        tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:downHRFdur) + ...
-        m(1:size(m,1),2:downHRFdur);
+    tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:numFreqs) = ...
+        tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:numFreqs) + ...
+        m(1:size(m,1),2:numFreqs);
 end
 % Crop off Excess Rows (outside time-series)
 upMatrix        = tempMatrix(1:msecTC,:);
