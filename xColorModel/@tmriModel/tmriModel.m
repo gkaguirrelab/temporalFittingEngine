@@ -2,7 +2,7 @@ classdef tmriModel < handle
 % The @tmri parent class for modeling temporal responses.
 % 
 % 6/26/16  dhb  Started in on this
-% 
+
     % Public read/write properties
     properties
         % Structure of parameters for the current model
@@ -33,12 +33,12 @@ classdef tmriModel < handle
     end
     
     % Private properties. Only methods of the parent class can set or read these
-    properties(Access = private)
+    properties (Access = private)
         
     end
     
     % Public methods
-    methods
+    methods (Access=public)
         function fitNeuralResponse(obj,responseToFit)
             tmriFitNeuralResponse(obj,responseToFit);
         end
