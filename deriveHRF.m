@@ -1,67 +1,73 @@
-function deriveHRF(timeSeries,eventTimes,sampT,HRFdur)
-% <NEED TO ADD DESCRIPTION ONCE FINALIZED>
+function [HRF,betaValues,fSet,estTC,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
+% Derives a haemodynamic response function (HRF) using fMRI time-series
+% data and an input matrix of event times. 
 %
 %   Usage:
-%       <NEED TO ADD USAGE ONCE FINALIZED>
+%       [HRF,betaValues,fSet,estTC,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
 %
 %   Inputs:
 %   timeSeries  - matrix of time-series data (TR x N)
 %   eventTimes  - matrix of event times (msec)
-%   sampT       - sampling period (msec) e.g. TR
-%   HRFdur      - duration of HRF to be modeled (msec)
+%   sampT       - sampling period (msec) e.g. TR [default = 1000]
+%   HRFdur      - duration of HRF to be modeled (msec) [default = 34000]
+%   numFreqs    - number of frequencies to be modeled
+%
 
 %% Set defaults
 if ~exist('HRFdur','var') || isempty(HRFdur)
-    HRFdur      = 33000; % seconds
+    HRFdur      = 34000; % msec
 end
 if ~exist('sampT','var') || isempty(sampT)
-    sampT       = 1000; % 1 second
+    sampT       = 1000; % msec
 end
 % For Fourier set below
-numFreqs        = 2 * HRFdur / 1000;            % number of frequencies
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
-m               = zeros(numFreqs,HRFdur);       % Create blank Fourier Set
-m(1,:)          = ones(HRFdur,1);               % Create DC component
+fSet            = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
 %% Create Fourier Set
-% if the HRF is an odd number of msecs
-if mod(HRFdur,2) == 1
-    for i = 1:(numFreqs-1)/2
-        m(i*2,:)   = sin(t/HRFdur*2*pi*i);      % Create Sin waves for each Fq
-        m(i*2+1,:) = cos(t/HRFdur*2*pi*i);      % Create Cos waves for each Fq
-    end
-    % if the HRF is an even number of msecs
-elseif mod(HRFdur,2) == 0
-    for i = 1:floor(numFreqs/2)-1
-        m(i*2,:)   = sin(t/(HRFdur-1)*2*pi*i);  % Create Sin waves for each Fq
-        m(i*2+1,:) = cos(t/(HRFdur-1)*2*pi*i);  % Create Cos waves for each Fq
-    end
+ct = 1;
+fSet(:,ct)       = ones(HRFdur,1);               % Create DC component
+for i = 1:numFreqs
+    ct = ct + 1;
+    fSet(:,ct) = sin(t/HRFdur*2*pi*i);      % Create Sin waves for each Fq
+    ct = ct + 1;
+    fSet(:,ct) = cos(t/HRFdur*2*pi*i);      % Create Cos waves for each Fq
 end
-% True Nyquist Frequency
-m(numFreqs,:)     = sin(t/(HRFdur-1)*2*pi*(numFreqs/2));
-% Rotate matrix
-m               = m';
+fDims = size(fSet);
+numCov = (fDims(2) - 1) / 2;
+%% Plot Fourier set
+% figure;
+% for i = 1:size(fSet,2);
+%     subplot(7,10,i);
+%     plot(fSet(:,i));
+%     xlim([0 33000]);
+% end
 %% Create the design matrix
-msecTC          = size(timeSeries,1)*sampT; % length of time-series (msec) 
-tempMatrix      = zeros(msecTC+HRFdur,numFreqs);
+msecTC          = size(timeSeries,1)*sampT; % length of time-series (msec)
+tempMatrix      = zeros(msecTC+HRFdur,fDims(2)); 
 for i = 1:length(eventTimes)
     % DC component -- column of 1's
-    tempMatrix(eventTimes(i)+(0:HRFdur - 1),1) = m(1:size(m,1),1);
+    tempMatrix(eventTimes(i)+(0:HRFdur - 1),1) = fSet(1:size(fSet,1),1);
     % Add each event (combines overlapping Fourier sets)
-    tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:numFreqs) = ...
-        tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:numFreqs) + ...
-        m(1:size(m,1),2:numFreqs);
+    tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:end) = ...
+        tempMatrix(eventTimes(i)+(0:HRFdur - 1),2:end) + ...
+        fSet(1:size(fSet,1),2:end);
 end
 % Crop off Excess Rows (outside time-series)
 upMatrix        = tempMatrix(1:msecTC,:);
 % Downsample design matrix to resolution of time-series data
 DesignMatrix    = downsample(upMatrix,sampT);
 %% Run linear regression
-b               = DesignMatrix\timeSeries;
-%% Get the hrf
-hrf = b'*DesignMatrix';
+betaValues      = DesignMatrix\timeSeries;
+%% Get the estimated time-series
+estTC = betaValues'*DesignMatrix';
+%%
+%% Get the estimated hrf
+HRF = fSet * betaValues; % ignore dc beta
+return;
+figure;plot(HRF);
 %% plot data
 x = 0:size(timeSeries,1)-1;
-figure;plot(x,hrf,'r',x,timeSeries,'k',x,timeSeries,'ko');
+figure;plot(x,estTC,'r',x,timeSeries,'k',x,timeSeries,'ko');
 axis square;
 xlabel('Time (TRs)','FontSize',20);
 ylabel('Percent Signal Change','FontSize',20);
