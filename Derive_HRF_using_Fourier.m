@@ -28,6 +28,7 @@ RndEventTimes = RndEventTimes * UP_R ;
 EventStartTimes = round(EventStartTimes,3) ;    % First Round nearest 3rd decimal
 EventStartTimes = EventStartTimes * UP_R ;
 Shift_Amount = EventStartTimes - RndEventTimes ;
+% Shift_Amount = zeros(size(Shift_Amount));
 
 %% Fourier Set
 
@@ -35,6 +36,7 @@ Shift_Amount = EventStartTimes - RndEventTimes ;
 % m = Fourier Set Matrix
 % t = Time Points (HRF duration)
 HRF_TR = HRFduration *UP_R ;                    % Name conventions for waves
+HRFduration = 2* HRFduration ;
 
 % n -- Is odd -------------------------------------------------------------
 if mod(HRF_TR,2) == 1                   
@@ -109,7 +111,7 @@ for i = 1:length(EventStartTimes)
 end 
 
 % Crop off Excess Rows-- Leave length of Original Time series
-DesignMatrix = TimeSeriesMatrix(1:length(UPS_TimeSamples),:) ;
+upDesignMatrix = TimeSeriesMatrix(1:length(UPS_TimeSamples),:) ;
 
 % Crop off Excess Column-- discarded True Nyquist ***** KEPT NYQUIST
 %DesignMatrix = DesignMatrix(:,1:size(DesignMatrix,2)-1) ;
@@ -119,7 +121,8 @@ DesignMatrix = TimeSeriesMatrix(1:length(UPS_TimeSamples),:) ;
 
 % DesignMatrix = downsample(DesignMatrix,UP_R) ;        % Down-sample data Resolution
 % Interpolate Design Matrix to downsample
-DesignMatrix = interp1(UPS_TimeSamples,DesignMatrix,UPS_originalTimeSamplesNormalized) ;
+DesignMatrix = interp1(UPS_TimeSamples,upDesignMatrix,UPS_originalTimeSamplesNormalized) ;
+
 
 %% GET BETA VALUES & HRF
 
@@ -155,6 +158,8 @@ HRF_No_Ovrlap = HRF_No_Ovrlap(:,1) ;    % Take 1st column (Reconstructed hrf)
 HRF_No_Ovrlap = HRF_No_Ovrlap' ;
 hrf           = HRF_No_Ovrlap ;         % Compatibility with rest of code
 
+%%
+newhrf = betaValues*DesignMatrix';
 %% REGRESS EVENT FROM TIMES SERIES
 
 HRF_Matrix = [] ;
