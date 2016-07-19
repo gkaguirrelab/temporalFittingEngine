@@ -11,12 +11,11 @@ classdef tmriModel < handle
         % Timebase on which to compute model predictions
         timebase = [];
         
-        % Stimulus.  The exact form this takes is model dependent,
-        % but it should be a vector specified on the timebase.
+        % Stimulus.  The exact form this takes is model dependent.
         stimulus = [];
-
-        % Noise flag.  Add noise to forward simulated data?
-        noiseflag false;
+        
+        % Neural response on timebase
+        neuralResponse = [];
     end
     
     % Public, read-only properties.  These can be set by methods of the
@@ -40,24 +39,29 @@ classdef tmriModel < handle
     
     % Public methods
     methods
-       
+        function fitNeuralResponse(obj,responseToFit)
+            tmriFitNeuralResponse(obj,responseToFit);
+        end
     end
     
     % Methods that must only be implemented in the subclasses.
     % If a subclass does not implement each and every of these methods
     % it cannot instantiate objects.
     methods (Abstract, Access=public)
-        % Compute forward simulation of the implemented model, given the parameters
-        compute(obj,varargin);
-        
+        % Default parametesr
+        defaultParams(obj,varargin);
+
         % Convert parameter struct to a vector to be used by search
         % routines.
-        x = paramstovec(obj);
+        x = paramsToVec(obj);
         
         % Take the vector and put it back into the object's parameter
         % structure.
-        vectoparams(obj,x)
+        vecToParams(obj,x)
         
+        % Compute forward simulation of the implemented model, given the parameters
+        computeNeural(obj,varargin);
+          
         % Might want the object to know how to plot itself.
         %tmriPlot(obj, sensor);
     end

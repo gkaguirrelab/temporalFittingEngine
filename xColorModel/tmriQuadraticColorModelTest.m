@@ -5,22 +5,27 @@
 % 6/26/16  dhb  Wrote it.
 
 %% Clear and close
-clear all; close all;
+clear; close all;
+
+%% Add fitter to Matlab path
+% Add project toolbox to Matlab path
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'Fitter'));
 
 %% Construct the model object
 tmri = tmriQuadraticColorModel;
 
 %% Set parameters
 %
-% Six parameters define a unit quadratic form in three dimensions, I think.
-params.Q = [1 0 0 1 0 0]';
+% Six parameters define a quadratic form in three dimensions, but
+% we normalize the first to 1 so we only need five numbers here.
+params.Qvec = [1 1 1 0 0]';
 
 % Let's have a Naka-Rushton sigmoidal contrast response function
 params.crfAmp = 1;
-params.crfExponent = 2;
 params.crfSemi = 1;
+params.crfExponent = 2;
 
-% And an exponential falloff of response
+% Exponential falloff
 params.expFalloff = 0.3;
 
 % Tuck the parameter structure into the object
@@ -42,12 +47,22 @@ stimulus = rand(3,nTimeSamples);
 tmri.stimulus = stimulus;
 
 %% Test that we can get a vector of paramters and put it back
-x0 = tmri.paramstovec;
+x0 = tmri.paramsToVec;
 x1 = x0;
 x1(2) = 2;
 x1(7) = 3;
-tmri.vectoparams(x1);
-x2 = tmri.paramstovec;
+tmri.vecToParams(x1);
+x2 = tmri.paramsToVec;
 if (any(x1 ~= x2))
     error('Parameter vectorizing and back not working right');
 end
+
+%% Test that we can obtain a neural response
+%
+% And plot
+tmri.computeNeural;
+
+%% Test the fitter
+tmri.fitNeuralResponse;
+
+

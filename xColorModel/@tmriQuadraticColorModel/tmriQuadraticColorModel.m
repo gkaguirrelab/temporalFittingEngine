@@ -24,6 +24,9 @@ classdef tmriQuadraticColorModel < tmriModel
         function obj = tmriQuadraticColorModel(varargin)
             % Initialize the parent class
             obj = obj@tmriModel();
+            
+            % Set default parameters
+            tmriDefaultParams(obj,varargin);
         end
         
         % set function, see osLinearSet for details
@@ -38,26 +41,44 @@ classdef tmriQuadraticColorModel < tmriModel
       
     end
     
+    properties (Dependent)
+        % The quadratic matrix.  This depends on the parameters, but we
+        % often want to use it explicity.
+        Q
+    end
+    
     % Methods that must be implemented (Abstract in parent class).
     methods (Access=public)
-        
-        % Forward simulation of the implemented model, given the parameters
-        function obj = compute(obj,varargin)
-            obj = tmriCompute(obj,varargin);
+        % Return reasonable default parameters for the model
+        function obj = defaultParams(obj)
+            tmriDefaultParams(obj);
         end
         
         % Convert parameter struct to a vector to be used by search
         % routines.
-        function x = paramstovec(obj)
-            x = tmriParamstovec(obj);
+        function x = paramsToVec(obj)
+            x = tmriParamsToVec(obj);
         end
         
         % Take the vector and put it back into the object's parameter
         % structure.
-        function vectoparams(obj,x)
-            obj = tmriVectoparams(obj,x);
+        function vecToParams(obj,x)
+            tmriVecToParams(obj,x);
         end
-    end    
+                  
+        % Forward simulation of the implemented model, given the parameters
+        function obj = computeNeural(obj,varargin)
+            obj = tmriComputeNeural(obj,varargin);
+        end
+    end 
+    
+    % Get methods for dependent properties
+    methods
+        % Get quadratic form in matrix form from the parameters
+        function q = get.Q(obj)
+            [~,~,q] = EllipsoidMatricesGenerate([1 ; obj.params.Qvec]);
+        end
+    end
     
     % Methods may be called by the subclasses, but are otherwise private 
     methods (Access = protected)
