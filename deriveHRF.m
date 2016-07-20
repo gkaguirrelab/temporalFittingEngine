@@ -33,11 +33,6 @@ end
 if ~exist('sampT','var') || isempty(sampT)
     sampT       = 1000; % msec
 end
-% For Phase Shift
-floorTimes = eventTimes ./ 1000 ;               % Floor works with decimals
-RndTimes = floor(floorTimes) ;
-RndTimes = RndTimes .* 1000 ;
-Shift_Amount = eventTimes - RndTimes ;          % Phase Shift Amount
 % For Fourier set below
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
 fSet            = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
@@ -73,4 +68,4 @@ DesignMatrix    = resample(upMatrix,1,sampT);
 %% Run linear regression
 betaValues      = DesignMatrix\timeSeries;
 %% Get the estimated hrf
-HRF             = fSet_PS * betaValues;
+HRF             = fSet * betaValues;
