@@ -1,4 +1,4 @@
-function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
+function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF_interp(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
 
 % Derives a haemodynamic response function (HRF) using fMRI time-series
 % data and an input matrix of event times.
@@ -33,11 +33,6 @@ end
 if ~exist('sampT','var') || isempty(sampT)
     sampT       = 1000; % msec
 end
-% For Phase Shift
-floorTimes = eventTimes ./ 1000 ;               % Floor works with decimals
-RndTimes = floor(floorTimes) ;
-RndTimes = RndTimes .* 1000 ;
-Shift_Amount = eventTimes - RndTimes ;          % Phase Shift Amount
 % For Fourier set below
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
 fSet            = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
@@ -46,9 +41,9 @@ ct = 1;
 fSet(:,ct)      = ones(HRFdur,1);               % Create DC component
 for i = 1:numFreqs
     ct = ct + 1;
-    fSet(:,ct)  = sin(t/HRFdur*2*pi*i);         % Create Sin waves for each Fq
+    fSet(:,ct)  = sin(t/HRFdur*2*pi*i);      % Create Sin waves for each Fq
     ct = ct + 1;
-    fSet(:,ct)  = cos(t/HRFdur*2*pi*i);         % Create Cos waves for each Fq
+    fSet(:,ct)  = cos(t/HRFdur*2*pi*i);      % Create Cos waves for each Fq
 end
 % Downsample the Fourier Set
 DfSet           = resample(fSet,1,sampT);
@@ -56,21 +51,24 @@ DfSet           = resample(fSet,1,sampT);
 [~,goodCovs]    = indMat(DfSet);
 fSet            = fSet(:,goodCovs);
 fDims           = size(fSet);
-numCov          = fDims(2);                     % number of covariates
+numCov          = fDims(2); % number of covariates
 %% Create the design matrix
-msecTC          = size(timeSeries,1)*sampT;     % length of time-series (msec)
+msecTC          = size(timeSeries,1)*sampT; 
 tempMatrix      = zeros(msecTC+HRFdur,fDims(2));
 for i = 1:length(eventTimes)
-    thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1); % add 1 to eventTimes (sec -> index)
+    thisBlock   = eventTimes(i)+(0:HRFdur - 1);
+    % DC component -- column of 1's
+    tempMatrix(thisBlock,1) = fSet(1:size(fSet,1),1);
     % Add each event (combines overlapping Fourier sets)
-    tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + ...
-        fSet(1:size(fSet,1),:);
+    tempMatrix(thisBlock,2:end) = tempMatrix(thisBlock,2:end) + ...
+        fSet(1:size(fSet,1),2:end);
 end
 % Crop off Excess Rows (outside time-series)
 upMatrix        = tempMatrix(1:msecTC,:);
+onTheTR = find(mod(1:size(upMatrix,1),1000) == 0);
 % Downsample design matrix to resolution of time-series data
-DesignMatrix    = resample(upMatrix,1,sampT);
+DesignMatrix    = upMatrix(onTheTR,:);
 %% Run linear regression
 betaValues      = DesignMatrix\timeSeries;
 %% Get the estimated hrf
-HRF             = fSet_PS * betaValues;
+HRF             = fSet * betaValues;

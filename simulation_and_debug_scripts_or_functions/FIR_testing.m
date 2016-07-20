@@ -26,7 +26,7 @@ for i = 1:length(numFreqs)
     xlabel('Time (TRs)','FontSize',20);
     ylabel('Percent Signal Change','FontSize',20);
     legend({'FIR model' 'Simulated data'},'FontSize',10);
-    title(['nFreqs = ' num2str(numCov) ],'FontSize',20);
+%    title(['nFreqs = ' num2str(numCov) ],'FontSize',20);
 end
 %%
 for i = 1:length(betaValues)
