@@ -30,7 +30,7 @@ end
 
 % Store the fit parameters
 paramsFit = obj.vecToParams(paramsFitVec);
-responseFit = obj.computeNeuralResponse(paramsFit,timebase,stimulus);
+responseFit = obj.computeResponse(paramsFit,timebase,stimulus);
 
 end
 
@@ -38,6 +38,6 @@ end
 function f = FitEllipseFunction(paramsVec,obj,timebase,stimulus,responseToFit)
 
 params = obj.vecToParams(paramsVec);
-responsePredicted = obj.computeNeuralResponse(params,timebase,stimulus);
+responsePredicted = obj.computeResponse(params,timebase,stimulus);
 f = sqrt(mean((responsePredicted-responseToFit).^2));
 end

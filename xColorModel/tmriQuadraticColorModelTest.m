@@ -31,9 +31,15 @@ timebase = 0:deltaT:totalTime;
 %
 % We'll specify this as a 3 by size(timebase,2) matrix,
 % where each column is the signed L,M,S contrast of the stimulus
-% at the specified time.
+% at the specified time.  And then we'll blur it so that we have
+% a smoothish signal to look at.
 nTimeSamples = size(timebase,2);
-stimulus = rand(3,nTimeSamples);
+filter = fspecial('gaussian',[1 nTimeSamples],6);
+stimulus= rand(3,nTimeSamples);
+for i = 1:3
+    % stimulus(i,:) = conv(stimulus(i,:),filter,'same');
+    stimulus(i,:) = ifft(fft(stimulus(i,:)) .* fft(filter)); 
+end
 
 %% Test that we can get a vector of paramters and put it back
 x0 = tmri.paramsToVec(params0);
@@ -52,9 +58,10 @@ end
 params1.crfAmp = 2;
 params1.crfSemi = 0.5;
 params1.crfExponent = 3;
+params1.noiseSd = 0.02;
 fprintf('Simulated model parameters:\n');
 tmri.print(params1);
-responseToFit = tmri.computeNeuralResponse(params1,timebase,stimulus);
+responseToFit = tmri.computeResponse(params1,timebase,stimulus,'AddNoise',true);
 tmri.plot(timebase,responseToFit);
 
 %% Test the fitter
