@@ -56,12 +56,10 @@ numCov          = fDims(2); % number of covariates
 msecTC          = size(timeSeries,1)*sampT; 
 tempMatrix      = zeros(msecTC+HRFdur,fDims(2));
 for i = 1:length(eventTimes)
-    thisBlock   = eventTimes(i)+(0:HRFdur - 1);
-    % DC component -- column of 1's
-    tempMatrix(thisBlock,1) = fSet(1:size(fSet,1),1);
+    thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1); % add 1 to eventTimes (sec -> index)
     % Add each event (combines overlapping Fourier sets)
-    tempMatrix(thisBlock,2:end) = tempMatrix(thisBlock,2:end) + ...
-        fSet(1:size(fSet,1),2:end);
+    tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + ...
+        fSet(1:size(fSet,1),:);
 end
 % Crop off Excess Rows (outside time-series)
 upMatrix        = tempMatrix(1:msecTC,:);
