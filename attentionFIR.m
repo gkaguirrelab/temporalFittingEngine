@@ -40,6 +40,9 @@ betaValues = designMatrix\timeSeries';
 hrf = betaValues(2:length(betaValues))';
 
 % REGRESS ATTENTION FROM TIMES SERIES
-timeSeriesNoAttn = timeSeries - sum(designMatrix(:,2:size(designMatrix,2)).*repmat(hrf,[size(designMatrix,1) 1]),2)';
+% timeSeriesNoAttn = timeSeries - sum(designMatrix(:,2:size(designMatrix,2)).*repmat(hrf,[size(designMatrix,1) 1]),2)';
+
+timeSeriesNoAttn = timeSeries' - designMatrix*betaValues; 
+timeSeriesNoAttn = timeSeriesNoAttn';
 
 gribble = 1;

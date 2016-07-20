@@ -18,24 +18,14 @@ tmri = tmriQuadraticColorModel;
 %
 % Six parameters define a quadratic form in three dimensions, but
 % we normalize the first to 1 so we only need five numbers here.
-params.Qvec = [2 0.5 1 0 0]';
-
-% Let's have a Naka-Rushton sigmoidal contrast response function
-params.crfAmp = 1;
-params.crfSemi = 1;
-params.crfExponent = 2;
-
-% Exponential falloff
-params.expFalloff = 0.3;
-
-% Tuck the parameter structure into the object
-tmri.simulateParams = params;
+params0 = tmri.defaultParams;
+fprintf('Default model parameters:\n');
+tmri.print(params0);
 
 %% Set the timebase we want to compute on
 deltaT = 1;
 totalTime = 1000;
 timebase = 0:deltaT:totalTime;
-tmri.timebase = timebase;
 
 %% Specify the stimulus. 
 %
@@ -44,33 +34,32 @@ tmri.timebase = timebase;
 % at the specified time.
 nTimeSamples = size(timebase,2);
 stimulus = rand(3,nTimeSamples);
-tmri.stimulus = stimulus;
 
 %% Test that we can get a vector of paramters and put it back
-x0 = tmri.paramsToVec;
+x0 = tmri.paramsToVec(params0);
 x1 = x0;
+x1(1) = 2;
 x1(2) = 0.5;
+x1(3) = pi/2;
 x1(7) = 3;
-tmri.vecToParams(x1);
-x2 = tmri.paramsToVec;
+params1 = tmri.vecToParams(x1);
+x2 = tmri.paramsToVec(params1);
 if (any(x1 ~= x2))
     error('Parameter vectorizing and back not working right');
 end
 
 %% Test that we can obtain a neural response
-%
-% And plot
-responseToFit = tmri.simulateNeuralReponse;
+params1.crfAmp = 2;
+params1.crfSemi = 0.5;
+params1.crfExponent = 3;
+fprintf('Simulated model parameters:\n');
+tmri.print(params1);
+responseToFit = tmri.computeNeuralResponse(params1,timebase,stimulus);
+tmri.plot(timebase,responseToFit);
 
 %% Test the fitter
-tmri.params
-tmri.params.Qvec
-responseToFit = tmri.neuralResponse;
-tmri.defaultParams;
-tmri.params
-tmri.params.Qvec
-tmri.fitToResponse(responseToFit);
-tmri.params
-tmri.params.Qvec
-
+[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,responseToFit);
+fprintf('Model parameter from fits:\n');
+tmri.print(paramsFit);
+tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
 

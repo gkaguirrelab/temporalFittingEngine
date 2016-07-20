@@ -1,6 +1,4 @@
-function x = tmriParamsToVec(obj,varagin)
-
-params = obj.simulateParams;
+function x = paramsToVec(obj,params)
 
 % Take the parameter structure into a vector
 for i = 1:5
