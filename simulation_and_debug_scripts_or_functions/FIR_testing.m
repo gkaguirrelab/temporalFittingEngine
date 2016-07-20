@@ -20,13 +20,13 @@ for i = 1:length(numFreqs)
     [HRF, timeSeriesNoAttn] = attentionFIR(0:length(timeSeries)-1,timeSeries'-mean(timeSeries),round(eventTimes./sampT)',HRFdur./sampT,1);
     % Plot
     x = (0:length(HRF)-1).*1000;
-    plot(x,HRF,'b',1:length(hrf),hrf,'r');
+    plot(x,HRF,'b',0:length(hrf)-1,hrf,'r');
     xlim([0 35000]);
     axis square;
     xlabel('Time (TRs)','FontSize',20);
     ylabel('Percent Signal Change','FontSize',20);
     legend({'FIR model' 'Simulated data'},'FontSize',10);
- %   title(['nFreqs = ' num2str(numCov) ],'FontSize',20);
+    title(['nFreqs = ' num2str(numCov) ],'FontSize',20);
 end
 %%
 for i = 1:length(betaValues)
