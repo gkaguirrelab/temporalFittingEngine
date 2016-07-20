@@ -17,7 +17,7 @@ for i = 1:length(numFreqs)
     timeSeries              = downsample(nupTC,sampT);
     %
     subplot(1,4,i);
-    [HRF,betaValues,fSet,estTC,numCov] = deriveHRF_interp(timeSeries,eventTimes,sampT,HRFdur,numFreqs(i));
+    [HRF,betaValues,fSet,estTC,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs(i));
     % Plot
     x = 1:length(HRF);
     plot(x,HRF,'b',x,hrf,'r');
