@@ -18,7 +18,7 @@ tmri = tmriQuadraticColorModel;
 %
 % Six parameters define a quadratic form in three dimensions, but
 % we normalize the first to 1 so we only need five numbers here.
-params.Qvec = [1 1 1 0 0]';
+params.Qvec = [2 0.5 1 0 0]';
 
 % Let's have a Naka-Rushton sigmoidal contrast response function
 params.crfAmp = 1;
@@ -29,7 +29,7 @@ params.crfExponent = 2;
 params.expFalloff = 0.3;
 
 % Tuck the parameter structure into the object
-tmri.params = params;
+tmri.simulateParams = params;
 
 %% Set the timebase we want to compute on
 deltaT = 1;
@@ -49,7 +49,7 @@ tmri.stimulus = stimulus;
 %% Test that we can get a vector of paramters and put it back
 x0 = tmri.paramsToVec;
 x1 = x0;
-x1(2) = 2;
+x1(2) = 0.5;
 x1(7) = 3;
 tmri.vecToParams(x1);
 x2 = tmri.paramsToVec;
@@ -60,10 +60,17 @@ end
 %% Test that we can obtain a neural response
 %
 % And plot
-tmri.computeNeural;
+responseToFit = tmri.simulateNeuralReponse;
 
 %% Test the fitter
+tmri.params
+tmri.params.Qvec
 responseToFit = tmri.neuralResponse;
+tmri.defaultParams;
+tmri.params
+tmri.params.Qvec
 tmri.fitToResponse(responseToFit);
+tmri.params
+tmri.params.Qvec
 
 

@@ -5,19 +5,35 @@ classdef tmriModel < handle
 
     % Public read/write properties
     properties
-        % Structure of parameters for the current model
-        params = [];
-              
-        % Timebase on which to compute model predictions
+        % Structure of parameters for the current simulated model. The
+        % user can set these and then get the simulated model response.
+        simulateParams = [];
+        
+        % Timebase on which to compute model predictions, specified in
+        % seconds.
         timebase = [];
         
-        % Stimulus.  The exact form this takes is model dependent.
+        % Stimulus.  The exact form this takes is model dependent, but it
+        % should allow the compute methods to predict the stimulus on the
+        % timebase, given the parameters of the model.
         stimulus = [];
-        
-        % Neural response on timebase
-        neuralResponse = [];
+            
+        % HRF
+        boldHRF = [];
+  
     end
     
+    % Dependent properties, computed from other parameters
+    properties
+        % Neural response on timebase
+        simulateNeuralResponse = [];
+        fitNeuralResponse = [];
+        
+        % Bold response
+        simulateBoldResonse = [];
+        fitBoldResponse = [];
+    end
+        
     % Public, read-only properties.  These can be set by methods of the
     % parent class (that is, this class) but not by methods of subclasses.
     properties (SetAccess = private, GetAccess = public)  
@@ -27,9 +43,9 @@ classdef tmriModel < handle
     % Protected properties; Methods of the parent class and all of its
     % subclasses can set these.
     properties (SetAccess = protected, GetAccess = public)
-        % Prediction. The model's prediction on the timebase, given
-        % the current parameters.
-        prediction;
+        % Structure of parameters for the current fit.
+        fitParams = [];
+
     end
     
     % Private properties. Only methods of the parent class can set or read these
@@ -49,8 +65,11 @@ classdef tmriModel < handle
     % If a subclass does not implement each and every of these methods
     % it cannot instantiate objects.
     methods (Abstract, Access=public)
-        % Default parametesr
+        % Default parameters
         defaultParams(obj,varargin);
+        
+        % Print parameters
+        printParams(obj,varagin);
 
         % Convert parameter struct to a vector to be used by search
         % routines.

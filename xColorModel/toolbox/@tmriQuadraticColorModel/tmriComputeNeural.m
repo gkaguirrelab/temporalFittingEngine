@@ -1,10 +1,11 @@
-function obj = tmriComputeNeural(obj,varargin)
-% obj = tmriComputeNeural(obj,varargin)
+function response = tmriComputeNeural(obj,varargin)
+% response = tmriComputeNeural(obj,varargin)
 % 
 % Compute method for the quadratic model. 
 
 %% Get the ellipsoid parameters in cannonical form
-Q = obj.Q;
+Q = obj.simulateQ;
+params = obj.simulateParams;
 
 %% Find the length of the points after application of the quadratic
 %
@@ -13,9 +14,6 @@ Q = obj.Q;
 theLengths = diag(obj.stimulus'*Q*obj.stimulus);
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
-theResponse = ComputeNakaRushton([obj.params.crfAmp,obj.params.crfSemi,obj.params.crfExponent],theLengths);
-
-%% Sock away the prediction
-obj.neuralResponse = theLengths;
+theResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
 
 end

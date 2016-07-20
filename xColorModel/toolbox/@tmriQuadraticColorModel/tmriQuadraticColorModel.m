@@ -28,42 +28,37 @@ classdef tmriQuadraticColorModel < tmriModel
             % Set default parameters
             tmriDefaultParams(obj,varargin);
         end
-        
-        % set function, see osLinearSet for details
-        function obj = set(obj, varargin)
-            osSet(obj, varargin{:});
-        end
-        
-        % get function, see osLinearGet for details
-        function val = get(obj, varargin)
-           val = osGet(obj, varargin{:});
-        end
-      
     end
     
     properties (Dependent)
         % The quadratic matrix.  This depends on the parameters, but we
         % often want to use it explicity.
-        Q
+        simulateQ
+        fitQ
     end
     
     % Methods that must be implemented (Abstract in parent class).
     methods (Access=public)
         % Return reasonable default parameters for the model
-        function [paramsVec,vlbVec,vubVec] = defaultParams(obj)
-            [paramsVec,vlbVec,vubVec] = tmriDefaultParams(obj);
+        function [paramsVec,vlbVec,vubVec] = defaultParams(obj,varargin)
+            [paramsVec,vlbVec,vubVec] = tmriDefaultParams(obj,varargin);
+        end
+        
+        % Print the parameters
+        function printParams(obj,varargin)
+            tmriPrintParams(obj,varargin);
         end
         
         % Convert parameter struct to a vector to be used by search
         % routines.
-        function x = paramsToVec(obj)
-            x = tmriParamsToVec(obj);
+        function x = paramsToVec(obj,varargin)
+            x = tmriParamsToVec(obj,varargin);
         end
         
         % Take the vector and put it back into the object's parameter
         % structure.
-        function vecToParams(obj,x)
-            tmriVecToParams(obj,x);
+        function vecToParams(obj,x,varargin)
+            tmriVecToParams(obj,x),varargin;
         end
                   
         % Forward simulation of the implemented model, given the parameters
@@ -75,9 +70,17 @@ classdef tmriQuadraticColorModel < tmriModel
     % Get methods for dependent properties
     methods
         % Get quadratic form in matrix form from the parameters
-        function q = get.Q(obj)
-            [~,~,q] = EllipsoidMatricesGenerate([1 ; obj.params.Qvec]);
+        function q = get.simulateQ(obj)
+            [~,~,q] = EllipsoidMatricesGenerate([1 obj.simulateParams.Qvec]');
         end
+        
+        function q = get.fitQ(obj)
+            [~,~,q] = EllipsoidMatricesGenerate([1 obj.fitParams.Qvec]');
+        end
+        
+       function response = get.simulateNeuralResponse(obj)
+            response = tmriComputeNeural(obj,varargin);
+       end
     end
     
     % Methods may be called by the subclasses, but are otherwise private 
