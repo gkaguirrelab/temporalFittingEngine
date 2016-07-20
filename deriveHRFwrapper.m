@@ -1,4 +1,4 @@
-function [HRF, cleanedData, SEHRF] = fitHRF(timeSeries,attnStartTimes,lengthAttnHRF,TS_timeSamples,T_R,type)
+function [HRF, cleanedData, SEHRF] = deriveHRFwrapper(timeSeries,attnStartTimes,lengthAttnHRF,TS_timeSamples,T_R,type)
 
 % function HRF = fitHRF_FIR(timeSeries,attnStartTimes)
 %
@@ -7,9 +7,9 @@ function [HRF, cleanedData, SEHRF] = fitHRF(timeSeries,attnStartTimes,lengthAttn
 % call the HRF generator for each run, then average across runs
 for i = 1:size(timeSeries,1)
    if strcmp(type,'Fourier')
-       [hrf,timeSeriesNoAttn] = Derive_HRF_using_Fourier(TS_timeSamples, ...
-                 timeSeries(i,:), attnStartTimes(i,attnStartTimes(i,:)~=-1)', ...
-                 lengthAttnHRF,T_R) ;
+       hrf = deriveHRF(timeSeries(i,:)', round(attnStartTimes(i,attnStartTimes(i,:)~=-1).*1000), ...
+                                1000,lengthAttnHRF.*1000,lengthAttnHRF) ;
+       timeSeriesNoAttn = 0;
    elseif strcmp(type,'FIR')
        [hrf,timeSeriesNoAttn] = attentionFIR(TS_timeSamples, ...
                  timeSeries(i,:), attnStartTimes(i,attnStartTimes(i,:)~=-1)', ...

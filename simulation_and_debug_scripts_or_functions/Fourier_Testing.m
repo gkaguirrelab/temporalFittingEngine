@@ -13,7 +13,7 @@ for i = 1:length(numFreqs)
     tmpTC(eventTimes)       = 1;
     upTC         = filter(hrf,1,tmpTC);
     % add some noise
-    nupTC                   = upTC + 0.05*max(upTC)*randn(size(upTC));
+    nupTC                   = upTC + 0*max(upTC)*randn(size(upTC));
     timeSeries              = downsample(nupTC,sampT);
     %
     subplot(1,4,i);
