@@ -9,7 +9,7 @@ clear; close all;
 
 %% Add fitter to Matlab path
 % Add project toolbox to Matlab path
-AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'Fitter'));
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
 
 %% Construct the model object
 tmri = tmriQuadraticColorModel;
@@ -63,6 +63,7 @@ end
 tmri.computeNeural;
 
 %% Test the fitter
-tmri.fitNeuralResponse;
+responseToFit = tmri.neuralResponse;
+tmri.fitToResponse(responseToFit);
 
 

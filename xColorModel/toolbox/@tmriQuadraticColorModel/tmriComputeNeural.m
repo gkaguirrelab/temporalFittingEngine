@@ -12,14 +12,10 @@ Q = obj.Q;
 % application of the quadratic
 theLengths = diag(obj.stimulus'*Q*obj.stimulus);
 
-params.crfAmp = 1;
-params.crfSemi = 1;
-params.crfExponent = 2;
-
 %% Push the quadratic response through a Naka-Rushton non-linearity
 theResponse = ComputeNakaRushton([obj.params.crfAmp,obj.params.crfSemi,obj.params.crfExponent],theLengths);
 
 %% Sock away the prediction
-obj.neuralResponse = theResponse;
+obj.neuralResponse = theLengths;
 
 end

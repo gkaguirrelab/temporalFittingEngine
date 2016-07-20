@@ -50,8 +50,8 @@ classdef tmriQuadraticColorModel < tmriModel
     % Methods that must be implemented (Abstract in parent class).
     methods (Access=public)
         % Return reasonable default parameters for the model
-        function obj = defaultParams(obj)
-            tmriDefaultParams(obj);
+        function [paramsVec,vlbVec,vubVec] = defaultParams(obj)
+            [paramsVec,vlbVec,vubVec] = tmriDefaultParams(obj);
         end
         
         % Convert parameter struct to a vector to be used by search

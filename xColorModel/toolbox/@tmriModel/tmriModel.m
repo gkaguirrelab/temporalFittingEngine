@@ -38,10 +38,11 @@ classdef tmriModel < handle
     end
     
     % Public methods
+    %
+    % Methods defined in separate files are public by default, so we don't
+    % explicitly decare them.  But, if you wanted to write the whole body
+    % of some short public method here, you could do so.
     methods (Access=public)
-        function fitNeuralResponse(obj,responseToFit)
-            tmriFitNeuralResponse(obj,responseToFit);
-        end
     end
     
     % Methods that must only be implemented in the subclasses.
@@ -73,7 +74,7 @@ classdef tmriModel < handle
     
     % Methods that are totally private (subclasses cannot call these)
     methods (Access = private)
-        %initialize(obj);
+
     end
     
 end
