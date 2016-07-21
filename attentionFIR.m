@@ -24,6 +24,7 @@ end
 % normalize everything to 1 to make shift easier
 TRsFromTimeSamples = originalTimeSamples./sampT;
 eventTimes = eventTimes./sampT;
+eventTimes = round(eventTimes);
 
 % HELPER VECTOR FOR SHIFT
 timeShiftScale = [1:HRFduration./sampT]-1;
