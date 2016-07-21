@@ -69,7 +69,7 @@ if overlapTR
     eventTimes = sort([eventTimes,eventTimes + overlapTR*sampT]);
 end
 %% Make the simulated time-series
-hrf                     = doubleGammaHrf(1/sampT,[6 10],[1 1],1/6,HRFdur/1000); % HRF in sec
+hrf                     = doubleGammaHrf(1/sampT,[6 10],[1 1],1/6,HRFdur/sampT); % HRF TRs
 tmpTC                   = zeros(tcDur,1);
 tmpTC(eventTimes+1)     = 1; % add one for indexing
 upTC                    = filter(hrf,1,tmpTC);
