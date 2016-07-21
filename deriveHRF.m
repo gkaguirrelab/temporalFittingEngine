@@ -10,7 +10,7 @@ function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventT
 %   timeSeries      - matrix of time-series data (TR x N)
 %   eventTimes      - matrix of event times (msec)
 %   sampT           - sampling period (msec) e.g. TR [default = 1000]
-%   HRFdur          - duration of HRF to be modeled (msec) [default = 34000]
+%   HRFdur          - duration of HRF to be modeled (msec) [default = 32000]
 %   numFreqs        - number of frequencies to be modeled (scalar value)
 %
 %   note:
@@ -27,11 +27,11 @@ function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventT
 %   Written by Andrew S Bock Jul 2016
 
 %% Set defaults
-if ~exist('HRFdur','var') || isempty(HRFdur)
-    HRFdur      = 34000; % msec
-end
 if ~exist('sampT','var') || isempty(sampT)
     sampT       = 1000; % msec
+end
+if ~exist('HRFdur','var') || isempty(HRFdur)
+    HRFdur      = 32000; % msec
 end
 % For Fourier set below
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array

@@ -1,25 +1,25 @@
-function [timeSeries,eventTimes] = simData(HRFdur,sampT,numTRs,numEvents,offTR,overlapTR,irrTR)
+function [timeSeries,eventTimes,hrf] = simData(HRFdur,sampT,numTRs,numEvents,offTR,overlapTR,irrTR)
 
 % Makes a simulated time-series of BOLD responses to events defined by the
 % various inputs
 %
 %   Usage:
-%   [timeSeries,eventTimes] = simData(HRFdur,sampT,numTRs,numEvents,offTR,overlapTR,irrTR)
+%   [timeSeries,eventTimes,hrf] = simData(HRFdur,sampT,numTRs,numEvents,offTR,overlapTR,irrTR)
 %
 %   Inputs:
-%   HRFdur      = duration of the HRF window (seconds) [default = 32]
+%   HRFdur      = duration of the HRF window (msec) [default = 32000]
 %   sampT       = TR (msec) [default = 1000]
 %   numTRs      = number of TRs in the time-series [default = 1000]
 %   numEvents   = number of stimulus events [default = 10]
 %   offTR       = if = 1, shifts events to the middle of the TR [default = 0];
 %   overlapTR   = if = N, duplicates the events, spaced apart by N TRs
-%   irrTR       = if = 1, creates irregular event times, i.e. not evenly spaced
+%   irrTR       = if = 1, creates irregular event times, i.e. not evenly spaced [default = 0];
 %
 %   Written by Andrew S Bock Jul 2016
 
 %% set defaults
 if ~exist('HRFdur','var') || isempty(HRFdur)
-    HRFdur = 32; % HRF duration (seconds)
+    HRFdur = 32000; % HRF duration (seconds)
 end
 if ~exist('sampT','var') || isempty(sampT)
     sampT = 1000; % TR (msec)
@@ -37,7 +37,7 @@ if ~exist('overlapTR','var') || isempty(overlapTR)
     overlapTR = 0; % overlap = N duplicates the events, spaced apart by N TRs
 end
 if ~exist('irrTR','var') || isempty(irrTR)
-    irrTR = 1; % irregular event times (i.e. not evenly spaced)
+    irrTR = 0; % irregular event times (i.e. not evenly spaced)
 end
 %% Create evenly spaced event times, starting on a TR
 tcDur = sampT * numTRs; % total time-series duration (msec)
@@ -69,7 +69,7 @@ if overlapTR
     eventTimes = sort([eventTimes,eventTimes + overlapTR*sampT]);
 end
 %% Make the simulated time-series
-hrf                     = doubleGammaHrf(1/sampT,[6 10],[1 1],1/6,HRFdur); % HRF in sec
+hrf                     = doubleGammaHrf(1/sampT,[6 10],[1 1],1/6,HRFdur/1000); % HRF in sec
 tmpTC                   = zeros(tcDur,1);
 tmpTC(eventTimes+1)     = 1; % add one for indexing
 upTC                    = filter(hrf,1,tmpTC);
