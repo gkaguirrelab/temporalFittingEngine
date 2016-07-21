@@ -1,4 +1,4 @@
-function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
+function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
 
 % Derives a haemodynamic response function (HRF) using fMRI time-series
 % data and an input matrix of event times.
@@ -33,6 +33,12 @@ end
 if ~exist('HRFdur','var') || isempty(HRFdur)
     HRFdur      = 32000; % msec
 end
+if ~exist('modelType','var') || isempty(modelType)
+    modelType       = 'Fourier';
+end
+if ~exist('phaseShift','var') || isempty(phaseShift)
+    phaseShift      = 0; 
+end
 % For Fourier set below
 t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
 fSet            = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
@@ -56,10 +62,30 @@ numCov          = fDims(2);                     % number of covariates
 msecTC          = size(timeSeries,1)*sampT;     % length of time-series (msec)
 tempMatrix      = zeros(msecTC+HRFdur,fDims(2));
 for i = 1:length(eventTimes)
-    thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1); % add 1 to eventTimes (sec -> index)
-    % Add each event (combines overlapping Fourier sets)
-    tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + ...
-        fSet(1:size(fSet,1),:);
+    switch modelType
+        case 'Fourier'
+            if phaseShift
+                % get the shift amount
+                FlrTimes = eventTimes ./ 1000 ;
+                RndTimes = floor(FlrTimes) ;
+                RndTimes = RndTimes .* 1000 ;
+                Shift_Amount = eventTimes - RndTimes ;
+                % shift the Fourier set
+                tmpSet = circshift(fSet,Shift_Amount(i)) ;
+                thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1); % add 1 to eventTimes (sec -> index)
+                % Add each event (combines overlapping Fourier sets)
+                tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + ...
+                    tmpSet(1:size(tmpSet,1),:);
+            else
+                thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1); % add 1 to eventTimes (sec -> index)
+                % Add each event (combines overlapping Fourier sets)
+                tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + ...
+                    fSet(1:size(fSet,1),:);
+            end
+        case FIR
+            
+            
+    end
 end
 % Crop off Excess Rows (outside time-series)
 upMatrix        = tempMatrix(1:msecTC,:);
