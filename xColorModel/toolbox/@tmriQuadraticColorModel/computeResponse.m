@@ -4,7 +4,7 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 % Compute method for the quadratic model.
 % Key/value pairs
 %   'AddNoise'
-%     true (default) or false
+%     true or false(default) 
 
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us

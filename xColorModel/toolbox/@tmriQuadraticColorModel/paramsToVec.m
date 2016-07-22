@@ -5,7 +5,7 @@ function x = paramsToVec(obj,params,varargin)
 %
 % Key/value pairs
 %   'UseNoiseParam'
-%     true (default) or false
+%     true or false (default) 
 
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us

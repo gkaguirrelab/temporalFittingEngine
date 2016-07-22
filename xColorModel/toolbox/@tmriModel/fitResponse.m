@@ -18,11 +18,11 @@ USEGLOBAL = false;
 if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-    paramsFitVec = fmincon(@(modelParamsVec)FitEllipseFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
+    paramsFitVec = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');
     problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)FitEllipseFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),...
+        @(modelParamsVec)fitFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),...
         'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'options',opts);
     gs = GlobalSearch;
     paramsFitVec = run(gs,problem);
@@ -35,7 +35,7 @@ responseFit = obj.computeResponse(paramsFit,timebase,stimulus);
 end
 
 %% Error function for the fit
-function f = FitEllipseFunction(paramsVec,obj,timebase,stimulus,responseToFit)
+function f = fitFunction(paramsVec,obj,timebase,stimulus,responseToFit)
 
 params = obj.vecToParams(paramsVec);
 responsePredicted = obj.computeResponse(params,timebase,stimulus);
