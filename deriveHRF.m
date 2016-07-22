@@ -100,7 +100,9 @@ for i = 1:length(eventTimes)
             % add an additional column
             tempMatrix(:,round(HRFdur./1000)+1) = 0;
             % place the FIR set
-            tempMatrix(thisBlock,:) = FIRset;            
+            tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + FIRset;
+            % make sure none of the spikes exceed 1
+            tempMatrix(tempMatrix>1) = 1;
     end
 end
 % Crop off Excess Rows (outside time-series)
