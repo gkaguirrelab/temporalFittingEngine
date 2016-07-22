@@ -1,14 +1,13 @@
-% tmriQuadraticColorModelTest
+% tmriQuadraticColorModelDemo
 %
-% Test function for the quadratic color model.
+% Demonstrate function for the quadratic color model.
 %
 % 6/26/16  dhb  Wrote it.
 
 %% Clear and close
 clear; close all;
 
-%% Add fitter to Matlab path
-% Add project toolbox to Matlab path
+%% Add project toolbox to Matlab path
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
 
 %% Construct the model object
@@ -39,19 +38,6 @@ stimulus= rand(3,nTimeSamples);
 for i = 1:3
     % stimulus(i,:) = conv(stimulus(i,:),filter,'same');
     stimulus(i,:) = ifft(fft(stimulus(i,:)) .* fft(filter)); 
-end
-
-%% Test that we can get a vector of paramters and put it back
-x0 = tmri.paramsToVec(params0);
-x1 = x0;
-x1(1) = 2;
-x1(2) = 0.5;
-x1(3) = pi/2;
-x1(7) = 3;
-params1 = tmri.vecToParams(x1);
-x2 = tmri.paramsToVec(params1);
-if (any(x1 ~= x2))
-    error('Parameter vectorizing and back not working right');
 end
 
 %% Test that we can obtain a neural response

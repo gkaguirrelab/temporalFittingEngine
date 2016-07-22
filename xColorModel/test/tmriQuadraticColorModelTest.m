@@ -1,4 +1,4 @@
-classdef tmriQuadraticModelTest < matlab.unittest.TestCase
+classdef tmriQuadraticColorModelTest < matlab.unittest.TestCase
     
     properties
         testFigure;
