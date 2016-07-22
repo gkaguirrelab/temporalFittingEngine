@@ -60,11 +60,10 @@ fDims           = size(fSet);
 numCov          = fDims(2);                     % number of covariates
 
 %% CREATE FIR SET
-
 % initialize as zeros
-FIRset = zeros([round(HRFdur./1000)+1 HRFdur]);
-% place spikes at the beginning of event, then at 1000ms intervals
-points2place1 = [1 1000:1000:HRFdur];
+FIRset = zeros([round(HRFdur./sampT)+1 HRFdur]);
+% place spikes at the beginning of event, then at sampT intervals
+points2place1 = [1 sampT:sampT:HRFdur];
 % loop over indices, place a 1 at each index
 for j = 1:length(points2place1)
    FIRset(j,points2place1(j)) = 1;  
@@ -98,7 +97,7 @@ for i = 1:length(eventTimes)
             % same as above
             thisBlock   = (eventTimes(i)+1) + (0:HRFdur - 1);
             % add an additional column
-            tempMatrix(:,round(HRFdur./1000)+1) = 0;
+            tempMatrix(:,round(HRFdur./sampT)+1) = 0;
             % place the FIR set
             tempMatrix(thisBlock,:) = tempMatrix(thisBlock,:) + FIRset;
             % make sure none of the spikes exceed 1
