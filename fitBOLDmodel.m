@@ -3,7 +3,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -52,7 +52,7 @@ modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData, SEHRF]= fitHRF(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'Fourier');
+[BOLDHRF, cleanedData, SEHRF]= deriveHRFwrapper(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'FIR');
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
