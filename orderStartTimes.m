@@ -62,7 +62,8 @@ for i = 1:length(folderNameCell)
        curFile = runFiles(j).name;
 
        % We are interested in Hz_all files
-       if length(curFile)>10 & strcmp(curFile(length(curFile)-9:length(curFile)),'Hz_all.txt')
+%        if length(curFile)>10 & strcmp(curFile(length(curFile)-9:length(curFile)),'Hz_all.txt')
+         if length(curFile)>length('Hz_all.txt') & strfind(curFile,'Hz_all.txt')
           % Extract Temporal Frequency of Stimulus from file name
           stimFile = load([currentDirPath '/' curFile]) ; 
           freqValueTxt = curFile(length(curFile)-11:length(curFile)-10) ;
@@ -81,7 +82,7 @@ for i = 1:length(folderNameCell)
           stimValues(length(stimValues)+1:length(stimValues)+length(curTimeValue)) = freqValueNum ;         
           
           % If the file contains Attention Task data
-       elseif length(curFile)>20 & strcmp(curFile(length(curFile)-16:length(curFile)),'attentionTask.txt')
+       elseif length(curFile)>length('attentionTask.txt') & strfind(curFile,'attentionTask.txt')
            % load attention file
            attnFile = load([currentDirPath '/' curFile]) ;
            

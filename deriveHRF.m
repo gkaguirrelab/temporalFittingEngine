@@ -1,4 +1,4 @@
-function [HRF,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
+function [HRF,fSet,betaValues,DesignMatrix,numCov,cleanedData] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
 
 % Derives a haemodynamic response function (HRF) using fMRI time-series
 % data and an input matrix of event times.
@@ -117,6 +117,8 @@ betaValues      = DesignMatrix\timeSeries;
 switch modelType
     case 'Fourier'
         HRF             = fSet * betaValues;
+        cleanedData = timeSeries - DesignMatrix*betaValues;
     case 'FIR'
         HRF = betaValues(2:length(betaValues));     
+        cleanedData = timeSeries - DesignMatrix*betaValues;
 end

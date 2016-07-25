@@ -1,4 +1,4 @@
-function [HRF, cleanedData, SEHRF] = deriveHRFwrapper(timeSeries,attnStartTimes,lengthAttnHRF,TS_timeSamples,T_R,type)
+function [HRF, cleanedData, SEHRF] = deriveHRFwrapper(timeSeries,attnStartTimes,lengthAttnHRF,type)
 
 % function HRF = fitHRF_FIR(timeSeries,attnStartTimes)
 %
@@ -7,13 +7,13 @@ function [HRF, cleanedData, SEHRF] = deriveHRFwrapper(timeSeries,attnStartTimes,
 % call the HRF generator for each run, then average across runs
 for i = 1:size(timeSeries,1)
    if strcmp(type,'Fourier')
-       hrf = deriveHRF(timeSeries(i,:)', round(attnStartTimes(i,attnStartTimes(i,:)~=-1).*1000), ...
-                                1000,lengthAttnHRF.*1000,lengthAttnHRF) ;
-       timeSeriesNoAttn = 0;
+       [hrf,~,~,~,~,timeSeriesNoAttn] ...
+       = deriveHRF(timeSeries(i,:)', round(attnStartTimes(i,attnStartTimes(i,:)~=-1).*1000), ...
+                                1000,lengthAttnHRF.*1000,lengthAttnHRF,type,1) ;       
    elseif strcmp(type,'FIR')
-       [hrf,timeSeriesNoAttn] = attentionFIR(TS_timeSamples, ...
-                 timeSeries(i,:), attnStartTimes(i,attnStartTimes(i,:)~=-1)', ...
-                 lengthAttnHRF,T_R) ;
+       [hrf,~,~,~,~,timeSeriesNoAttn] ...
+       = deriveHRF(timeSeries(i,:)', round(attnStartTimes(i,attnStartTimes(i,:)~=-1).*1000), ...
+                                1000,lengthAttnHRF.*1000,lengthAttnHRF,type) ;
    else
        error('fitHRF: SPECIFY VALID MODEL');
    end
