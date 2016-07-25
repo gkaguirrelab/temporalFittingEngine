@@ -1,4 +1,4 @@
-% tmriQuadraticColorModelDemo
+% tmriTFBlockDesignColorModelDemo
 %
 % Demonstrate function for the quadratic color model.
 %
@@ -8,16 +8,21 @@
 clear; close all;
 
 %% Add project toolbox to Matlab path
-AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..','BDCMToolbox'));
 
 %% Construct the model object
-tmri = tmriQuadraticColorModel;
+tmri = tmriTFBlockDesignColorModel;
+
+%% Specify the stimulus
+%
+% Be sure to define defaultParamsInfo.nStimuli here, as we need it to create default
+% parameters for the model.
 
 %% Set parameters
 %
 % Six parameters define a quadratic form in three dimensions, but
 % we normalize the first to 1 so we only need five numbers here.
-params0 = tmri.defaultParams;
+params0 = tmri.defaultParams('DefaultParamsInfo',defaultParamsInfo);
 fprintf('Default model parameters:\n');
 tmri.print(params0);
 
@@ -41,7 +46,6 @@ for i = 1:3
 end
 
 %% Test that we can obtain a neural response
-params1 = params0;
 params1.crfAmp = 2;
 params1.crfSemi = 0.5;
 params1.crfExponent = 3;
@@ -52,7 +56,7 @@ responseToFit = tmri.computeResponse(params1,timebase,stimulus,'AddNoise',true);
 tmri.plot(timebase,responseToFit);
 
 %% Test the fitter
-[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,responseToFit);
+[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,responseToFit,'DefaultParamsInfo',defaultParamsInfo);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);

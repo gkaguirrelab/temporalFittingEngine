@@ -1,6 +1,9 @@
 % This Script creates Temporal Transfer Functions 
 % using a linear model and FIR with cosine windows.
 
+%% Make sure toolboxes we need for this are on the path
+AddToMatlabPathDynamically('BCDMToolbox');
+
 %% Specify Subject & Session, With Dropbox Folder
 
 subj_name = 'HERO_asb1' ; 
@@ -110,24 +113,7 @@ paramStruct.HRFtimeSamples = modelUpsampled_t;
 
 % -------- SPECIFY ALL NEURAL PARAMETERS HERE --------
 
-% cell for labeling each parameter column
-paramStruct.paramNameCell = {'Amplitude','tau2','ARAmplitude'};
-
-% initial values
-paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 0.5.*ones([size(stimMatrix,2) 1]);
-paramStruct.paramMainMatrix(:,2) = 0.001.*ones([size(stimMatrix,2) 1]);
-paramStruct.paramMainMatrix(:,3) = (-0.125).*ones([size(stimMatrix,2) 1]);
-
-% set lower bounds
-paramStruct.vlb(:,1) = repmat(-10,[size(stimMatrix,2) 1]);
-paramStruct.vlb(:,2) = repmat(0.0001,[size(stimMatrix,2) 1]);
-paramStruct.vlb(:,3) = repmat(-10,[size(stimMatrix,2) 1]);
-
-% set upper bounds
-paramStruct.vub(:,1) = repmat(10,[size(stimMatrix,2) 1]);
-paramStruct.vub(:,2) = repmat(1,[size(stimMatrix,2) 1]);
-paramStruct.vub(:,3) = repmat(10,[size(stimMatrix,2) 1]);
+paramStruct = paramCreateBDCM(size(stimMatrix,2));
 
 % --------
 

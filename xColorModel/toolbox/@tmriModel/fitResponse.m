@@ -1,11 +1,29 @@
 function [paramsFit,responseFit] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % [fitParams,fitResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % 
-% Compute method for the quadratic model. 
+% Fit method for the tmri class.  This is meant to be model independent, so
+% that we only have to write it once.
+%
+% Inputs:
+%   timebase - times on which data/model predictions exist
+%   stimulus - description of the stimulus
+%   responseToFit - temporal response to fit
+% 
+% Optional key/value pairs
+%  'DefaultParamsInfo' - a struct passed to the defaultParams method.
+%    Empty matrix is default.
+
+%% Parse vargin for options passed here
+p = inputParser;
+p.addRequired('timebase',@isnumeric);
+p.addRequired('stimulus')
+p.addRequired('responseToFit',@isnumeric);
+p.addParameter('DefaultParamsInfo',[],@isstruct);
+p.parse(timebase,stimulus,responseToFit,varargin{:});
 
 %% Set initial values and reasonable bounds on parameters
 % Have a go at reasonable initial values
-[paramsFit0,vlb,vub] = obj.defaultParams;
+[paramsFit0,vlb,vub] = obj.defaultParams('DefaultParamsInfo',p.Results.DefaultParamsInfo);
 paramsFitVec0 = obj.paramsToVec(paramsFit0);
 vlbVec = obj.paramsToVec(vlb);
 vubVec = obj.paramsToVec(vub);
@@ -18,11 +36,12 @@ USEGLOBAL = false;
 if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-    paramsFitVec = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
+    paramsFitVec = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj, ...
+        p.Results.timebase,p.Results.stimulus,p.Results.responseToFit),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');
     problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)fitFunction(modelParamsVec,obj,timebase,stimulus,responseToFit),...
+        @(modelParamsVec)fitFunction(modelParamsVec,obj,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit),...
         'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'options',opts);
     gs = GlobalSearch;
     paramsFitVec = run(gs,problem);
@@ -30,7 +49,7 @@ end
 
 % Store the fit parameters
 paramsFit = obj.vecToParams(paramsFitVec);
-responseFit = obj.computeResponse(paramsFit,timebase,stimulus);
+responseFit = obj.computeResponse(paramsFit,p.Results.timebase,p.Results.stimulus);
 
 end
 
