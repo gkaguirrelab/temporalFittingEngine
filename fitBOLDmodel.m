@@ -3,7 +3,7 @@
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -18,7 +18,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 1;
+bDEBUG = 0;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
@@ -52,17 +52,13 @@ modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
-[BOLDHRF, cleanedData, SEHRF]= deriveHRFwrapper(avgTSprc,attnStartTimes,lengthHRF,TS_timeSamples,T_R,'FIR');
+[BOLDHRF, cleanedData, SEHRF]= deriveHRFwrapper(avgTSprc,attnStartTimes,lengthHRF,'Fourier');
 
 % in case we use the FIR extracted HRF; if we are not, 'hrf' never gets
 % used
-if strcmp(subj_name,'HERO_asb1')
-  hrf = BOLDHRF(1:lengthHRF);
-elseif strcmp(subj_name,'HERO_gka1')
-  hrf = BOLDHRF(1:lengthHRF);
-else
-  error('BOLDmodelFitScript: invalid subject');
-end
+hrfPointsToSample = [1 1000:1000:length(BOLDHRF)];
+
+hrf = BOLDHRF(hrfPointsToSample);
 
 if bCanonicalHRF == 1     
    % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
@@ -74,8 +70,10 @@ else
    BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
    % align HRF with 0 mark
    hrf = hrf-hrf(1);
+   SEHRF = SEHRF.*(1./max(hrf));
+   hrf = hrf.*(1./max(hrf));
    figure;
-   errorbar(0:lengthHRF-1,hrf,SEHRF,'LineWidth',2)
+   errorbar(0:lengthHRF,hrf,SEHRF(hrfPointsToSample),'LineWidth',2)
    xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
    title('HRF');
    % make it the right size
