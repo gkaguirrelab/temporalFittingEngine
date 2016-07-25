@@ -39,7 +39,7 @@ TS_timeSamples = [1:336]-1;
 %% HRF PARAMETERS
 
 % how long we expect the HRF to be
-lengthHRF = 16;
+lengthHRF = 15;
 
 % acquisition time (only useful for HRF so far)
 T_R = 1;
@@ -73,8 +73,8 @@ else
    BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
    % align HRF with 0 mark
    hrf = hrf-hrf(1);
-   SEHRF = SEHRF.*(1./max(hrf));
-   hrf = hrf.*(1./max(hrf));
+%    SEHRF = SEHRF.*(1./max(hrf));
+%    hrf = hrf.*(1./max(hrf));
    figure;
    errorbar(0:lengthHRF,hrf,SEHRF(hrfPointsToSample),'LineWidth',2)
    xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
