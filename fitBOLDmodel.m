@@ -41,16 +41,16 @@ TS_timeSamples = [1:336]-1;
 % how long we expect the HRF to be
 lengthHRF = 15;
 
-% acquisition time (only useful for HRF so far)
-T_R = 1;
+% % acquisition time (only useful for HRF so far)
+% T_R = 1;
 
-% These parameters pertain to the HRF. Total Duration is simply Largest 
-% time value
-modelDuration=floor(max(TS_timeSamples)) ; 
-modelSampleFreq=20 ; 
+% % These parameters pertain to the HRF. Total Duration is simply Largest 
+% % time value
+% modelDuration=floor(max(TS_timeSamples)) ; 
+% modelSampleFreq=20 ; 
 
-% Time Samples to Interpolate
-modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
+% % Time Samples to Interpolate
+% modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
 
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
@@ -67,23 +67,23 @@ if bCanonicalHRF == 1
    % Double Gamma HRF--get rid of the FIR-extracted HRF from earlier
    clear BOLDHRF
    clear hrf
-   BOLDHRF = createCanonicalHRF(modelUpsampled_t,6,12,10);
+   BOLDHRF = createCanonicalHRF(0:lengthHRF,6,12,10);
 else 
    % initialize vector for HRF
-   BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
+   BOLDHRF = zeros([1 size(avgTSprc,2)]);
    % align HRF with 0 mark
    hrf = hrf-hrf(1);
-%    SEHRF = SEHRF.*(1./max(hrf));
-%    hrf = hrf.*(1./max(hrf));
+   
    figure;
    errorbar(0:lengthHRF,hrf,SEHRF(hrfPointsToSample),'LineWidth',2)
    xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
    title('HRF');
+   
    % make it the right size
-   BOLDHRF_unInterp(1:length(hrf)) = hrf;
-   % upsample the HRF
-   BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,modelUpsampled_t);
-   BOLDHRF(isnan(BOLDHRF)) = 0;       
+   BOLDHRF(1:length(hrf)) = hrf;
+%    % upsample the HRF
+%    BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,modelUpsampled_t);
+%    BOLDHRF(isnan(BOLDHRF)) = 0;       
 end
 
 %% STIMULUS VECTOR CREATION
@@ -113,7 +113,7 @@ paramStruct = paramCreateBDCM(size(stimMatrix,2));
 
 % put HRF in parameter struct
 paramStruct.HRF = BOLDHRF;
-paramStruct.HRFtimeSamples = modelUpsampled_t;
+paramStruct.HRFtimeSamples = 0:lengthHRF;
 
 % automatically get number of parameters
 numParamTypes = size(paramStruct.paramMainMatrix,2);

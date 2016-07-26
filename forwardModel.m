@@ -14,7 +14,7 @@ ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmp
 neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStruct));
 
 % neural to BOLD
-reconstructedTS = neuralVec2BOLD(neuralVec,t,paramStruct.HRF,paramStruct.HRFtimeSamples);
+reconstructedTS = neuralVec2BOLD(neuralVec,paramStruct.HRF);
 
 % mean center the BOLD signal
 reconstructedTS=reconstructedTS-mean(reconstructedTS);
