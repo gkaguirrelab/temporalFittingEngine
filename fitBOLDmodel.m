@@ -6,7 +6,7 @@ AddToMatlabPathDynamically('BCDMToolbox');
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -21,7 +21,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 0;
+bDEBUG = 1;
 
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
@@ -39,7 +39,7 @@ TS_timeSamples = [1:336]-1;
 %% HRF PARAMETERS
 
 % how long we expect the HRF to be
-lengthHRF = 16;
+lengthHRF = 15;
 
 % acquisition time (only useful for HRF so far)
 T_R = 1;
@@ -73,8 +73,8 @@ else
    BOLDHRF_unInterp = zeros([1 size(avgTSprc,2)]);
    % align HRF with 0 mark
    hrf = hrf-hrf(1);
-   SEHRF = SEHRF.*(1./max(hrf));
-   hrf = hrf.*(1./max(hrf));
+%    SEHRF = SEHRF.*(1./max(hrf));
+%    hrf = hrf.*(1./max(hrf));
    figure;
    errorbar(0:lengthHRF,hrf,SEHRF(hrfPointsToSample),'LineWidth',2)
    xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
@@ -105,15 +105,15 @@ TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
 
 %% SPECIFY PARAMETERS TO FIT 
 
-% put HRF in parameter struct
-paramStruct.HRF = BOLDHRF;
-paramStruct.HRFtimeSamples = modelUpsampled_t;
-
 % -------- SPECIFY ALL NEURAL PARAMETERS HERE --------
 
 paramStruct = paramCreateBDCM(size(stimMatrix,2));
 
 % --------
+
+% put HRF in parameter struct
+paramStruct.HRF = BOLDHRF;
+paramStruct.HRFtimeSamples = modelUpsampled_t;
 
 % automatically get number of parameters
 numParamTypes = size(paramStruct.paramMainMatrix,2);

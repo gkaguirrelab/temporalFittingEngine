@@ -119,6 +119,7 @@ switch modelType
         HRF             = fSet * betaValues;
         cleanedData = timeSeries - DesignMatrix*betaValues;
     case 'FIR'
-        HRF = betaValues(2:length(betaValues));     
+        biggestDelta = max(max(DesignMatrix(:,2:size(DesignMatrix,2))));
+        HRF = betaValues(2:length(betaValues))./(1./biggestDelta);     
         cleanedData = timeSeries - DesignMatrix*betaValues;
 end
