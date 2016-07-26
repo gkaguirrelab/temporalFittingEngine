@@ -2,9 +2,12 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 % response = computeResponse(obj,params,timebase,stimulus,varargin)
 % 
 % Compute method for the quadratic model.
-% Key/value pairs
+%
+% Optional key/value pairs
 %   'AddNoise'
 %     true or false(default) 
+%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
+%    Empty matrix is default, in which case no convolution is done
 
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
@@ -30,6 +33,9 @@ theLengths = diag(stimulus'*Q*stimulus);
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
 response = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
+
+%% Optionally, apply HRF
+response = obj.applyHRF(timebase,response,HRF);
 
 %% Optional add of noise
 if (p.Results.AddNoise)

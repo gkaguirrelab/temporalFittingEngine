@@ -30,9 +30,16 @@ end
 paramStruct = paramCreateBDCM(nStimuli);
 params.paramNameCell = paramStruct.paramNameCell;
 params.paramMainMatrix = paramStruct.paramMainMatrix;
+params.matrixRows = size(params.paramMainMatrix,1);
+params.matrixCols = size(params.paramMainMatrix,2);
+
+% Upper and lower bound
 paramsLb.paramNameCell = paramStruct.paramNameCell;
 paramsLb.paramMainMatrix = paramStruct.vlb;
 paramsUb.paramNameCell = paramStruct.paramNameCell;
 paramsUb.paramMainMatrix = paramStruct.vub;
+
+% Noise parameter for simulation
+params.noiseSd = 0;
 
 end

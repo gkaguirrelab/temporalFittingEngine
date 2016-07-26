@@ -16,15 +16,14 @@ p.addParameter('UseNoiseParam',false,@islogical);
 p.parse(x,varargin{:});
 x = p.Results.x;
 
-params.Qvec(1:5) = x(1:5)';
-params.crfAmp = x(6);
-params.crfExponent = x(7);
-params.crfSemi = x(8);
-params.expFalloff = x(9);
+% Get base values of non vectorized parameters
+params = obj.paramsBase;
 
-% Optional inclusion of noise
+% Push vector back into matrix in parameters structure, handling whether or
+% not we had a noise parameter.
 if (p.Results.UseNoiseParam)
-    params.noiseSd = x(10);
-end
-
+    params.paramsMainMatrix = reshape(x(1:end-1),params.matrixRows,params.matrixCols);
+    params.noiseSd = x(end);
+else
+    params.paramsMainMatrix = reshape(x,params.matrixRows,params.matrixCols);
 end

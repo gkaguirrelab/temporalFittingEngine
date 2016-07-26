@@ -9,6 +9,7 @@ clear; close all;
 
 %% Add project toolbox to Matlab path
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..','BDCMToolbox'));
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
 
 %% Construct the model object
 tmri = tmriTFBlockDesignColorModel;
@@ -17,6 +18,7 @@ tmri = tmriTFBlockDesignColorModel;
 %
 % Be sure to define defaultParamsInfo.nStimuli here, as we need it to create default
 % parameters for the model.
+defaultParamsInfo.nStimuli = 21;
 
 %% Set parameters
 %
@@ -24,7 +26,16 @@ tmri = tmriTFBlockDesignColorModel;
 % we normalize the first to 1 so we only need five numbers here.
 params0 = tmri.defaultParams('DefaultParamsInfo',defaultParamsInfo);
 fprintf('Default model parameters:\n');
-tmri.print(params0);
+%tmri.print(params0);
+
+%% Test paramsToVec and vecToParams
+params1 = params0;
+params1.paramsMainMatrix = rand(size(params1.paramMainMatrix));
+x1 = tmri.paramsToVec(params1);
+params2 = tmri.vecToParams(x1);
+if (any(params1.paramMainMatrix ~= params2.paramMainMatrix))
+    error('vecToParams and paramsToVec do not invert');
+end
 
 %% Set the timebase we want to compute on
 deltaT = 1;

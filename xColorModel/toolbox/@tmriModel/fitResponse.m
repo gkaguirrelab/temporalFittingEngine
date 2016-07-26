@@ -12,6 +12,8 @@ function [paramsFit,responseFit] = fitResponse(obj,timebase,stimulus,responseToF
 % Optional key/value pairs
 %  'DefaultParamsInfo' - a struct passed to the defaultParams method.
 %    Empty matrix is default.
+%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
+%    Empty matrix is default, in which case no convolution is done
 
 %% Parse vargin for options passed here
 p = inputParser;
@@ -19,6 +21,7 @@ p.addRequired('timebase',@isnumeric);
 p.addRequired('stimulus')
 p.addRequired('responseToFit',@isnumeric);
 p.addParameter('DefaultParamsInfo',[],@isstruct);
+p.addParameter('HRF',[],@isstruct);
 p.parse(timebase,stimulus,responseToFit,varargin{:});
 
 %% Set initial values and reasonable bounds on parameters
@@ -37,11 +40,11 @@ if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
     paramsFitVec = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj, ...
-        p.Results.timebase,p.Results.stimulus,p.Results.responseToFit),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
+        p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');
     problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)fitFunction(modelParamsVec,obj,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit),...
+        @(modelParamsVec)fitFunction(modelParamsVec,obj,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),...
         'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'options',opts);
     gs = GlobalSearch;
     paramsFitVec = run(gs,problem);
@@ -54,9 +57,9 @@ responseFit = obj.computeResponse(paramsFit,p.Results.timebase,p.Results.stimulu
 end
 
 %% Error function for the fit
-function f = fitFunction(paramsVec,obj,timebase,stimulus,responseToFit)
+function f = fitFunction(paramsVec,obj,timebase,stimulus,responseToFit,HRF)
 
 params = obj.vecToParams(paramsVec);
-responsePredicted = obj.computeResponse(params,timebase,stimulus);
+responsePredicted = obj.computeResponse(params,timebase,stimulus,'HRF',HRF);
 f = sqrt(mean((responsePredicted-responseToFit).^2));
 end

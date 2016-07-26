@@ -16,18 +16,13 @@ p.addParameter('UseNoiseParam',false,@islogical);
 p.parse(params,varargin{:});
 params = p.Results.params;
 
-% Take the parameter structure into a vector
-for i = 1:5
-    x(i) = params.Qvec(i);
-end
-x(6) = params.crfAmp;
-x(7) = params.crfExponent;
-x(8) = params.crfSemi;
-x(9) = params.expFalloff;
+% The parameters for search are in the paramMainMatrix field
+x = reshape(params.paramMainMatrix,params.matrixRows*params.matrixCols,1);
+obj.paramsBase = params;
 
 % Optional inclusion of noise
 if (p.Results.UseNoiseParam)
-    x(10) = params.noiseSd;
+    x(end+1) = params.noiseSd;
 end
 
 end

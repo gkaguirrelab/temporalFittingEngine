@@ -14,6 +14,7 @@ classdef tmriTFBlockDesignColorModel < tmriModel
     
     % Private properties. Only methods of the parent class can set these
     properties(Access = private)
+        paramsBase;
     end
     
     % Public methods
