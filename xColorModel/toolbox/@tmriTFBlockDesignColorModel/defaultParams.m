@@ -33,13 +33,19 @@ params.paramMainMatrix = paramStruct.paramMainMatrix;
 params.matrixRows = size(params.paramMainMatrix,1);
 params.matrixCols = size(params.paramMainMatrix,2);
 
-% Upper and lower bound
+% Upper and lower bounds
 paramsLb.paramNameCell = paramStruct.paramNameCell;
 paramsLb.paramMainMatrix = paramStruct.vlb;
+paramsLb.matrixRows = size(paramsLb.paramMainMatrix,1);
+paramsLb.matrixCols = size(paramsLb.paramMainMatrix,2);
 paramsUb.paramNameCell = paramStruct.paramNameCell;
 paramsUb.paramMainMatrix = paramStruct.vub;
+paramsUb.matrixRows = size(paramsUb.paramMainMatrix,1);
+paramsUb.matrixCols = size(paramsUb.paramMainMatrix,2);
 
 % Noise parameter for simulation
 params.noiseSd = 0;
+paramsLb.noiseSd = 0;
+paramsUb.noiseSd = 0;
 
 end

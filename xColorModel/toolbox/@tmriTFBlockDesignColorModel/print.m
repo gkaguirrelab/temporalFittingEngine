@@ -17,10 +17,12 @@ p.parse(params,varargin{:});
 params = p.Results.params;
 
 % Quadratic parameters
-fprintf('Quadratic ellipse lengths: 1.00, %0.2f, %0.2f\n',params.Qvec(1),params.Qvec(2));
-fprintf('Quadratic ellipse angles (degs): %0.1f, %0.1f %0.1f\n',(180/pi)*params.Qvec(3),(180/pi)*params.Qvec(4),(180/pi)*params.Qvec(5));
-fprintf('CRF amplitude: %0.2f, CRF semi-saturation: %0.2f, CRF exponent: %0.2f\n',params.crfAmp,params.crfSemi,params.crfExponent);
-fprintf('Exponential filter time constant: %0.2f\n',params.expFalloff);
-fprintf('\n');
+fprintf('Number of stimuli specified: %d\n',params.matrixRows);
+fprintf('Number of parameter cols: %d\n',params.matrixCols);
+for ii = 1:params.matrixCols
+    fprintf('\tParameter %d name: %s\n',ii,params.paramNameCell{ii});
+end
+fprintf('Noise sd: %0.2f\n',params.noiseSd);
+
 
 end

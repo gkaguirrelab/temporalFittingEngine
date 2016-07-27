@@ -1,4 +1,6 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec, ARampVec)
+function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec, ARampVec, paramStructFixed)
+
+
 %% createNeuralTemporalModelFromStimMatrix
 %
 % This function creates a model of neural response given a vector of
@@ -55,6 +57,8 @@ function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix,
 %
 % 05-30-2016 -  gka wrote it
 % 06-23-2016 -  gka modified to serve as a function call in fminsearch
+%
+%
 
 modelLength = length(t);
 stimDimension=size(stimMatrix,1);
@@ -139,4 +143,4 @@ for s=1:stimDimension
     
 end % loop over columns of the stimulus matrix
 
-end
+gribble=1;

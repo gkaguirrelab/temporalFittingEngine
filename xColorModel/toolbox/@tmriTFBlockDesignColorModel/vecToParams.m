@@ -22,8 +22,8 @@ params = obj.paramsBase;
 % Push vector back into matrix in parameters structure, handling whether or
 % not we had a noise parameter.
 if (p.Results.UseNoiseParam)
-    params.paramsMainMatrix = reshape(x(1:end-1),params.matrixRows,params.matrixCols);
+    params.paramMainMatrix = reshape(x(1:end-1),params.matrixRows,params.matrixCols);
     params.noiseSd = x(end);
 else
-    params.paramsMainMatrix = reshape(x,params.matrixRows,params.matrixCols);
+    params.paramMainMatrix = reshape(x,params.matrixRows,params.matrixCols);
 end
