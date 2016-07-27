@@ -52,7 +52,7 @@ end
 
 % Store the fit parameters
 paramsFit = obj.vecToParams(paramsFitVec);
-responseFit = obj.computeResponse(paramsFit,p.Results.timebase,p.Results.stimulus);
+responseFit = obj.computeResponse(paramsFit,p.Results.timebase,p.Results.stimulus,'HRF',p.Results.HRF);
 
 end
 

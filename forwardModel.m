@@ -11,7 +11,7 @@ tau2vec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'tau2')
 ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));
 
 % run the neural model on each stimulus, then get the full neural vector
-neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec,paramStruct));
+neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec));
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,paramStruct.HRF);
