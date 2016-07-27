@@ -23,6 +23,7 @@ bCanonicalHRF = 0;
 % Boolean: 1 -> go into debug mode--only fit light flux A
 bDEBUG = 0;
 
+bFreeFloatParams = 1;
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
 % load time series
@@ -105,9 +106,16 @@ paramStruct.HRFtimeSamples = 0:lengthHRF;
 numParamTypes = size(paramStruct.paramMainMatrix,2);
 
 % for each run, create a locking matrix
-for i = 1:size(stimValuesForRunStore,1)
-   paramLockMatrix(i,:,:) = createParamLockMatrixVanilla(actualStimulusValues, ...
-                            stimValuesForRunStore(i,:),numParamTypes);
+
+if bFreeFloatParams == 1
+    paramLockMatrix = [];
+elseif bFreeFloatParams == 0
+    for i = 1:size(stimValuesForRunStore,1)
+       paramLockMatrix(i,:,:) = createParamLockMatrixVanilla(actualStimulusValues, ...
+                                stimValuesForRunStore(i,:),numParamTypes);
+    end
+else
+   error('bFreeFloatParams not set to valid value'); 
 end
 
 %%
@@ -126,9 +134,14 @@ else
 end
 
 for i = 1:length(runsToFit)
-    % call fitting routine
-    [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
-    
+    if bFreeFloatParams == 0
+        % call fitting routine
+        [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,squeeze(paramLockMatrix(runsToFit(i),:,:)),cleanedData(runsToFit(i),:),paramStruct);
+    elseif bFreeFloatParams == 1
+        [paramStructFit,fval]= fitNeuralParams(squeeze(stimMatrix(runsToFit(i),:,:)),TS_timeSamples,paramLockMatrix,cleanedData(runsToFit(i),:),paramStruct);
+    else
+       error('bFreeFloatParams set at invalid value'); 
+    end
     % store all parameters for each run, regardless of daisy-chaining
     storeAll(size(storeAll,1)+1,:,:) = paramStructFit.paramMainMatrix; 
     
@@ -144,8 +157,8 @@ for i = 1:length(runsToFit)
       valueLookup = [] ; 
    end
    
-   % get only unique stim values, and their corresponding locked params
-   [stimValueToPlot,ia] = unique(valueLookup);
+    % get only unique stim values, and their corresponding locked params
+   [stimValueToPlot,ia] = unique(valueLookup);     
    
    % sort parameters of each type
    paramsForUniqueStim = [];
