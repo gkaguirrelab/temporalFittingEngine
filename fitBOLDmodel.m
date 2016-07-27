@@ -41,17 +41,6 @@ TS_timeSamples = [1:336]-1;
 % how long we expect the HRF to be
 lengthHRF = 15;
 
-% % acquisition time (only useful for HRF so far)
-% T_R = 1;
-
-% % These parameters pertain to the HRF. Total Duration is simply Largest 
-% % time value
-% modelDuration=floor(max(TS_timeSamples)) ; 
-% modelSampleFreq=20 ; 
-
-% % Time Samples to Interpolate
-% modelUpsampled_t = linspace(0,modelDuration,modelDuration.*modelSampleFreq) ;
-
 %% DERIVE HRF FROM DATA, CREATE STIMULUS MODELS
 
 % derive HRF from data
@@ -80,10 +69,7 @@ else
    title('HRF');
    
    % make it the right size
-   BOLDHRF(1:length(hrf)) = hrf;
-%    % upsample the HRF
-%    BOLDHRF = interp1(TS_timeSamples,BOLDHRF_unInterp,modelUpsampled_t);
-%    BOLDHRF(isnan(BOLDHRF)) = 0;       
+   BOLDHRF(1:length(hrf)) = hrf;     
 end
 
 %% STIMULUS VECTOR CREATION
