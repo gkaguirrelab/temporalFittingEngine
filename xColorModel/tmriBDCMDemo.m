@@ -23,7 +23,7 @@ tmri = tmriTFBlockDesignColorModel;
 % parameters for the model.
 theTestStimuli = load(fullfile('BDCMTestData','asb1Stimuli.mat'));
 theTestData = load(fullfile('BDCMTestData','asb1ExampleResponses.mat'));
-whichRunToTest = 3;
+whichRunToTest = 1;
 stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
 stimulus.stimValuesForRunStore = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
 stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
