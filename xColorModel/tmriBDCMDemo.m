@@ -23,7 +23,7 @@ tmri = tmriTFBlockDesignColorModel;
 % parameters for the model.
 theTestStimuli = load(fullfile('BDCMTestData','asb1Stimuli.mat'));
 theTestData = load(fullfile('BDCMTestData','asb1ExampleResponses.mat'));
-whichRunToTest = 1;
+whichRunToTest = 3;
 stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
 stimulus.stimValuesForRunStore = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
 stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
@@ -75,16 +75,16 @@ paramLockMatrix = createParamLockMatrixVanilla(stimulus.uniqueTemporalFreq,stimu
 tmri.plot(timebase,boldResponse);
 
 %% Test the fitter
-[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse,'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);% 'paramLockMatrix',paramLockMatrix);
+% [paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
+%                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);
+[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
+                          'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo, ...
+                          'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
-
-
 
 %% Test that we can obtain a neural response
 % fprintf('Simulated model parameters:\n');
 % tmri.print(params1);
 % responseToFit = tmri.computeResponse(params1,timebase,stimulus,'AddNoise',true);
-
-
