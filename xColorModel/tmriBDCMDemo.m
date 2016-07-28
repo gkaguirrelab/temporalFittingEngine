@@ -68,11 +68,14 @@ theHRF.HRF = theTestHRF.BOLDHRF;
 theHRF.timebase = 0:deltaT:(size(theHRF.HRF,2)-1);
 clearvars('theTestHRF');
 
+%% GET THE PARAMETER LOCKING MATRIX
+paramLockMatrix = createParamLockMatrixVanilla(stimulus.uniqueTemporalFreq,stimulus.stimValuesForRunStore,params0.matrixCols);
+
 %% Plot the BOLD response
 tmri.plot(timebase,boldResponse);
 
 %% Test the fitter
-[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse,'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);
+[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse,'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);% 'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
