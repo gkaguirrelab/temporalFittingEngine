@@ -1,4 +1,4 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec,ARampVec)
+function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec)
 %% createNeuralTemporalModelFromStimMatrix
 %
 % This function creates a model of neural response given a vector of
@@ -66,7 +66,7 @@ param.afterResponseTiming = 10; % Time after stimulus onset at which the offset 
 
 % parameters of the neural filters
 param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response. Should be unbounded.
-param.ARampRelative = -0.25;    % multiplicative scaling of the after-response, relative to main. Reasonable bounds [-1:1]
+param.ARampRelative = 0;    % multiplicative scaling of the after-response, relative to main. Reasonable bounds [-1:1]
 param.tau1 = 0.005;         % time constant of the neural IRF (in seconds). In fMRI data modeling, this will be held fixed.
 param.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
 param.tau2 = 0.001;         % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0001:0.1]
@@ -78,7 +78,7 @@ for s=1:stimDimension
     % Obtain the model parameters for this stimulus
     param.MRamplitude=ampVec(s);
     param.tau2 = tau2vec(s);
-    param.ARampRelative = ARampVec(s);
+%    param.ARampRelative = ARampVec(s);
     
     %% The neural response begins as the stimulus input
     % scaled by the main response amplitude parameter

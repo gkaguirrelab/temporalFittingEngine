@@ -19,13 +19,17 @@ end
 
 % loop over runs
 for i = 1:size(carryOver.storeAll,1)
+    stimForRun = carryOver.stimValuesSorted(i,carryOver.stimValuesSorted(i,:)~=-1);
+    if carryOver.runOrder(i) == 'A'
+       stimForRun = [0 stimForRun]; 
+    end
     % get unique stimulus values
-    uniqueTempFreq = unique(carryOver.stimValuesForRunStore(i,:));
+    uniqueTempFreq = unique(stimForRun);
     % initialize carry over matrices
     carryOverMatSubAmp = zeros([length(uniqueTempFreq) length(uniqueTempFreq)]);
     carryOverMatSubtau2 = zeros([length(uniqueTempFreq) length(uniqueTempFreq)]);
     % loop over temp freqs in each run
-    for j = 2:length(carryOver.stimValuesForRunStore(i,:))
+    for j = 2:length(stimForRun)
         % get the amplitude and tau values
         amp = carryOver.storeAll(i,j,1);
         tau2 = carryOver.storeAll(i,j,2);

@@ -12,10 +12,10 @@ prmVecReshaped = reshape(prmVec,[size(stimMatrix,1) length(prmVec)./size(stimMat
 % sort parameters
 ampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'Amplitude'));
 tau2vec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'tau2'));
-ARampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'ARAmplitude'));
+% ARampVec = prmVecReshaped(:,strcmp(paramStructFixed.paramNameCell,'ARAmplitude'));
 
 % run the neural model on each stimulus, then get the full neural vector
-neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec));
+neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec));
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,paramStructFixed.HRF);

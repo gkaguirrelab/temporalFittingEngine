@@ -1,7 +1,7 @@
 function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
           stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
           = createStimMatrix(startTimesSorted,stimValuesSorted, ...
-          tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
+          tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,bModel0)
       
 % function stimMatrix = createStimMatrix(startTimesSorted,stimValuesSorted, ...
 %           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
@@ -9,7 +9,13 @@ function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B
 % creates stimulus matrix
 
 % get unique stimulus values
-actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
+if bModel0 == 0
+   actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1 & stimValuesSorted~=0));
+elseif bModel0 == 1
+   actualStimulusValues = unique(stimValuesSorted(stimValuesSorted~=-1));
+else
+   error('createStimMatrix: bModel0 either 0 or 1'); 
+end
 
 % Stire Stimulus Order A & B
 stimValuesSorted_A = [] ;
@@ -33,8 +39,19 @@ for i = 1:size(startTimesSorted,1)
    end
    
    % start times and corresponding stim values--get rid of filler numbers
-   startTimesForRun = startTimesSorted(i,stimValuesSorted(i,:)>0);
-   stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)>0);
+   if bModel0 == 0
+       startTimesForRun = startTimesSorted(i,stimValuesSorted(i,:)>0);
+       stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)>0);
+   elseif bModel0 == 1 & strfind(char(tsFileNames(i)),'_A_')
+       stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)~=-1);
+       stimValuesForRun = [0 stimValuesForRun]; 
+       startTimesForRun = startTimesSorted(i,:);
+   elseif bModel0 == 1 & strfind(char(tsFileNames(i)),'_B_')
+       stimValuesForRun = stimValuesSorted(i,stimValuesSorted(i,:)~=-1);
+       startTimesForRun = startTimesSorted(i,:);
+   else
+      error('createStimMatrix: bModel0 either 0 or 1'); 
+   end
    % store for param locking in main function
    stimValuesForRunStore(i,:) = stimValuesForRun;
    

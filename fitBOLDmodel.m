@@ -23,7 +23,7 @@ bCanonicalHRF = 0;
 % Boolean: 1 -> go into debug mode--only fit light flux A
 bDEBUG = 0;
 
-bFreeFloatParams = 0;
+bFreeFloatParams = 1;
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
 % load time series
@@ -82,13 +82,18 @@ cosRamp = 3;
 % stimulus duration
 stimDuration = 12;
 
+if bFreeFloatParams == 1
+   startTimesSorted = 0:stimDuration:max(TS_timeSamples); 
+   startTimesSorted = repmat(startTimesSorted,[size(stimValuesSorted,1) 1]);
+end
+
 %% GET BETA AND MODEL FIT
 
 % create stimulus vector
 [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
-TS_timeSamples,stimDuration,stepFunctionRes,cosRamp);
+TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,bFreeFloatParams);
 
 %% SPECIFY PARAMETERS TO FIT 
 
