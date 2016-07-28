@@ -1,4 +1,4 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec, ARampVec)
+function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec,ARampVec)
 %% createNeuralTemporalModelFromStimMatrix
 %
 % This function creates a model of neural response given a vector of

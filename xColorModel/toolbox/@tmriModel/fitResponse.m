@@ -22,6 +22,7 @@ p.addRequired('stimulus')
 p.addRequired('responseToFit',@isnumeric);
 p.addParameter('DefaultParamsInfo',[],@isstruct);
 p.addParameter('HRF',[],@isstruct);
+p.addParameter('paramLockMatrix',[],@isnumeric);
 p.parse(timebase,stimulus,responseToFit,varargin{:});
 
 %% Set initial values and reasonable bounds on parameters

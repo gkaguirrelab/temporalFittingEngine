@@ -8,10 +8,10 @@ function [f,reconstructedTS] = forwardModel(stimMatrix,t,data,paramStruct)
 % sort parameters
 ampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'Amplitude'));
 tau2vec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'tau2'));
-ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));
+% ARampVec = paramStruct.paramMainMatrix(:,strcmp(paramStruct.paramNameCell,'ARAmplitude'));
 
 % run the neural model on each stimulus, then get the full neural vector
-neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec,ARampVec));
+neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2vec));
 
 % neural to BOLD
 reconstructedTS = neuralVec2BOLD(neuralVec,paramStruct.HRF);
