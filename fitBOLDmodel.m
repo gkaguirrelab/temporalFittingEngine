@@ -6,7 +6,7 @@ AddToMatlabPathDynamically('BCDMToolbox');
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1' 
 %     'HERO_gka1'
@@ -94,6 +94,10 @@ end
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
 TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,bFreeFloatParams);
+
+if bFreeFloatParams == 1
+    stimValuesSorted_A = [0 stimValuesSorted_A];    
+end
 
 %% SPECIFY PARAMETERS TO FIT 
 
