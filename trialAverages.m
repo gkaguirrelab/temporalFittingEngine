@@ -1,6 +1,6 @@
 %%
 
-subj_name = 'asb1';
+subj_name = 'gka1';
 
 % load parameters and fits
 if strcmp(subj_name,'asb1')
@@ -57,5 +57,31 @@ for i = 1:length(lightModDir)
               windowStoreFit(size(windowStoreFit,1)+1,1:length(aWindow)) = reconTsForModDir(k,aWindow);
            end
        end
+       meanData = mean(windowStoreData);
+       meanFit = mean(windowStoreFit);
+       meanDataStore(i,j,:) = meanData;
+       meanFitStore(i,j,:) = meanFit;
+       display(num2str(size(windowStoreData,1)));
    end
+end
+
+figure;
+set(gcf,'Position',[379 259 1112 787]);
+for i = 1:size(meanDataStore,1)
+    for j = 1:size(meanDataStore,2)
+       subplot(3,7,(i-1).*7+j) 
+       plot(0:size(meanDataStore,3)-1,squeeze(meanDataStore(i,j,:))); hold on
+       plot(0:size(meanDataStore,3)-1,squeeze(meanFitStore(i,j,:))); axis square;
+       if j == 1
+          ylabel('% signal change');
+       end
+       if i == 3
+          xlabel('time/s'); 
+       end
+       if j == 4 
+          title([lightModDir(i) num2str(uniqueTempFreq(j)) ' Hz']);
+       else
+          title([num2str(uniqueTempFreq(j)) ' Hz']);
+       end
+    end
 end

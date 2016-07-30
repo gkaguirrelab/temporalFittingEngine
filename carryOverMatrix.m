@@ -103,8 +103,8 @@ for i = 1:length(lightModDir)
    end
    % divide by half the number of runs at that modulation direction--two
    % run orders to get proper counterbalancing
-   finalCarryOverMatAmpSub = finalCarryOverMatAmpSub./(length(runIndices)./2);
-   finalCarryOverMattau2Sub = finalCarryOverMattau2Sub./(length(runIndices)./2);
+   finalCarryOverMatAmpSub = finalCarryOverMatAmpSub./(length(runIndices)./6);
+   finalCarryOverMattau2Sub = finalCarryOverMattau2Sub./(length(runIndices)./6);
    % divide the 'labels' by 2
    finalCarryOverMatAmpSub(1,:) = finalCarryOverMatAmpSub(1,:)./2;
    finalCarryOverMatAmpSub(:,1) = finalCarryOverMatAmpSub(:,1)./2;
