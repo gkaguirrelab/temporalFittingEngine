@@ -7,6 +7,23 @@ function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B
 %           TS_timeSamples,stimDuration,stepFunctionRes,cosRamp)
 %
 % creates stimulus matrix
+%
+% inputs
+% startTimesSorted: a vector of starting times of the stimuli
+% stimValuesSorted: match each start time to a stimulus value
+% tsFileNames     : file name cell for each run
+% TS_timeSamples  : the time base
+% stimDuration    : duration of stimulus
+% stepFunctionRes : stimulus step function has a certain resolution (in Hz)
+%                   to make interpolation accurate (recommended 50)
+% cosRamp         : length of cosine ramp in seconds
+% bModel0         : 1 -> model 0-valued stimuli, 0 -> do not model
+% outputs
+% stimMatrix           : matrix containing stimulus step function for each 
+%                        stimulus block
+% stimValuesForRunStore: for each run, stores sequence of stimulus values
+% startTimesSorted_A   : specific to current study: two stimulus orders, A
+%                        and B. This argument specifies the start times
 
 % get unique stimulus values
 if bModel0 == 0

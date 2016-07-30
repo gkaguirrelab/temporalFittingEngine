@@ -1,5 +1,7 @@
 %%
 
+addpath('storedData/');
+
 subj_name = 'gka1';
 
 % load parameters and fits

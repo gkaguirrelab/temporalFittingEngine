@@ -5,6 +5,12 @@ function paramLockMatrix = createParamLockMatrixVanilla(uniqueStimValues,stimVal
 % creates parameter locking matrix for the special (and frequently-used)
 % case in which all runs with the same stimulus value get the same set of
 % parameters
+%
+% inputs
+% uniqueStimValues : all unique stimulus values (in this case, temporal
+%                   frequency)
+% stimValuesInOrder: order in which stimuli were presented
+% numParamTypes    : number of unique parameter types (amplitude, tau2, etc.) 
 
 % initialize the matrices
 paramLockMatrixSubForCons1 = [];

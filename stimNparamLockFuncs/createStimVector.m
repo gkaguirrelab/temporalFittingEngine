@@ -2,7 +2,8 @@ function halfCosine = createStimVector(t,startTime,stimTime,stepFunctionRes,cosR
 
 % function createStimVector(t,startTime,stepFunctionRes,cosRamp)
 %
-% creates stimulus vector with cosine window
+% creates stimulus vector with cosine window. does this for one stimulus
+% only. 
 
 % Make 'BOX' Add tiny offset to make sure interpolation works well
 timeValues = [startTime linspace(startTime+1e-7,startTime+stimTime-1e-5,stepFunctionRes) ...
