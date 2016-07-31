@@ -2,7 +2,7 @@
 
 addpath('storedData/');
 
-subj_name = 'gka1';
+subj_name = 'asb1';
 % NOTE THAT THE COUNTERBALANCING ISN'T PERFECT--MANUALLY CORRECTED IN CODE
 % FOR RUN A: 2 PRECEDED BY 0 APPEARS 2 TIMES, 0 PRECEDED BY 0 APPEARS 2
 %            TIMES
@@ -37,21 +37,21 @@ for i = 1:size(carryOver.storeAll,1)
     for j = 2:length(stimForRun)
         % get the amplitude and tau values
         amp = carryOver.storeAll(i,j,1);
-        tau2 = carryOver.storeAll(i,j,2);
-        whereToPut1 = stimForRun(j)==uniqueTempFreq;
+       tau2 = carryOver.storeAll(i,j,2);
+        whereToPut1 =   stimForRun(j)==uniqueTempFreq;
         whereToPut2 = stimForRun(j-1)==uniqueTempFreq;
         if isnan(carryOverMatSubAmp(whereToPut1,whereToPut2))
             % place them appropriately in the carry over matrix for amplitude
             carryOverMatSubAmp(whereToPut1,whereToPut2) = amp;
             % do the same for tau2
-            carryOverMatSubtau2(whereToPut1,whereToPut2) = tau2;
+           carryOverMatSubtau2(whereToPut1,whereToPut2) = tau2;
         else
             % place them appropriately in the carry over matrix for amplitude
             carryOverMatSubAmp(whereToPut1,whereToPut2) = ...
             carryOverMatSubAmp(whereToPut1,whereToPut2)+amp;
             % do the same for tau2
             carryOverMatSubtau2(whereToPut1,whereToPut2) = ...
-            carryOverMatSubAmp(whereToPut1,whereToPut2)+tau2;
+            carryOverMatSubtau2(whereToPut1,whereToPut2)+tau2;
         end
         counterMatrixSub(whereToPut1,whereToPut2) = ...
         counterMatrixSub(whereToPut1,whereToPut2)+1;
@@ -59,13 +59,13 @@ for i = 1:size(carryOver.storeAll,1)
    
    % manually account for overlapping combinations
    if carryOver.runOrder(i)=='A'
-       carryOverMatSubAmp(2,2) = carryOverMatSubAmp(2,2)./2;
-       carryOverMatSubAmp(3,2) = carryOverMatSubAmp(3,2)./2;
-       carryOverMatSubtau2(2,2) = carryOverMatSubtau2(2,2)./2;
-       carryOverMatSubtau2(3,2) = carryOverMatSubtau2(3,2)./2;
+       carryOverMatSubAmp(1,1)  =  carryOverMatSubAmp(1,1)./2;
+       carryOverMatSubAmp(2,1)  =  carryOverMatSubAmp(2,1)./2;
+       carryOverMatSubtau2(1,1) = carryOverMatSubtau2(1,1)./2;
+       carryOverMatSubtau2(2,1) = carryOverMatSubtau2(2,1)./2;
    elseif carryOver.runOrder(i)=='B'
-       carryOverMatSubAmp(2,2) = carryOverMatSubAmp(2,2)./3;
-       carryOverMatSubtau2(2,2) = carryOverMatSubtau2(2,2)./3;
+       carryOverMatSubAmp(1,1)  =  carryOverMatSubAmp(1,1)./3;
+       carryOverMatSubtau2(1,1) = carryOverMatSubtau2(1,1)./3;
    else
       dummy = [];
    end
@@ -107,11 +107,11 @@ for i = 1:length(lightModDir)
    % run orders to get proper counterbalancing
    finalCarryOverMatAmpSub = finalCarryOverMatAmpSub./(length(runIndices)./6);
    finalCarryOverMattau2Sub = finalCarryOverMattau2Sub./(length(runIndices)./6);
-   % divide the 'labels' by 2
-   finalCarryOverMatAmpSub(1,:) = finalCarryOverMatAmpSub(1,:)./2;
-   finalCarryOverMatAmpSub(:,1) = finalCarryOverMatAmpSub(:,1)./2;
-   finalCarryOverMattau2Sub(1,:) = finalCarryOverMattau2Sub(1,:)./2;
-   finalCarryOverMattau2Sub(:,1) = finalCarryOverMattau2Sub(:,1)./2;
+   % divide the 'labels' by 6
+   finalCarryOverMatAmpSub(1,:) = finalCarryOverMatAmpSub(1,:)./6;
+   finalCarryOverMatAmpSub(:,1) = finalCarryOverMatAmpSub(:,1)./6;
+   finalCarryOverMattau2Sub(1,:) = finalCarryOverMattau2Sub(1,:)./6;
+   finalCarryOverMattau2Sub(:,1) = finalCarryOverMattau2Sub(:,1)./6;
    % manually average overlapping cells
    finalCarryOverMatAmpSub(2,2) = finalCarryOverMatAmpSub(2,2)./2;
    finalCarryOverMattau2Sub(2,2) = finalCarryOverMattau2Sub(2,2)./2;
@@ -134,6 +134,21 @@ set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
 ylabel('Stimulus'); set(gca,'FontSize',15);
 
 figure; imagesc(squeeze(finalCarryOverMatAmp(3,2:size(finalCarryOverMatAmp,2),2:size(finalCarryOverMatAmp,3))))
+colormap gray; title('S'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+ylabel('Stimulus'); set(gca,'FontSize',15);
+
+figure; imagesc(squeeze(finalCarryOverMattau2(1,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
+colormap gray; title('Light Flux'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+ylabel('Stimulus'); set(gca,'FontSize',15);
+
+figure; imagesc(squeeze(finalCarryOverMattau2(2,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
+colormap gray; title('L - M'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+ylabel('Stimulus'); set(gca,'FontSize',15);
+
+figure; imagesc(squeeze(finalCarryOverMattau2(3,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
 colormap gray; title('S'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
 set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
 ylabel('Stimulus'); set(gca,'FontSize',15);
