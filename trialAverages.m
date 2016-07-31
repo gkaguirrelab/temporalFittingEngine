@@ -61,8 +61,12 @@ for i = 1:length(lightModDir)
        end
        meanData = mean(windowStoreData);
        meanFit = mean(windowStoreFit);
+       SEdata = std(windowStoreData)./sqrt(size(windowStoreData,1));
+       SEfit = std(windowStoreFit)./sqrt(size(windowStoreFit,1));
        meanDataStore(i,j,:) = meanData;
        meanFitStore(i,j,:) = meanFit;
+       SEdataStore(i,j,:) = SEdata;
+       SEfitStore(i,j,:) = SEfit;
        display(num2str(size(windowStoreData,1)));
    end
 end
@@ -72,8 +76,12 @@ set(gcf,'Position',[379 259 1112 787]);
 for i = 1:size(meanDataStore,1)
     for j = 1:size(meanDataStore,2)
        subplot(3,7,(i-1).*7+j) 
-       plot(0:size(meanDataStore,3)-1,squeeze(meanDataStore(i,j,:))); hold on
-       plot(0:size(meanDataStore,3)-1,squeeze(meanFitStore(i,j,:))); axis square;
+       plot(0:size(meanDataStore,3)-1,squeeze(meanDataStore(i,j,:))'); hold on
+       plot(0:size(meanDataStore,3)-1,squeeze(meanFitStore(i,j,:))'); axis square;
+       fill([0:size(meanDataStore,3)-1 fliplr(0:size(meanDataStore,3)-1)], ...
+      [squeeze(meanDataStore(i,j,:))'+squeeze(SEdataStore(i,j,:))' ...
+      fliplr(squeeze(meanDataStore(i,j,:))'-squeeze(SEdataStore(i,j,:))')], ...
+      'k','FaceAlpha',0.15,'EdgeColor','none');
        if j == 1
           ylabel('% signal change');
        end

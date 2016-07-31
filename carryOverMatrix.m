@@ -7,7 +7,6 @@ subj_name = 'asb1';
 % FOR RUN A: 2 PRECEDED BY 0 APPEARS 2 TIMES, 0 PRECEDED BY 0 APPEARS 2
 %            TIMES
 % FOR RUN B: 0 PRECEDED BY 0 APPEARS 3 TIMES
-hardCodedOverlapCorrection = 2;
 
 % load parameters and fits
 if strcmp(subj_name,'asb1')
@@ -113,13 +112,13 @@ for i = 1:length(lightModDir)
    end
    % divide by half the number of runs at that modulation direction--two
    % run orders to get proper counterbalancing
-   finalCarryOverMatAmplSub = finalCarryOverMatAmplSub./(length(runIndices)./6);
-   finalCarryOverMattau2Sub = finalCarryOverMattau2Sub./(length(runIndices)./6);
+   finalCarryOverMatAmplSub = finalCarryOverMatAmplSub./(length(runIndices)./2);
+   finalCarryOverMattau2Sub = finalCarryOverMattau2Sub./(length(runIndices)./2);
    % divide the 'labels' by 6
-   finalCarryOverMatAmplSub(1,:) = finalCarryOverMatAmplSub(1,:)./6;
-   finalCarryOverMatAmplSub(:,1) = finalCarryOverMatAmplSub(:,1)./6;
-   finalCarryOverMattau2Sub(1,:) = finalCarryOverMattau2Sub(1,:)./6;
-   finalCarryOverMattau2Sub(:,1) = finalCarryOverMattau2Sub(:,1)./6;
+   finalCarryOverMatAmplSub(1,:) = finalCarryOverMatAmplSub(1,:)./2;
+   finalCarryOverMatAmplSub(:,1) = finalCarryOverMatAmplSub(:,1)./2;
+   finalCarryOverMattau2Sub(1,:) = finalCarryOverMattau2Sub(1,:)./2;
+   finalCarryOverMattau2Sub(:,1) = finalCarryOverMattau2Sub(:,1)./2;
    % manually average overlapping cells
    finalCarryOverMatAmplSub(2,2) = finalCarryOverMatAmplSub(2,2)./2;
    finalCarryOverMattau2Sub(2,2) = finalCarryOverMattau2Sub(2,2)./2;
