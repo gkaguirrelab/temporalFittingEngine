@@ -23,7 +23,7 @@ tmri = tmriTFBlockDesignColorModel;
 % parameters for the model.
 theTestStimuli = load(fullfile('BDCMTestData','asb1Stimuli.mat'));
 theTestData = load(fullfile('BDCMTestData','asb1ExampleResponses.mat'));
-whichRunToTest = 1;
+whichRunToTest = 8;
 stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
 stimulus.stimValuesForRunStore = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
 stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
@@ -83,6 +83,7 @@ tmri.plot(timebase,boldResponse);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
+tmri.plotParams(paramsFit,stimulus.stimValuesForRunStore);
 
 %% Test that we can obtain a neural response
 % fprintf('Simulated model parameters:\n');

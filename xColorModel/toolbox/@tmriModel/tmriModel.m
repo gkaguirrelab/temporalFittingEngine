@@ -53,6 +53,9 @@ classdef tmriModel < handle
         
         % Compute forward simulation of the implemented model, given the parameters
         response = computeResponse(obj,params,timebase,stimulus,varargin);
+        
+        % plot fit parameters for neural model
+        h = plotParams(obj,param,stimValues)
     end
     
     % Methods may be called by the subclasses, but are otherwise private 
