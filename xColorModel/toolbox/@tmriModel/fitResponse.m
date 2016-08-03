@@ -14,6 +14,10 @@ function [paramsFit,responseFit] = fitResponse(obj,timebase,stimulus,responseToF
 %    Empty matrix is default.
 %  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
 %    Empty matrix is default, in which case no convolution is done
+%  'paramLockMatrix' - Do parameter locking according to passed matrix.
+%    This matrix has the same number of columns as the parameter vector,
+%    and each row contains a 1 and a -1, which locks the two corresponding
+%    parameters to each other.
 
 %% Parse vargin for options passed here
 p = inputParser;

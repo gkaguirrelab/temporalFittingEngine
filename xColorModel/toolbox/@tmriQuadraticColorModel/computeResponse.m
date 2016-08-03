@@ -17,6 +17,7 @@ p.addRequired('params',@isstruct);
 p.addRequired('timebase',@isnumeric);
 p.addRequired('stimulus',@isnumeric);
 p.addParameter('AddNoise',false,@islogical);
+p.addParameter('HRF',[]);
 p.parse(params,timebase,stimulus,varargin{:});
 params = p.Results.params;
 timebase = p.Results.timebase;
@@ -32,10 +33,10 @@ stimulus = p.Results.stimulus;
 theLengths = diag(stimulus'*Q*stimulus);
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
-response = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
+neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
 
 %% Optionally, apply HRF
-response = obj.applyHRF(timebase,response,HRF);
+response = obj.applyHRF(timebase,neuralResponse,p.Results.HRF);
 
 %% Optional add of noise
 if (p.Results.AddNoise)

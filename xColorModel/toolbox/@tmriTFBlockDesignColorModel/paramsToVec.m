@@ -7,9 +7,7 @@ function x = paramsToVec(obj,params,varargin)
 %   'UseNoiseParam'
 %     true or false (default) 
 
-% Parse input. At the moment this does type checking on the params input
-% and has an optional key value pair that does nothing, but is here for us
-% as a template.
+% Parse input
 p = inputParser;
 p.addRequired('params',@isstruct);
 p.addParameter('UseNoiseParam',false,@islogical);

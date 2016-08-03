@@ -42,6 +42,9 @@ classdef tmriModel < handle
         
         % Print parameters
         print(obj,params,varagin);
+        
+        % Get parameter locking matrix for this model
+        paramLockMatrix = lockMatrix(obj,params,varargin);
 
         % Convert parameter struct to a vector to be used by search
         % routines.
@@ -54,8 +57,8 @@ classdef tmriModel < handle
         % Compute forward simulation of the implemented model, given the parameters
         response = computeResponse(obj,params,timebase,stimulus,varargin);
         
-        % plot fit parameters for neural model
-        h = plotParams(obj,param,stimValues)
+        % Plot fit parameters for neural model
+        h = plotParams(obj,param,stimValues);
     end
     
     % Methods may be called by the subclasses, but are otherwise private 

@@ -90,7 +90,7 @@ end
 %% GET BETA AND MODEL FIT
 
 % create stimulus vector
-[stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
+[stimMatrix,stimValues,startTimesSorted_A,startTimesSorted_B, ...
 stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
 TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,bFreeFloatParams);
@@ -119,9 +119,9 @@ numParamTypes = size(paramStruct.paramMainMatrix,2);
 if bFreeFloatParams == 1
     paramLockMatrix = [];
 elseif bFreeFloatParams == 0
-    for i = 1:size(stimValuesForRunStore,1)
+    for i = 1:size(stimValues,1)
        paramLockMatrix(i,:,:) = createParamLockMatrixVanilla(actualStimulusValues, ...
-                                stimValuesForRunStore(i,:),numParamTypes);
+                                stimValues(i,:),numParamTypes);
     end
 else
    error('bFreeFloatParams not set to valid value'); 

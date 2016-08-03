@@ -25,7 +25,7 @@ end
 
 % loop over runs
 for i = 1:size(carryOver.storeAll,1)
-    stimForRun = carryOver.stimValuesForRunStore(i,:);
+    stimForRun = carryOver.stimValues(i,:);
     % get unique stimulus values
     uniqueTempFreq = unique(stimForRun);
     % initialize carry over matrices

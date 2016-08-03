@@ -33,9 +33,6 @@ neuralResponse = sum(individualResponses,1);
 %% Optionally, apply HRF
 response = obj.applyHRF(timebase,neuralResponse,p.Results.HRF);
 
-%% Optionally, apply HRF
-% response = obj.applyHRF(timebase,response,p.Results.HRF);
-
 %% Optional add of noise
 if (p.Results.AddNoise)
     response = response + normrnd(0,params.noiseSd,size(response));

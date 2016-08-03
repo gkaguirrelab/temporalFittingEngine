@@ -8,7 +8,7 @@
 clear; close all;
 
 %% Add project toolbox to Matlab path
-AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..','BDCMToolbox'));
+AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..'));
 AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
 
 %% Construct the model object
@@ -23,9 +23,9 @@ tmri = tmriTFBlockDesignColorModel;
 % parameters for the model.
 theTestStimuli = load(fullfile('BDCMTestData','asb1Stimuli.mat'));
 theTestData = load(fullfile('BDCMTestData','asb1ExampleResponses.mat'));
-whichRunToTest = 8;
+whichRunToTest = 1;
 stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
-stimulus.stimValuesForRunStore = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
+stimulus.stimValues = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
 stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
 stimulus.startTimesSorted_B = theTestStimuli.stimulusStruct.startTimesSorted_B;
 stimulus.stimValuesSorted_A = theTestStimuli.stimulusStruct.stimValuesSorted_A;
@@ -68,8 +68,8 @@ theHRF.HRF = theTestHRF.BOLDHRF;
 theHRF.timebase = 0:deltaT:(size(theHRF.HRF,2)-1);
 clearvars('theTestHRF');
 
-%% GET THE PARAMETER LOCKING MATRIX
-paramLockMatrix = createParamLockMatrixVanilla(stimulus.uniqueTemporalFreq,stimulus.stimValuesForRunStore,params0.matrixCols);
+%% Get parameter locking matrix
+paramLockMatrix = tmri.lockMatrix(params0,stimulus);
 
 %% Plot the BOLD response
 tmri.plot(timebase,boldResponse);
@@ -83,7 +83,7 @@ tmri.plot(timebase,boldResponse);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
-tmri.plotParams(paramsFit,stimulus.stimValuesForRunStore);
+tmri.plotParams(paramsFit,stimulus);
 
 %% Test that we can obtain a neural response
 % fprintf('Simulated model parameters:\n');

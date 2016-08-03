@@ -1,4 +1,4 @@
-function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B, ...
+function [stimMatrix,stimValues,startTimesSorted_A,startTimesSorted_B, ...
           stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
           = createStimMatrix(startTimesSorted,stimValuesSorted, ...
           tsFileNames,TS_timeSamples,stimDuration,stepFunctionRes,cosRamp,bModel0)
@@ -21,7 +21,7 @@ function [stimMatrix,stimValuesForRunStore,startTimesSorted_A,startTimesSorted_B
 % outputs
 % stimMatrix           : matrix containing stimulus step function for each 
 %                        stimulus block
-% stimValuesForRunStore: for each run, stores sequence of stimulus values
+% stimValues: for each run, stores sequence of stimulus values
 % startTimesSorted_A   : specific to current study: two stimulus orders, A
 %                        and B. This argument specifies the start times
 
@@ -39,7 +39,7 @@ stimValuesSorted_A = [] ;
 stimValuesSorted_B = [] ;
 stimMatrix = [];
 % Matrix for locking parameters
-stimValuesForRunStore = [];
+stimValues = [];
 
 % for each run
 for i = 1:size(startTimesSorted,1)   
@@ -70,7 +70,7 @@ for i = 1:size(startTimesSorted,1)
       error('createStimMatrix: bModel0 either 0 or 1'); 
    end
    % store for param locking in main function
-   stimValuesForRunStore(i,:) = stimValuesForRun;
+   stimValues(i,:) = stimValuesForRun;
    
     % for each stimulus
    for j = 1:length(stimValuesForRun)
