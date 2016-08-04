@@ -25,7 +25,7 @@ end
 
 % loop over runs
 for i = 1:size(carryOver.storeAll,1)
-    stimForRun = carryOver.stimValues(i,:);
+    stimForRun = carryOver.stimValuesForRunStore(i,:);
     % get unique stimulus values
     uniqueTempFreq = unique(stimForRun);
     % initialize carry over matrices
@@ -127,35 +127,123 @@ for i = 1:length(lightModDir)
    % assign
    finalCarryOverMatAmpl(i,:,:) = finalCarryOverMatAmplSub;
    finalCarryOverMattau2(i,:,:) = finalCarryOverMattau2Sub;
+   
 end
+%%
 
 
-figure; imagesc(squeeze(finalCarryOverMatAmpl(1,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
-title('Light Flux Amplitude'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+figure; set(gcf,'Position',[391 470 1096 420]);
+
+subplot(1,3,1);
+imagesc(squeeze(finalCarryOverMatAmpl(1,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
+title('Light Flux Amplitude'); set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'xtick',(1:7));
 set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+ylabel('Stimulus'); set(gca,'FontSize',15); colorbar; axis square;
 
-figure; imagesc(squeeze(finalCarryOverMatAmpl(2,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
-title('L - M Amplitude'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
-set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+carryOverToPlot = squeeze(finalCarryOverMatAmpl(1,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3)));
 
-figure; imagesc(squeeze(finalCarryOverMatAmpl(3,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
-title('S Amplitude'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
-set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+subplot(1,3,2);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,2),'-ko','LineWidth',1.5,'MarkerSize',10); 
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq)); uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'FontSize',15); xlabel('stimulus (Hz)'); 
+ylabel('Amplitude'); title('Direct effect'); 
 
-figure; imagesc(squeeze(finalCarryOverMattau2(1,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
-title('Light Flux tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
-set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+subplot(1,3,3);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,1),'ko','LineWidth',1.5,'MarkerSize',10); hold on
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq)); uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq));set(gca,'FontSize',15);
+xlabel('Preceding stimulus (Hz)'); ylabel('Amplitude'); title('Preceding effect'); xlim([1 64]);
 
-figure; imagesc(squeeze(finalCarryOverMattau2(2,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
-title('L - M tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
-set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+[m, c, fit]= fitCarryOverMarg(mean(carryOverToPlot,2),mean(carryOverToPlot,1));
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,fit,'--k','LineWidth',1.5,'MarkerSize',10);
 
-figure; imagesc(squeeze(finalCarryOverMattau2(3,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
-title('S tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+xText = xlim; yText = ylim;
+text(xText(2)./8,yText(2).*0.9,['scale = ' num2str(m)],'FontSize',15);
+
+clear carryOverToPlot; clear m; clear c; clear fit;
+%%
+figure; set(gcf,'Position',[391 470 1096 420]);
+
+subplot(1,3,1);
+imagesc(squeeze(finalCarryOverMatAmpl(2,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
+title('L - M Amplitude'); set(gca,'xticklabel',([0 2 4 8 16 32 64])); set(gca,'xtick',(1:7));
 set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
-ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+ylabel('Stimulus'); set(gca,'FontSize',15); colorbar; axis square;
+
+carryOverToPlot = squeeze(finalCarryOverMatAmpl(2,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3)));
+
+subplot(1,3,2);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,2),'-ko','LineWidth',1.5,'MarkerSize',10); 
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq)); uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'FontSize',15);
+xlabel('stimulus (Hz)'); ylabel('Amplitude'); title('Direct effect'); 
+
+subplot(1,3,3);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,1),'ko','LineWidth',1.5,'MarkerSize',10); hold on
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq));  uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'FontSize',15); xlabel('Preceding stimulus (Hz)'); 
+ylabel('Amplitude'); title('Preceding effect'); xlim([1 64]);
+
+[m, c, fit]= fitCarryOverMarg(mean(carryOverToPlot,2),mean(carryOverToPlot,1));
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,fit,'--k','LineWidth',1.5,'MarkerSize',10);
+
+xText = xlim; yText = ylim;
+text(xText(2)./8,yText(2).*0.9,['scale = ' num2str(m)],'FontSize',15);
+
+clear carryOverToPlot; clear m; clear c; clear fit;
+%%
+figure; set(gcf,'Position',[391 470 1096 420]);
+
+subplot(1,3,1);
+imagesc(squeeze(finalCarryOverMatAmpl(3,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3))))
+title('S Amplitude'); set(gca,'xticklabel',([0 2 4 8 16 32 64])); set(gca,'xtick',(1:7));
+set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+ylabel('Stimulus'); set(gca,'FontSize',15); colorbar; axis square;
+
+carryOverToPlot = squeeze(finalCarryOverMatAmpl(3,2:size(finalCarryOverMatAmpl,2),2:size(finalCarryOverMatAmpl,3)));
+
+subplot(1,3,2);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,2),'-ko','LineWidth',1.5,'MarkerSize',10); 
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq)); uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'FontSize',15);
+xlabel('stimulus (Hz)'); ylabel('Amplitude'); title('Direct effect'); 
+
+subplot(1,3,3);
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,mean(carryOverToPlot,1),'ko','LineWidth',1.5,'MarkerSize',10); hold on
+axis square; set(gca,'Xscale','log'); set(gca,'xtick',(uniqueTempFreq)); uniqueTempFreq(1) = 0;
+set(gca,'xticklabel',(uniqueTempFreq)); set(gca,'FontSize',15);
+xlabel('Preceding stimulus (Hz)'); ylabel('Amplitude'); title('Preceding effect'); xlim([1 64]);
+
+[m, c, fit]= fitCarryOverMarg(mean(carryOverToPlot,2),mean(carryOverToPlot,1));
+uniqueTempFreq(1) = 1;
+plot(uniqueTempFreq,fit,'--k','LineWidth',1.5,'MarkerSize',10);
+
+xText = xlim; yText = ylim;
+text(xText(2)./8,yText(2).*0.9,['scale = ' num2str(m)],'FontSize',15);
+
+clear carryOverToPlot; clear m; clear c; clear fit;
+
+
+%%
+% figure; imagesc(squeeze(finalCarryOverMattau2(1,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
+% title('Light Flux tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+% set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+% ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+% 
+% figure; imagesc(squeeze(finalCarryOverMattau2(2,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
+% title('L - M tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+% set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+% ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
+% 
+% figure; imagesc(squeeze(finalCarryOverMattau2(3,2:size(finalCarryOverMattau2,2),2:size(finalCarryOverMattau2,3))))
+% title('S tau2'); set(gca,'xticklabel',([0 2 4 8 16 32 64]));
+% set(gca,'yticklabel',([0 2 4 8 16 32 64])); xlabel('Preceding stimulus (Hz)');
+% ylabel('Stimulus'); set(gca,'FontSize',15); colorbar;
