@@ -21,7 +21,7 @@ neuralVec = sum(createNeuralTemporalModelFromStimMatrix(t,stimMatrix,ampVec,tau2
 reconstructedTS = neuralVec2BOLD(neuralVec,paramStructFixed.HRF);
 
 % mean center the BOLD signal
-reconstructedTS=reconstructedTS-mean(reconstructedTS);
+% reconstructedTS=reconstructedTS-mean(reconstructedTS);
 
 % get error
 f = mean((data-reconstructedTS).^2);
