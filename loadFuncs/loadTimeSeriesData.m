@@ -70,8 +70,8 @@ for i = 1:length(tsFileNames)
     % Find all files containing file name wanted (As determined in the READ
     % ME file) -- Get their locations in the folder
     tsFilesLHRH = strfind(timeSeriesDirNames,currentTSfileName) ;
-    locationsInTSfolder = find(~cellfun(@isempty,tsFilesLHRH)) ;    
-%    display(num2str(length(locationsInTSfolder)));
+    locationsInTSfolder = find(~cellfun(@isempty,tsFilesLHRH)) ;        
+    % display(num2str(length(locationsInTSfolder)));
 
     % Load Left Hemisphere Data, then Right Hemisphere Data
     LHtsStruct = load([dirPathTimeSeries char(timeSeriesDirNames(locationsInTSfolder(1)))]) ;

@@ -8,7 +8,8 @@ AddToMatlabPathDynamically('BCDMToolbox');
 
 subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
-%     'HERO_asb1' 
+%     'HERO_asb1'--NOTE THAT ASB1 HAS 2 EXTRA LIGHTFLUX B AND 2 EXTRA S A
+%                  RUNS--WE USE THE FIRST 2 OF EACH
 %     'HERO_gka1'
 
 
