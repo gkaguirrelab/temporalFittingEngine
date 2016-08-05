@@ -17,6 +17,9 @@ stimDir        = fullfile(session_dir,'Stimuli') ;
 eventTimesFile = '*MirrorsOffMaxLMS_0Pct_delta_00Sec*' ; % -- Attn Times
 %eventTimesFle = '*LMSDirectedSuperMaxLMS_400Pct_delta_00Sec*' ;
 
+HRFdur        = 16000;
+numFreqs      = 16;
+
 b              = find_bold(session_dir) ;
 runNum         = 1 ;
 hemis          = {'lh' 'rh' 'mh'} ;
@@ -40,21 +43,23 @@ tempName       = 'areas.anat.nii.gz';
 % end
 
 %% Load volumes (volume or surface)
+%hrf = nan(length(b),16) ;
+for ii = 1:length(b)
 hemiTCs = [] ;
 hh = 3; % choose hemi (1=lh, 2=rh, 3=mh);
 
 % Switch between volume and surface
 switch volType
     case 'volume'
-        thisMask = fullfile(session_dir, b{3},[hemis{hh} '.areas.func.vol.nii.gz']);
-        thisVol  = fullfile(session_dir, b{3}, [func '.nii.gz']);
+        thisMask = fullfile(session_dir, b{ii},[hemis{hh} '.areas.func.vol.nii.gz']);
+        thisVol  = fullfile(session_dir, b{ii}, [func '.nii.gz']);
         % Obtain slice timing information
-        thisTiming   = load(fullfile(session_dir, b{3}, 'slicetiming'));
+        thisTiming   = load(fullfile(session_dir, b{ii}, 'slicetiming'));
         uniqueTiming = unique(thisTiming);
         
     case 'surface'
         thisMask = fullfile(session_dir, [hemis{hh} '.areas.anat.nii.gz']);
-        thisVol  = fullfile(session_dir, b{3}, [func '.surf.' hemis{hh} '.nii.gz']);
+        thisVol  = fullfile(session_dir, b{ii}, [func '.surf.' hemis{hh} '.nii.gz']);
 end % End switch
 
 disp(['loading ' thisMask]);            % Display Loading Mask
@@ -115,13 +120,27 @@ end
 %% Derive HRF in V1 voxels
 % freeview
 sampT         = round(TR/length(uniqueTiming));
-HRFdur        = 16000;
-numFreqs      = 16;
 runEventTimes = round(eventTimes{1}*1000) ;
 inputTC       = iSlice'; % choose the input time-series
 
 % Derive the RF in avg V1 slices
 HRF = deriveHRF(inputTC,runEventTimes,sampT,HRFdur,numFreqs);
-figure; plot(HRF) ;     % Plot HRF
+hrf(ii,:) = resample(HRF,1,TR) ;
+
+fprintf('Just finished run #%d\n', ii)
+end
+
+%% Plot pretty things
+SEHRF = std(hrf)./sqrt(size(hrf,1));
+BOLDHRF = mean(hrf) ;
+figure;
+% We donwsample because TR & HRFdur are in ms resolution
+errorbar((0:TR:HRFdur-TR)/1000,BOLDHRF,SEHRF,'LineWidth',2)
+xlabel('Time/s'); ylabel('Signal'); set(gca,'FontSize',15);
+title('HRF');
+ % Compare mean HRF with individual runs
+figure;
+plot(BOLDHRF,'k','LineWidth',8);hold on;
+plot(hrf');
 
 % Yay! End of Script
