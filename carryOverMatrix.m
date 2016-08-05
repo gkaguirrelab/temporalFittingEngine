@@ -2,7 +2,7 @@
 
 addpath('storedData/');
 
-subj_name = 'gka1';
+subj_name = 'asb';
 % NOTE THAT THE COUNTERBALANCING ISN'T PERFECT--MANUALLY CORRECTED IN CODE
 % FOR RUN A: 2 PRECEDED BY 0 APPEARS 2 TIMES, 0 PRECEDED BY 0 APPEARS 2
 %            TIMES
