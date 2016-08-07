@@ -83,7 +83,7 @@ tmri.plot(timebase,boldResponse);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
 tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
-tmri.plotParams(paramsFit,stimulus);
+[~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
 
 %% Test that we can obtain a neural response
 % fprintf('Simulated model parameters:\n');

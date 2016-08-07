@@ -22,7 +22,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 0;
+bDEBUG = 1;
 
 bFreeFloatParams = 0;
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES

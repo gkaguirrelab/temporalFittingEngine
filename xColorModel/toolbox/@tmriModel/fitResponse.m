@@ -1,4 +1,4 @@
-function [paramsFit,responseFit] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
+function [paramsFit,responseFit,fval] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % [fitParams,fitResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % 
 % Fit method for the tmri class.  This is meant to be model independent, so
@@ -41,10 +41,11 @@ vubVec = obj.paramsToVec(vub);
 % I coded up the global search method, but it is very slow compared with
 % fmincon alone, and fmincon seems to be fine.
 USEGLOBAL = false;
+fval = 0;
 if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-    paramsFitVec = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj, ...
+    [paramsFitVec, fval] = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj, ...
         p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');

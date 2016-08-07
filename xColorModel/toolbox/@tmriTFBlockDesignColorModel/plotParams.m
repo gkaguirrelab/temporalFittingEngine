@@ -1,4 +1,4 @@
-function h = plotParams(obj,params,stimulus,varargin)
+function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
 % plotParams(obj,param,stimulus,varargin)
 %
 % Generates plots of parameters for TF Block Design Color Model
