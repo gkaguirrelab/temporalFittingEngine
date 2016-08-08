@@ -10,10 +10,13 @@ function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
 p = inputParser;
 p.addRequired('param',@isstruct);
 p.addRequired('stimulus',@isstruct);
+p.addParameter('bFitZero',@isboolean);
 p.parse(params,stimulus,varargin{:});
 
-% Remove stimulus values of 0 (some analyses might want to leave them in)
-stimulus.stimValues = stimulus.stimValues(stimulus.stimValues~=0);
+if p.Results.bFitZero == 0
+    % Remove stimulus values of 0 (some analyses might want to leave them in)
+    stimulus.stimValues = stimulus.stimValues(stimulus.stimValues~=0);
+end
 
 % number of types of parameters, e.g. amp, tau2
 numParamTypes = length(params.paramNameCell);

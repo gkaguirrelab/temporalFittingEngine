@@ -22,7 +22,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 1;
+bDEBUG = 0;
 
 bFreeFloatParams = 0;
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
@@ -151,9 +151,29 @@ for i = 1:length(runsToFit)
    storeAll(size(storeAll,1)+1,:,:) = paramsFit.paramMainMatrix;     
    % store MSE measure
    MSEstore(length(MSEstore)+1) = fval;
-   [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
+   [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus,'bFitZero',bFreeFloatParams); close;
    % do this for each run
    storeUnique(size(storeUnique,1)+1,:,:) = meanParamValues;
    reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = fitResponse;
    display(['run number: ' num2str(i)]);
+end
+
+if bDEBUG == 1
+    % getting statistics over runs
+   [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = ...
+    paramStatistics(permute(storeUnique,[1 3 2]),stimTypeArr(runsToFit),paramsFit.paramNameCell);
+    stimNamesCell = {'Light Flux'};    
+    plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell,[1 4 7])
+elseif bDEBUG == 0
+    % Self-Explanatory Variable Names
+    numberOfRuns = sum(stimTypeArr==1) ;
+    numRunsPerStimOrder = sum(stimTypeArr==1 & runOrder=='A') ;   % Stim order A -or- B
+    % Parameter averaging    
+    [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = ...
+    paramStatistics(permute(storeUnique,[1 3 2]),stimTypeArr,paramsFit.paramNameCell);
+    %TTF & HRF Plots
+    stimNamesCell = {'Light Flux','L - M','S'};    
+    plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell)
+else
+   error('fullBDCM: PICK VALID BOOLEAN VALUE FOR bDEBUG'); 
 end
