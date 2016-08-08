@@ -6,6 +6,13 @@ function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
 % Inputs
 %   params   : parameter structure
 %   stimulus : stimulus structure
+% Optional Inputs
+%   bFitZero : boolean specifying whether to count '0' stimuli as stimuli
+% Outputs
+% h              : the figure
+% meanParamValues: m x n matrix of mean parameters, where m is the number
+%                  of parameter types and n is the number of stimuli.
+%                  Essentially stores the data to plot.
 
 p = inputParser;
 p.addRequired('param',@isstruct);
