@@ -164,6 +164,21 @@ if bDEBUG == 1
     paramStatistics(permute(storeUnique,[1 3 2]),stimTypeArr(runsToFit),paramsFit.paramNameCell);
     stimNamesCell = {'Light Flux'};    
     plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell,[1 4 7])
+    AvgTS = mean(cleanedData(runsToFit,:));
+    StdTS =  std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
+    MSE = mean(MSEstore);
+    AvgTS_model = mean(reconstructedTSmat);
+   
+    % create cell for plotting stimulus starts
+    stimValuesMatSorted_A_cell = {} ;
+    for j = 1:length(stimValuesSorted_A)
+       stimValuesMatSorted_A_cell{j} = num2str(stimValuesSorted_A(j)) ; 
+    end
+    % plot full time series
+    figure;
+    plotLinModelFits(timebase,AvgTS,AvgTS_model, ...
+                 startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,MSE);
+    title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 elseif bDEBUG == 0
     % Self-Explanatory Variable Names
     numberOfRuns = sum(stimTypeArr==1) ;
@@ -174,6 +189,7 @@ elseif bDEBUG == 0
     %TTF & HRF Plots
     stimNamesCell = {'Light Flux','L - M','S'};    
     plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell)
+    [avgTS, stdTS, MSE, modelTS, idCell] = paramStatisticsBDCM(cleanedData,MSEstore,reconstructedTSmat,stimTypeArr,runOrder);
 else
    error('fullBDCM: PICK VALID BOOLEAN VALUE FOR bDEBUG'); 
 end
