@@ -44,7 +44,7 @@ for i = 1:size(meanMatrix,1)
        set(gca,'Xtick',actualStimulusValuesToPlot); title(stimTypeString); axis square;
        set(gca,'Xticklabel',actualStimulusValues);
        set(gca,'Xscale','log'); xlabel(xString); ylabel(paramTypeString);
-       xlim([min(actualStimulusValuesToPlot) max(actualStimulusValuesToPlot)]);
+       xlim([min(actualStimulusValuesToPlot).*0.9 max(actualStimulusValuesToPlot).*1.1]);
    else
        subplot(3,3,plotPosition(i))  
        % because of log scale, a value of 0 must be plotted as 1
@@ -54,7 +54,7 @@ for i = 1:size(meanMatrix,1)
        set(gca,'Xtick',actualStimulusValuesToPlot); title(stimTypeString); axis square;
        set(gca,'Xticklabel',actualStimulusValues);
        set(gca,'Xscale','log'); xlabel(xString); ylabel(paramTypeString);
-       xlim([min(actualStimulusValuesToPlot) max(actualStimulusValuesToPlot)]);
+       xlim([min(actualStimulusValuesToPlot).*0.9 max(actualStimulusValuesToPlot).*1.1]);
    end
 end
 

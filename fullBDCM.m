@@ -6,7 +6,7 @@ AddToMatlabPathDynamically('BCDMToolbox');
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_asb1' ; 
+subj_name = 'HERO_gka1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1'--NOTE THAT ASB1 HAS 2 EXTRA LIGHTFLUX B AND 2 EXTRA S A
 %                  RUNS--WE USE THE FIRST 2 OF EACH
