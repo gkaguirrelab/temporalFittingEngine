@@ -1,27 +1,29 @@
 function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
-% plotParams(obj,param,stimulus,varargin)
+% plotParams(obj,params,stimulus,varargin)
 %
 % Generates plots of parameters for TF Block Design Color Model
 %
-% Inputs
+% Inputs:
 %   params   : parameter structure
 %   stimulus : stimulus structure
-% Optional Inputs
-%   bFitZero : boolean specifying whether to count '0' stimuli as stimuli
-% Outputs
-% h              : the figure
-% meanParamValues: m x n matrix of mean parameters, where m is the number
-%                  of parameter types and n is the number of stimuli.
-%                  Essentially stores the data to plot.
+%
+% Optional key/value pairs
+%   'bFitZero' - boolean specifying whether to count '0' stimuli as stimuli
+%                (default false)
+% Outputs:
+%   h: the figure handle
+%   meanParamValues: m x n matrix of mean parameters, where m is the number
+%                    of parameter types and n is the number of stimuli.
+%                    Essentially stores the data to plot.
 
 p = inputParser;
-p.addRequired('param',@isstruct);
+p.addRequired('params',@isstruct);
 p.addRequired('stimulus',@isstruct);
-p.addParameter('bFitZero',@isboolean);
+p.addParameter('bFitZero',false,@islogical);
 p.parse(params,stimulus,varargin{:});
 
-if p.Results.bFitZero == 0
-    % Remove stimulus values of 0 (some analyses might want to leave them in)
+% Optionally remove stimulus values of 0 (some analyses might want to leave them in)
+if p.Results.bFitZero
     stimulus.stimValues = stimulus.stimValues(stimulus.stimValues~=0);
 end
 

@@ -77,12 +77,12 @@ tmri.plot(timebase,boldResponse);
 %% Test the fitter
 % [paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
 %                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);
-[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
+[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({timebase},{stimulus},{boldResponse}, ...
                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
-tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
+tmri.plot(timebase,fitResponse{1},'Color',[0 1 0],'NewWindow',false);
 [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
 
 %% Test that we can obtain a neural response

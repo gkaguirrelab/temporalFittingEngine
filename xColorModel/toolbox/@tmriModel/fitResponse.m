@@ -1,13 +1,18 @@
-function [paramsFit,responseFit,fval] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
-% [fitParams,fitResponse,fval] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
+function [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
+% [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % 
 % Fit method for the tmri class.  This is meant to be model independent, so
 % that we only have to write it once.
 %
 % Inputs:
-%   timebase - times on which data/model predictions exist
-%   stimulus - description of the stimulus
-%   responseToFit - temporal response to fit
+%   timebase - cell array of times on which data/model predictions exist
+%   stimulus - cell array of stimulus descriptions
+%   responseToFit - cell array of responses to fit
+%
+% Each entry of the cell arrays is for one run, and the fit is to find the
+% parameters that minimize the average fit error, taken over the runs.
+% Doing it this way allows us to more easily use this routine for cross
+% validation.
 % 
 % Optional key/value pairs
 %  'DefaultParamsInfo' - a struct passed to the defaultParams method.
@@ -18,16 +23,18 @@ function [paramsFit,responseFit,fval] = fitResponse(obj,timebase,stimulus,respon
 %    This matrix has the same number of columns as the parameter vector,
 %    and each row contains a 1 and a -1, which locks the two corresponding
 %    parameters to each other.
+%
 % Outputs: 
 %   paramsFit: fit parameters
-%   responseFit: fit response
-%   fval: value of error term for the fit parameters
+%   fVal: mean value of fit error, mean taken over runs.
+%   allFVals: vector of fit errors for the individual runs.
+%   predictedResponse: cell array of the predicted response, one for each run
 
 %% Parse vargin for options passed here
 p = inputParser;
-p.addRequired('timebase',@isnumeric);
-p.addRequired('stimulus')
-p.addRequired('responseToFit',@isnumeric);
+p.addRequired('timebase',@iscell);
+p.addRequired('stimulus',@iscell);
+p.addRequired('responseToFit',@iscell);
 p.addParameter('DefaultParamsInfo',[],@isstruct);
 p.addParameter('HRF',[],@isstruct);
 p.addParameter('paramLockMatrix',[],@isnumeric);
@@ -44,32 +51,29 @@ vubVec = obj.paramsToVec(vub);
 %
 % I coded up the global search method, but it is very slow compared with
 % fmincon alone, and fmincon seems to be fine.
+%fFunction = @obj.fitError;
 USEGLOBAL = false;
-fval = 0;
 if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-    [paramsFitVec, fval] = fmincon(@(modelParamsVec)fitFunction(modelParamsVec,obj, ...
+    paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
         p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');
     problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)fitFunction(modelParamsVec,obj,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),...
+        @(modelParamsVec)obj.fitError(modelParamsVec,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),...
         'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
     gs = GlobalSearch;
     paramsFitVec = run(gs,problem);
 end
 
-% Store the fit parameters
+% Get error and predicted response for final parameters
+[fVal,allFVals,predictedResponse] = obj.fitError(paramsFitVec,timebase,stimulus,responseToFit,p.Results.HRF);
+
+% Convert fit parameters for return
 paramsFit = obj.vecToParams(paramsFitVec);
-responseFit = obj.computeResponse(paramsFit,p.Results.timebase,p.Results.stimulus,'HRF',p.Results.HRF);
 
 end
 
-%% Error function for the fit
-function f = fitFunction(paramsVec,obj,timebase,stimulus,responseToFit,HRF)
 
-params = obj.vecToParams(paramsVec);
-responsePredicted = obj.computeResponse(params,timebase,stimulus,'HRF',HRF);
-f = sqrt(mean((responsePredicted-responseToFit).^2));
-end
+

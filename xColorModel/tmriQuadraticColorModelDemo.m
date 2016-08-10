@@ -52,8 +52,8 @@ responseToFit = tmri.computeResponse(params1,timebase,stimulus,'AddNoise',true);
 tmri.plot(timebase,responseToFit);
 
 %% Test the fitter
-[paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,responseToFit);
+[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({timebase},{stimulus},{responseToFit});
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
-tmri.plot(timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
+tmri.plot(timebase,fitResponse{1},'Color',[0 1 0],'NewWindow',false);
 
