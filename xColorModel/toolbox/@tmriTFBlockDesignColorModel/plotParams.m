@@ -23,7 +23,7 @@ p.addParameter('bFitZero',false,@islogical);
 p.parse(params,stimulus,varargin{:});
 
 % Optionally remove stimulus values of 0 (some analyses might want to leave them in)
-if p.Results.bFitZero
+if ~p.Results.bFitZero
     stimulus.stimValues = stimulus.stimValues(stimulus.stimValues~=0);
 end
 

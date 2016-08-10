@@ -141,7 +141,7 @@ for i = 1:length(runsToFit)
       paramLockMatrix = []; 
    end
    % fit the response
-   [paramsFit,fitResponse,fval] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
+   [paramsFit,fval,~,fittedResponse] = tmri.fitResponse({timebase},{stimulus},{boldResponse}, ...
                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
    fprintf('Model parameter from fits:\n');
@@ -150,10 +150,10 @@ for i = 1:length(runsToFit)
    storeAll(size(storeAll,1)+1,:,:) = paramsFit.paramMainMatrix;     
    % store RMS measure
    errorStore(length(errorStore)+1) = fval;
-   [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus,'bFitZero',bFreeFloatParams); close;
+   [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus,'bFitZero',logical(bFreeFloatParams)); close;
    % do this for each run
    storeUnique(size(storeUnique,1)+1,:,:) = meanParamValues;
-   reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = fitResponse;
+   reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = cell2mat(fittedResponse);
    display(['run number: ' num2str(i)]);
 end
 %% PLOTTING

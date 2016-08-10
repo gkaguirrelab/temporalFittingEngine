@@ -42,14 +42,19 @@ for i = 1:size(meanMatrix,1)
        plot(frequenciesHz_fine(validForPlot),y(validForPlot)+offset,[colorStr(stimTypeTagMatrix(i)) '-']); hold on
        errorbar(actualStimulusValuesToPlot,meansToPlot,SEtoPlot,[colorStr(stimTypeTagMatrix(i)) 'o']); set(gca,'FontSize',15);
        set(gca,'Xtick',actualStimulusValuesToPlot); title(stimTypeString); axis square;
-       set(gca,'Xticklabel',actualStimulusValues)
+       set(gca,'Xticklabel',actualStimulusValues);
        set(gca,'Xscale','log'); xlabel(xString); ylabel(paramTypeString);
        xlim([min(actualStimulusValuesToPlot) max(actualStimulusValuesToPlot)]);
    else
        subplot(3,3,plotPosition(i))  
-       errorbar(actualStimulusValues',meansToPlot,SEtoPlot,[colorStr(stimTypeTagMatrix(i)) 'o']); set(gca,'FontSize',15);
-       set(gca,'Xtick',actualStimulusValues'); title(stimTypeString); axis square;
+       % because of log scale, a value of 0 must be plotted as 1
+       actualStimulusValuesToPlot = actualStimulusValues;
+       actualStimulusValuesToPlot(actualStimulusValuesToPlot==0)=1;
+       errorbar(actualStimulusValuesToPlot,meansToPlot,SEtoPlot,[colorStr(stimTypeTagMatrix(i)) 'o']); set(gca,'FontSize',15);
+       set(gca,'Xtick',actualStimulusValuesToPlot); title(stimTypeString); axis square;
+       set(gca,'Xticklabel',actualStimulusValues);
        set(gca,'Xscale','log'); xlabel(xString); ylabel(paramTypeString);
+       xlim([min(actualStimulusValuesToPlot) max(actualStimulusValuesToPlot)]);
    end
 end
 
