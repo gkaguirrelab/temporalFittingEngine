@@ -1,5 +1,5 @@
 function [paramsFit,responseFit,fval] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
-% [fitParams,fitResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
+% [fitParams,fitResponse,fval] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % 
 % Fit method for the tmri class.  This is meant to be model independent, so
 % that we only have to write it once.
@@ -18,6 +18,10 @@ function [paramsFit,responseFit,fval] = fitResponse(obj,timebase,stimulus,respon
 %    This matrix has the same number of columns as the parameter vector,
 %    and each row contains a 1 and a -1, which locks the two corresponding
 %    parameters to each other.
+% Outputs: 
+%   paramsFit: fit parameters
+%   responseFit: fit response
+%   fval: value of error term for the fit parameters
 
 %% Parse vargin for options passed here
 p = inputParser;
