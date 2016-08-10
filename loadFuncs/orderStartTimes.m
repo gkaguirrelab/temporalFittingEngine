@@ -34,7 +34,7 @@ folderNameCell = {} ;
 % Loop over numebr of Stimulus folders & create cell with their names
 for i = 1:numberOfFolders
    miniFolderName = stimDirContents(i).name ;
-   if length(miniFolderName)>4 & strcmp(miniFolderName(1:4),'HERO') ;
+   if length(miniFolderName)>length('HERO') & strcmp(miniFolderName(1:length('HERO')),'HERO') ;
        folderNameCell{length(folderNameCell)+1} = miniFolderName ;
    end
 end

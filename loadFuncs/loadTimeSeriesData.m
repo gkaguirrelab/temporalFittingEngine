@@ -31,7 +31,7 @@ timeSeriesDirNames = {};
 
 for i = 1:length(timeSeriesDir)
    tsFileName = timeSeriesDir(i).name ;
-   if length(tsFileName)>15
+   if length(tsFileName)>length('lh_Series_004_bold_')
        timeSeriesDirNames{length(timeSeriesDirNames)+1} = tsFileName ;
    end
 end
