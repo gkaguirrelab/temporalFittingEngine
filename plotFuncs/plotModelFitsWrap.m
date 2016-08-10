@@ -1,6 +1,6 @@
-function plotLinModelFitsWrap(timebase, avgTS, stdTS, MSE, modelTS, idCell, startTimesSorted_A, stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B)
+function plotModelFitsWrap(timebase, avgTS, stdTS, MSE, modelTS, idCell, startTimesSorted_A, stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B)
 
-% function plotLinModelFitsWrap(timebase, avgTS, stdTS, MSE, modelTS, idCell, startTimesSorted_A, stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B)
+% function plotModelFitsWrap(timebase, avgTS, stdTS, MSE, modelTS, idCell, startTimesSorted_A, stimValuesSorted_A, startTimesSorted_B, stimValuesSorted_B)
 %
 % wrapper function for BOLD fits--specialized for BDCM
 
@@ -16,7 +16,7 @@ for i = 1:size(avgTS,1)
         startTimesSorted = startTimesSorted_B;
         stimValuesSorted = stimValuesSorted_B;
    else
-      error('plotLinModelFitsWrap: unknown stimulus type');
+      error('plotModelFitsWrap: unknown stimulus type');
    end
    % make a cell
    stimValuesMatSorted_cell = {} ;
@@ -25,7 +25,7 @@ for i = 1:size(avgTS,1)
    end
    
    subplot(3,2,i)
-   plotLinModelFits(timebase,avgTS(i,:),modelTS(i,:), ...
+   plotModelFits(timebase,avgTS(i,:),modelTS(i,:), ...
                      startTimesSorted,stimValuesMatSorted_cell,stimValuesSorted,stdTS(i,:),MSE(i,:));
    title(idCell(i)); xlabel('Time / s'); ylabel('% signal change');
    

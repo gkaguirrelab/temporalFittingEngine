@@ -1,5 +1,6 @@
-% This Script creates Temporal Transfer Functions 
-% using a linear model and FIR with cosine windows.
+% Script for fitting 7T BOLD data elicited by cone contrast stimuli at
+% different temporal frequencies. Fits with a non-linear model. Plots fits
+% and fit parameters
 
 %% Make sure toolboxes we need for this are on the path
 AddToMatlabPathDynamically('BCDMToolbox');
@@ -22,7 +23,7 @@ session = 'all' ;
 bCanonicalHRF = 0;
 
 % Boolean: 1 -> go into debug mode--only fit light flux A
-bDEBUG = 1;
+bDEBUG = 0;
 
 % do we turn off parameter locking?
 bFreeFloatParams = 1;
@@ -175,7 +176,7 @@ if bDEBUG == 1
     end
     % plot full time series
     figure;
-    plotLinModelFits(timebase,AvgTS,AvgTS_model, ...
+    plotModelFits(timebase,AvgTS,AvgTS_model, ...
                  startTimesSorted_A,stimValuesMatSorted_A_cell,stimValuesSorted_A,StdTS,RMS);
     title('Light flux A'); xlabel('Time / s'); ylabel('% signal change');
 elseif bDEBUG == 0
@@ -188,7 +189,7 @@ elseif bDEBUG == 0
     % get time series statistics
     [avgTS, stdTS, RMS, modelTS, idCell] = timeSeriesStatisticsBDCM(cleanedData,errorStore,reconstructedTSmat,stimTypeArr,runOrder);
     % plot
-    plotLinModelFitsWrap(timebase, avgTS, stdTS, RMS, modelTS, idCell, ...
+    plotModelFitsWrap(timebase, avgTS, stdTS, RMS, modelTS, idCell, ...
                          startTimesSorted_A, stimValuesSorted_A, ...
                          startTimesSorted_B, stimValuesSorted_B)
 else
