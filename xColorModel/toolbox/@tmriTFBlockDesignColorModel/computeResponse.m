@@ -26,8 +26,7 @@ stimulus = p.Results.stimulus;
 %% First compute the neural response
 individualResponses = createNeuralTemporalModelFromStimMatrix(timebase, stimulus.stimMatrix,...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')), ...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'tau2')), ...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'ARAmplitude')));
+    params.paramMainMatrix(:,strcmp(params.paramNameCell,'tau2')));
 neuralResponse = sum(individualResponses,1);
 
 %% Optionally, apply HRF

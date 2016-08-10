@@ -2,7 +2,8 @@ function plotLinModelFits(timeSamples,timeSeriesAvgAct,timeSeriesAvgModel,startT
 
 % function plotLinModelFits(timeSamples,timeSeriesAvgAct,timeSeriesAvgModel,startTimes,stimValuesCell,stimValuesMat,timeSeriesStd)
 %
-% specialized function for making plots
+% specialized function for making BDCM plots--probably not worth it for
+% anyone but Ben Chin to read this code
 
 plot(timeSamples,timeSeriesAvgAct); hold on
 plot(timeSamples,timeSeriesAvgModel);
@@ -14,6 +15,6 @@ makeStimColorLine(startTimes, ...
                   [1 length(startTimes)]),stimValuesMat)
 yLims = get(gca,'YLim'); xLims = get(gca,'XLim');
 
-text(xLims(2).*0.8,min(timeSeriesAvgAct),['MSE = ' num2str(round(MSE,3))]);
+text(xLims(2).*0.8,min(timeSeriesAvgAct),['RMS = ' num2str(round(MSE,3))]);
 
 gribble = 1;

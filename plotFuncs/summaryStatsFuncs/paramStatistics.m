@@ -3,7 +3,7 @@ function [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = paramS
 % function [meanMatrix, SEmatrix] = paramStatistics(storeUnique,stimTypeArr,paramNamesCell)
 %
 % after parameters have been fit for each run, this sorts them according to
-% condition and gets some statistics
+% condition and gets some statistics: mean, std error
 
 % matrix for storing parameter means & SE
 meanMatrix = [];
