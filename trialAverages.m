@@ -30,7 +30,7 @@ windowLength = 24;
 % loop over stimulus modulation directions
 for i = 1:length(lightModDir)
    % get all the unique temporal frequencies
-   uniqueTempFreq = unique(carryOver.stimValues(1,:));
+   uniqueTempFreq = unique(carryOver.stimValuesForRunStore(1,:));
    % find all indices for a given modulation direction
    runIndices = find(carryOver.stimTypeCode==i);
    % get all data for given modulation direction
@@ -45,7 +45,7 @@ for i = 1:length(lightModDir)
        % want to search across runs
        for k = 1:length(runIndices)
            % get the current run's stimulus values
-           curRunOrder = carryOver.stimValues(runIndices(k),:);
+           curRunOrder = carryOver.stimValuesForRunStore(runIndices(k),:);
            % for each unique temporal frequency, get all times at which a
            % stimulus with its value came on
            startPoints = carryOver.startTimesSorted(runIndices(k),uniqueTempFreq(j)==curRunOrder);
