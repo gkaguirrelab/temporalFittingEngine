@@ -7,7 +7,7 @@ AddToMatlabPathDynamically('BCDMToolbox');
 
 %% Specify Subject & Session, With Dropbox Folder
 
-subj_name = 'HERO_gka1' ; 
+subj_name = 'HERO_asb1' ; 
 % *** Subject Pool ***
 %     'HERO_asb1'--NOTE THAT ASB1 HAS 2 EXTRA LIGHTFLUX B AND 2 EXTRA S A
 %                  RUNS--WE USE THE FIRST 2 OF EACH
@@ -30,7 +30,7 @@ bFreeFloatParams = 1;
 %% LOAD TIME SERIES AND GET STIMULUS (& ATTENTION) START TIMES
 
 % load time series
-[avgTS, avgTSprc, tsFileNames, stimTypeArr, runOrder] ...
+[avgTS, avgTSprc, tsFileNames, stimTypeCode, runOrder] ...
 = loadTimeSeriesData(subj_name,session);
 
 % get all stimulus values and start times, as well as the attention task
@@ -89,7 +89,7 @@ end
 
 % create stimulus vector
 [stimMatrix,stimValues,startTimesSorted_A,startTimesSorted_B, ...
-stimValuesSorted_A,stimValuesSorted_B,actualStimulusValues] ...
+stimValuesSorted_A,stimValuesSorted_B,uniqueStimulusValues] ...
 = createStimMatrix(startTimesSorted,stimValuesSorted,tsFileNames, ...
 timebase,stimDuration,stepFunctionRes,cosRamp,bFreeFloatParams);
 
@@ -100,7 +100,7 @@ end
 %% PRELIMINARIES FOR FITTING
 
 % store parameters--initialize matrices
-storeUnique = zeros([0 0 0]);
+storeFitParams = zeros([0 0 0]);
 storeAll = zeros([0 0 0]);
 
 reconstructedTSmat = [];
@@ -108,7 +108,7 @@ errorStore = [];
 
 % if in debug mode, only fit light flux A
 if bDEBUG == 1
-   runsToFit = find(stimTypeArr == 1 & runOrder == 'A');
+   runsToFit = find(stimTypeCode == 1 & runOrder == 'A');
 else
    runsToFit = 1:size(stimMatrix,1);  
 end
@@ -153,7 +153,7 @@ for i = 1:length(runsToFit)
    errorStore(length(errorStore)+1) = fval;
    [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus,'bFitZero',logical(bFreeFloatParams)); close;
    % do this for each run
-   storeUnique(size(storeUnique,1)+1,:,:) = meanParamValues;
+   storeFitParams(size(storeFitParams,1)+1,:,:) = meanParamValues;
    reconstructedTSmat(size(reconstructedTSmat,1)+1,:) = cell2mat(fittedResponse);
    display(['run number: ' num2str(i)]);
 end
@@ -161,11 +161,11 @@ end
 if bDEBUG == 1
     % getting statistics over runs
    [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = ...
-    paramStatistics(permute(storeUnique,[1 3 2]),stimTypeArr(runsToFit),paramsFit.paramNameCell);
+    paramStatistics(permute(storeFitParams,[1 3 2]),stimTypeCode(runsToFit),paramsFit.paramNameCell);
     stimNamesCell = {'Light Flux'};    
-    plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell,[1 4 7])
+    plotParamsWrapper(uniqueStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell,[1 4 7])
     AvgTS = mean(cleanedData(runsToFit,:));
-    StdTS =  std(cleanedData(runsToFit,:))./sqrt(size(storeUnique,1));
+    StdTS =  std(cleanedData(runsToFit,:))./sqrt(size(storeFitParams,1));
     RMS = mean(errorStore);
     AvgTS_model = mean(reconstructedTSmat);
    
@@ -182,12 +182,12 @@ if bDEBUG == 1
 elseif bDEBUG == 0
     % Parameter averaging    
     [meanMatrix, SEmatrix, stimTypeTagMatrix, paramNamesTagMatrix] = ...
-    paramStatistics(permute(storeUnique,[1 3 2]),stimTypeArr,paramsFit.paramNameCell);
+    paramStatistics(permute(storeFitParams,[1 3 2]),stimTypeCode,paramsFit.paramNameCell);
     % TTF & tau2 plots
     stimNamesCell = {'Light Flux','L - M','S'};    
-    plotParamsWrapper(actualStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell)
+    plotParamsWrapper(uniqueStimulusValues,meanMatrix,SEmatrix,stimTypeTagMatrix,paramNamesTagMatrix,stimNamesCell)
     % get time series statistics
-    [avgTS, stdTS, RMS, modelTS, idCell] = timeSeriesStatisticsBDCM(cleanedData,errorStore,reconstructedTSmat,stimTypeArr,runOrder);
+    [avgTS, stdTS, RMS, modelTS, idCell] = timeSeriesStatisticsBDCM(cleanedData,errorStore,reconstructedTSmat,stimTypeCode,runOrder);
     % plot
     plotModelFitsWrap(timebase, avgTS, stdTS, RMS, modelTS, idCell, ...
                          startTimesSorted_A, stimValuesSorted_A, ...
@@ -195,3 +195,18 @@ elseif bDEBUG == 0
 else
    error('fullBDCM: PICK VALID BOOLEAN VALUE FOR bDEBUG'); 
 end
+
+fitResults = struct; fitResults.storeFitParams = storeFitParams;
+fitResults.stimTypeCode = stimTypeCode; fitResults.paramsFit = paramsFit;
+fitResults.uniqueStimulusValues = uniqueStimulusValues; 
+fitResults.cleanedData = cleanedData; fitResults.errorStore = errorStore;
+fitResults.reconstructedTSmat = reconstructedTSmat; fitResults.runOrder = runOrder;
+fitResults.timebase = timebase; fitResults.startTimesSorted_A = startTimesSorted_A;
+fitResults.startTimesSorted_B = startTimesSorted_B;
+fitResults.stimValuesSorted_A = stimValuesSorted_A;
+fitResults.stimValuesSorted_B = stimValuesSorted_B;
+fitResults.lengthHRF = lengthHRF; fitResults.hrf = hrf; 
+fitResults.SEHRF = SEHRF; fitResults.hrfPointsToSample = hrfPointsToSample; 
+fitResults.stimValues = stimValues; fitResults.stimValuesSorted = stimValuesSorted;
+fitResults.startTimesSorted = startTimesSorted;
+fitResults.subjName = subj_name;
