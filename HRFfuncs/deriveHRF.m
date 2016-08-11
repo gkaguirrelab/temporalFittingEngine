@@ -24,7 +24,7 @@ function [HRF,fSet,betaValues,DesignMatrix,numCov,cleanedData] = deriveHRF(timeS
 %   DesignMatrix    - linearly indepedent Fourier set (timeSeries resolution)
 %   numCov          - number of independent covariates in the Fourier set
 %
-%   Written by Andrew S Bock Jul 2016
+%   Written by Andrew S Bock & Jovan Ortiz Bernhardt - Jul 2016
 
 %% Set defaults
 if ~exist('sampT','var') || isempty(sampT)
