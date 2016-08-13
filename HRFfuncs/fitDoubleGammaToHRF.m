@@ -2,7 +2,7 @@ function [fitParams] = fitDoubleGammaToHRF(t, data, stdError, displayFitPlotIn, 
 
 %% fitDoubleGammaToHRF
 %
-% This function fits a double gamma HRF model to an set of amplitufde data.
+% This function fits a double gamma HRF model to amplitude data.
 % In standard use, an HRF is measured using (e.g.) an FIR approach in BOLD
 % fMRI data. This routine is then used to produce a parameterized fit to
 % these data.
