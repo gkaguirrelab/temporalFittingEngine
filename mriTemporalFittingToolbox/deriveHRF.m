@@ -1,10 +1,11 @@
-function [HRF,fSet,betaValues,DesignMatrix,numCov,cleanedData] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
+function [HRF,cleanData,fSet,betaValues,DesignMatrix,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
 
 % Derives a haemodynamic response function (HRF) using fMRI time-series
 % data and an input matrix of event times.
 %
 %   Usage:
-%   [HRF,betaValues,fSet,estTC,numCov] = deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs)
+%   [HRF,cleanData,fSet,betaValues,DesignMatrix,numCov] = ...
+%       deriveHRF(timeSeries,eventTimes,sampT,HRFdur,numFreqs,modelType,phaseShift)
 %
 %   Inputs:
 %   timeSeries      - matrix of time-series data (TR x N)
@@ -19,19 +20,21 @@ function [HRF,fSet,betaValues,DesignMatrix,numCov,cleanedData] = deriveHRF(timeS
 %
 %   Outputs:
 %   HRF             - estimated HRF
+%   cleanData       - input timeseries with attention event responses regressed out
 %   betaValues      - beta weights for the linearly indepedent covariates
 %   fSet            - linearly indepedent Fourier set (msec resolution)
 %   DesignMatrix    - linearly indepedent Fourier set (timeSeries resolution)
 %   numCov          - number of independent covariates in the Fourier set
 %
 %   Written by Andrew S Bock & Jovan Ortiz Bernhardt - Jul 2016
+%   Order of outputs updated by Andrew S Bock Aug 2016
 
 %% Set defaults
 if ~exist('sampT','var') || isempty(sampT)
-    sampT       = 1000; % msec
+    sampT           = 1000; % msec
 end
 if ~exist('HRFdur','var') || isempty(HRFdur)
-    HRFdur      = 32000; % msec
+    HRFdur          = 16000; % msec
 end
 if ~exist('modelType','var') || isempty(modelType)
     modelType       = 'Fourier';
@@ -40,8 +43,8 @@ if ~exist('phaseShift','var') || isempty(phaseShift)
     phaseShift      = 0; 
 end
 % For Fourier set below
-t               = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
-fSet            = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
+t                   = linspace(0,HRFdur-1,HRFdur);  % Create Time (msec) Array
+fSet                = zeros(HRFdur,(2*numFreqs)+1); % Create blank Fourier Set (add one for the dc)
 %% Create Fourier Set
 ct = 1;
 fSet(:,ct)      = ones(HRFdur,1);               % Create DC component
@@ -58,7 +61,6 @@ DfSet           = resample(fSet,1,sampT);
 fSet            = fSet(:,goodCovs);
 fDims           = size(fSet);
 numCov          = fDims(2);                     % number of covariates
-
 %% CREATE FIR SET
 % initialize as zeros
 FIRset = zeros([round(HRFdur./sampT)+1 HRFdur]);
@@ -105,21 +107,21 @@ for i = 1:length(eventTimes)
     end
 end
 % Crop off Excess Rows (outside time-series)
-upMatrix        = tempMatrix(1:msecTC,:);
+upMatrix                = tempMatrix(1:msecTC,:);
 % Downsample design matrix to resolution of time-series data
-DesignMatrix    = resample(upMatrix,1,sampT);
+DesignMatrix            = resample(upMatrix,1,sampT);
 %% Run linear regression
 if strcmp(modelType,'FIR')
-   DesignMatrix = [ones([size(DesignMatrix,1) 1]) DesignMatrix]; 
+   DesignMatrix         = [ones([size(DesignMatrix,1) 1]) DesignMatrix]; 
 end
-betaValues      = DesignMatrix\timeSeries;
+betaValues              = DesignMatrix\timeSeries;
 %% Get the estimated hrf
 switch modelType
     case 'Fourier'
         HRF             = fSet * betaValues;
-        cleanedData = timeSeries - DesignMatrix*betaValues;
+        cleanData       = timeSeries - DesignMatrix*betaValues;
     case 'FIR'
-        biggestDelta = max(max(DesignMatrix(:,2:size(DesignMatrix,2))));
-        HRF = betaValues(2:length(betaValues))./(1./biggestDelta);     
-        cleanedData = timeSeries - DesignMatrix*betaValues;
+        biggestDelta    = max(max(DesignMatrix(:,2:size(DesignMatrix,2))));
+        HRF             = betaValues(2:length(betaValues))./(1./biggestDelta);     
+        cleanData       = timeSeries - DesignMatrix*betaValues;
 end
