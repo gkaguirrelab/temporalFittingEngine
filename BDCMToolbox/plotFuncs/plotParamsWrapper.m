@@ -36,7 +36,7 @@ for i = 1:size(meanMatrix,1)
        actualStimulusValuesToPlot(actualStimulusValuesToPlot==0)=1;
        % fit Watson model
        [~, ~, frequenciesHz_fine,y,offset] = ...
-       fitWatsonToTTF_errorGuided(actualStimulusValues,meansToPlot,SEtoPlot,0); 
+       fitWatsonToTTF(actualStimulusValues,meansToPlot,SEtoPlot,0); 
        % if we want to limit the portion of the Watson fit to plot
        validForPlot = frequenciesHz_fine>=0;
        plot(frequenciesHz_fine(validForPlot),y(validForPlot)+offset,[colorStr(stimTypeTagMatrix(i)) '-']); hold on

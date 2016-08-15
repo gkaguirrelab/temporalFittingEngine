@@ -1,4 +1,4 @@
-function [watsonFitToData, fitParams] = fitWatsonToTTF(frequenciesHz, data, displayFitPlotIn, initialParamsIn)
+function [watsonFitToData, fitParams,frequenciesHz_fine,y,offset] = fitWatsonToTTF(frequenciesHz, data, stdError, displayFitPlotIn, initialParamsIn)
 
 %% fitWatsonToTTF
 %
@@ -47,7 +47,7 @@ if length(frequenciesHz)~=length(data)
 end
 
 % Check the setting of the displayFitPlot flag
-if nargin==3
+if nargin==4
     displayFitPlot=displayFitPlotIn;
 end
 
@@ -60,9 +60,10 @@ end
 initialParams(1) = 0.004;
 initialParams(2) = 2;
 initialParams(3) = 1;
-initialParams(4) = 0.5;
+initialParams(4) = 1;
+initialParams(5) = 0.5;
 
-if nargin==4
+if nargin==5
     initialParams=initialParamsIn;
 end
 
@@ -74,7 +75,7 @@ offset=min(data);
 data=data-offset;
 
 % Run the optimization
-fitParams = fminsearch( (@(p) WatsonAmplitudeFit(p, frequenciesHz, data)), initialParams);
+fitParams = fminsearch( (@(p) WatsonAmplitudeFit(p, frequenciesHz, stdError, data)), initialParams);
 
 % Obtain the Watson linear model fit at the passed frequencies. These are
 % the values that we return by default
@@ -83,10 +84,12 @@ watsonFitToData = abs(WatsonLinearModel(frequenciesHz, fitParams));
 
 % If the user requested a plot, give it to them
 
+frequenciesHz_fine = linspace(frequenciesHz(1), frequenciesHz(end), 100);
+y = abs(WatsonLinearModel(frequenciesHz_fine, fitParams));
+    
 if displayFitPlot
     figure;
-    frequenciesHz_fine = linspace(frequenciesHz(1), frequenciesHz(end), 100);
-    y = abs(WatsonLinearModel(frequenciesHz_fine, fitParams));
+    
     % Plot the data
     r1 = semilogx(frequenciesHz, data+offset, 'sr', 'MarkerFaceColor', 'r'); hold on;
     
@@ -101,7 +104,7 @@ if displayFitPlot
 end
 
 
-function E = WatsonAmplitudeFit(params, frequenciesHz, y)
+function E = WatsonAmplitudeFit(params, frequenciesHz, stdError, y)
 
 % Error function, calculating the sum-of-squares for the data vs. the fit.
 
@@ -122,8 +125,18 @@ function E = WatsonAmplitudeFit(params, frequenciesHz, y)
 yhat = abs(WatsonLinearModel(frequenciesHz, params));
 
 % Calculate the sums-of-squares
+   
+errorPreSumSquared = (y - yhat).^2;
 
-E = sum((y-yhat).^2);
+% if std error is not given, don't implement weighting
+if isempty(stdError)
+   stdError = ones(size(errorPreSumSquared)); 
+end
+
+% weight sum squared error by std error
+errorPreSumSquared = errorPreSumSquared.*(1./stdError).^2;
+
+E = sum(errorPreSumSquared);
 
 
 function H = WatsonLinearModel(frequenciesHz, params)
@@ -194,3 +207,5 @@ function Hsub = nStageLowPassFilter(tau,frequenciesHz,filterOrder)
 %                the model
 
 Hsub = (1i*2*pi*frequenciesHz*tau + 1) .^ (-filterOrder);
+
+gribble = 1;
