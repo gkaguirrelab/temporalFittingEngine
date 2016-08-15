@@ -14,6 +14,7 @@ makeStimColorLine(startTimes, ...
                   repmat(min(timeSeriesAvgAct-timeSeriesStd), ...
                   [1 length(startTimes)]),stimValuesMat)
 yLims = get(gca,'YLim'); xLims = get(gca,'XLim');
+set(gca,'FontSize',12);
 
 text(xLims(2).*0.8,min(timeSeriesAvgAct),['RMS = ' num2str(round(MSE,3))]);
 

@@ -5,7 +5,7 @@ function plotModelFitsWrap(timebase, avgTS, stdTS, MSE, modelTS, idCell, startTi
 % wrapper function for BOLD fits--specialized for BDCM
 
 figure;
-set(gcf,'Position',[156 372 1522 641])
+set(gcf,'Position',[174 370 1518 641])
 
 for i = 1:size(avgTS,1)
     % determine the run order

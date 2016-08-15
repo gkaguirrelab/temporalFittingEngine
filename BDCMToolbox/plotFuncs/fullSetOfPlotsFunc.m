@@ -204,6 +204,7 @@ for i = 1:size(meanDataStore,1)
       [squeeze(meanDataStore(i,j,:))'+squeeze(SEdataStore(i,j,:))' ...
       fliplr(squeeze(meanDataStore(i,j,:))'-squeeze(SEdataStore(i,j,:))')], ...
       'k','FaceAlpha',0.15,'EdgeColor','none');
+       set(gca,'FontSize',13);
        if j == 1
           ylabel('% signal change');
        end
@@ -211,7 +212,9 @@ for i = 1:size(meanDataStore,1)
           xlabel('time/s'); 
        end
        if j == 4 
-          title([lightModDir(i) num2str(uniqueTempFreq(j)) ' Hz']);
+           freqForTitle = [char(num2str(uniqueTempFreq(j))) ' Hz'];
+           title([lightModDir(i) freqForTitle]);
+%            title(['Light Flux' ' 8 Hz']);
        else
           title([num2str(uniqueTempFreq(j)) ' Hz']);
        end
