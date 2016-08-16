@@ -10,7 +10,7 @@ function [packets] = makePackets(sessionDir,packetType,func)
 %   response.timebase   - 1 x TR vector of response times (msec)
 %
 %   HRF.values          - 1 x N vector of response values
-%   HRF.timebase        - 1 x N vector of response times (msec, should start at 0)
+%   HRF.timebase        - 1 x N vector of response times (msec)
 %
 %   Usage:
 %   [packets] = makePackets(inFile,packetType,anatFile,stimFile)
@@ -28,6 +28,7 @@ end
 anatFileName        = 'mh.areas.anat.vol.nii.gz';
 boldOutName         = 'mh.areas.func.vol.nii.gz';
 bbregName           = 'func_bbreg.dat';
+attFileName         = '*_attentionTask.txt';
 boldDirs            = find_bold(sessionDir);
 stimDirs            = listdir(fullfile(sessionDir,'Stimuli'),'dirs');
 % HRF defaults
@@ -56,13 +57,13 @@ for i = 1:length(boldDirs)
             ct = ct + 1;
             tmpWindow                   = ...
                 (stimData(k,1)*1000) : ( (stimData(k,1)*1000) + (stimData(k,2)*1000)-1 );
-            tmpWindow                   = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
-            thisVol                     = zVect;
-            thisVol(tmpWindow)          = 1;
-            thisVol                     = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
-            stimulus{i}.values(ct,:)    = thisVol;
-            stimulus{i}.timebase(ct,:)  = 0:TR:(runDur - TR);
-            stimulus{i}.file{ct}        = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
+            tmpWindow                           = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
+            thisVol                             = zVect;
+            thisVol(tmpWindow)                  = 1;
+            thisVol                             = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+            stimulus{i}.values(ct,:)            = thisVol;
+            stimulus{i}.timebase(ct,:)          = 0:runDur-1;
+            metaData{i}.fileName{ct}            = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
         end
     end
 end
@@ -99,18 +100,21 @@ end
 %% HRF
 for i = 1:length(boldDirs)
     % Get bold data details
+    TR                      = inData{i}.pixdim(5); % TR in msec
+    numTRs                  = size(inData{i}.vol,4);
+    runDur                  = TR * numTRs; % length of run (msec)
     timeSeries              = meanVals{i}'; % TR x N
     % Get the attention events
     attFile                 = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},...
-        '*_attentionTask.txt'),'files');
+        attFileName),'files');
     attEvents               = load(fullfile(sessionDir,'Stimuli',stimDirs{i},...
         attFile{1}));
     eventTimes              = round(attEvents(:,1)*1000); % attention events (msec)
     sampT                   = inData{i}.pixdim(5); % TR in msec
     [allHRF(i,:),cleanData]   = deriveHRF(...
         timeSeries,eventTimes,sampT,HRFdur,numFreqs);
-    response{i}.values      = cleanData';  
-    response{i}.timebase    = 0:TR:(runDur - TR);
+    response{i}.values      = timeSeries'; % could also use 'cleanData'
+    response{i}.timebase    = 0:TR:runDur-1; % beginning of each TR (msec)
 end
 HRF.values                  = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
 HRF.timebase                = 0:HRFdur-1;
@@ -119,4 +123,5 @@ for i = 1:length(boldDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
     packets{i}.HRF          = HRF; 
+    packets{i}.metaData     = metaData{i};
 end

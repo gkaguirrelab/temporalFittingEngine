@@ -112,7 +112,9 @@ upMatrix                = tempMatrix(1:msecTC,:);
 DesignMatrix            = resample(upMatrix,1,sampT);
 %% Run linear regression
 if strcmp(modelType,'FIR')
-   DesignMatrix         = [ones([size(DesignMatrix,1) 1]) DesignMatrix]; 
+    % Mean center the design matrix
+    DesignMatrix        = DesignMatrix - repmat(mean(DesignMatrix),size(DesignMatrix,1),1);
+    DesignMatrix        = [ones([size(DesignMatrix,1) 1]) DesignMatrix];
 end
 betaValues              = DesignMatrix\timeSeries;
 %% Get the estimated hrf
