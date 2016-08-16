@@ -123,6 +123,6 @@ HRF.timebase                = 0:HRFdur-1;
 for i = 1:length(boldDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
-    packets{i}.HRF          = HRF; 
+    packets{i}.HRF          = HRF;
     packets{i}.metaData     = metaData{i};
 end
