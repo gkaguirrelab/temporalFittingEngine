@@ -54,13 +54,15 @@ for i = 1:length(boldDirs)
         % stimulus events for each stimulus type
         for k = 1:size(stimData,1)
             ct = ct + 1;
-            tmpWindow               = ...
+            tmpWindow                   = ...
                 (stimData(k,1)*1000) : ( (stimData(k,1)*1000) + (stimData(k,2)*1000)-1 );
-            thisVol                 = zVect;
-            thisVol(tmpWindow)      = 1;
-            stimulus.values(ct,:)   = thisVol;
-            stimulus.timebase(ct)   = 0:TR:(runDur - TR);
-            stimulus.file{ct}       = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
+            tmpWindow                   = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
+            thisVol                     = zVect;
+            thisVol(tmpWindow)          = 1;
+            thisVol                     = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+            stimulus{i}.values(ct,:)    = thisVol;
+            stimulus{i}.timebase(ct,:)  = 0:TR:(runDur - TR);
+            stimulus{i}.file{ct}        = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
         end
     end
 end
@@ -105,21 +107,16 @@ for i = 1:length(boldDirs)
         attFile{1}));
     eventTimes              = round(attEvents(:,1)*1000); % attention events (msec)
     sampT                   = inData{i}.pixdim(5); % TR in msec
-    [allHRF(i,:)]   = deriveHRF(...
+    [allHRF(i,:),cleanData]   = deriveHRF(...
         timeSeries,eventTimes,sampT,HRFdur,numFreqs);
-    %response{i}.values      = cleanData;  
-    %response(i}.timebase    = 0:TR:(runDur - TR);
+    response{i}.values      = cleanData';  
+    response{i}.timebase    = 0:TR:(runDur - TR);
 end
-meanHRF                 = mean(allHRF);
-HRF                     = resample(meanHRF,1,sampT);
-%% Regress out attention events
-
-%%% to do %%%
-
-
+HRF.values                  = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
+HRF.timebase                = 0:HRFdur-1;
 %% Save outputs
 for i = 1:length(boldDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
-    packets{i}.HRF          = HRF;
+    packets{i}.HRF          = HRF; 
 end
