@@ -25,6 +25,7 @@ if ~exist('func','var') || isempty(func)
     func            = 'wdrf.tf';
 end
 % File / path defaults
+stimFileName        = '*_all.txt';
 anatFileName        = 'mh.areas.anat.vol.nii.gz';
 boldOutName         = 'mh.areas.func.vol.nii.gz';
 bbregName           = 'func_bbreg.dat';
@@ -48,7 +49,7 @@ for i = 1:length(boldDirs)
     zVect   = zeros(1,runDur);
     ct = 0;
     % stimulus files
-    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},'*_valid.txt'),'files');
+    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFileName),'files');
     for j = 1:length(stimFiles)
         % different stimulus types are specified by different stimulus files
         stimData = load(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j}));
