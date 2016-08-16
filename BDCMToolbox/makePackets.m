@@ -48,7 +48,7 @@ for i = 1:length(boldDirs)
     zVect   = zeros(1,runDur);
     ct = 0;
     % stimulus files
-    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},'*_valid.txt'),'files');
+    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},'*_all.txt'),'files');
     for j = 1:length(stimFiles)
         % different stimulus types are specified by different stimulus files
         stimData = load(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j}));

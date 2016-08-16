@@ -1,1 +1,3 @@
-mghRead(/data/jet/abock/freesurfer_subjects/HERO_asb1_7T_MS/mri//norm.mgz, -1): could not open file
+WARNING: 525383 NaNs found in volume /data/jag/MELA/MOUNT_SINAI/HERO_asb1/041416/anat_templates/mh.areas.anat.vol.nii.gz...
+
+niiWrite(): error opening file /data/jag/MELA/MOUNT_SINAI/HERO_asb1/041416/Series_015_bold_1.6_P2_mb5_LightFlux_B_run2/mh.areas.func.vol.nii.gz
