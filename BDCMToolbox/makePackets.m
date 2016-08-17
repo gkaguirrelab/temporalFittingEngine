@@ -119,7 +119,7 @@ for i = 1:length(boldDirs)
     eventTimes                  = round(attEvents(:,1)*1000); % attention events (msec)
     sampT                       = inData{i}.pixdim(5); % TR in msec
     [allHRF(i,:)]               = deriveHRF(...
-        timeSeries{i},eventTimes,sampT,HRFdur,numFreqs);
+        timeSeries{i}',eventTimes,sampT,HRFdur,numFreqs);
 end
 HRF.values                      = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
 HRF.timebase                    = 0:HRFdur-1;
