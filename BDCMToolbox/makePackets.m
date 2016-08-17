@@ -28,7 +28,7 @@ if ~exist('func','var') || isempty(func)
     func            = 'wdrf.tf';
 end
 % File / path defaults
-stimFileName        = '*_all.txt';
+excludeStimName     = 'performance.txt';
 anatFileName        = 'mh.areas.anat.vol.nii.gz';
 boldOutName         = 'mh.areas.func.vol.nii.gz';
 bbregName           = 'func_bbreg.dat';
@@ -52,22 +52,24 @@ for i = 1:length(boldDirs)
     zVect   = zeros(1,runDur);
     ct = 0;
     % stimulus files
-    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFileName),'files');
+    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i}),'files');
     for j = 1:length(stimFiles)
-        % different stimulus types are specified by different stimulus files
-        stimData = load(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j}));
-        % stimulus events for each stimulus type
-        for k = 1:size(stimData,1)
-            ct = ct + 1;
-            tmpWindow                   = ...
-                (stimData(k,1)*1000) : ( (stimData(k,1)*1000) + (stimData(k,2)*1000)-1 );
-            tmpWindow                           = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
-            thisVol                             = zVect;
-            thisVol(tmpWindow)                  = 1;
-            thisVol                             = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
-            stimulus{i}.values(ct,:)            = thisVol;
-            stimulus{i}.timebase(ct,:)          = 0:runDur-1;
-            stimulus{i}.metaData(ct).fileName   = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
+        if isempty(strfind(stimFiles{j},excludeStimName))
+            % different stimulus types are specified by different stimulus files
+            stimData = load(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j}));
+            % stimulus events for each stimulus type
+            for k = 1:size(stimData,1)
+                ct = ct + 1;
+                tmpWindow                           = ...
+                    (stimData(k,1)*1000) : ( (stimData(k,1)*1000) + (stimData(k,2)*1000)-1 );
+                tmpWindow                           = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
+                thisVol                             = zVect;
+                thisVol(tmpWindow)                  = 1;
+                thisVol                             = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+                stimulus{i}.values(ct,:)            = thisVol;
+                stimulus{i}.timebase(ct,:)          = 0:runDur-1;
+                stimulus{i}.metaData(ct).fileName   = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
+            end
         end
     end
 end
