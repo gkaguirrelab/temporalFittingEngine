@@ -2,18 +2,21 @@ function [packets] = makePackets(sessionDir,packetType,func)
 
 %   Outputs a 'packets' cell array of structures, each cell containing:
 %
+%   Usage:
+%   [packets] = makePackets(sessionDir,packetType,func)
+%
+%   Outputs:
 %   stimulus.values     - M x N matrix modeling M stimulus events
 %   stimulus.timebase   - 1 x N vector of stimulus times (msec)
-%   stimulus.file       - 1 x M cell array with the full path to the stimulus text file
+%   stimulus.metaData   - structure with info about the stimulus
 %
 %   response.values     - 1 x TR vector of response values
 %   response.timebase   - 1 x TR vector of response times (msec)
+%   response.metaData   - structure with info about the response
 %
 %   HRF.values          - 1 x N vector of response values
 %   HRF.timebase        - 1 x N vector of response times (msec)
-%
-%   Usage:
-%   [packets] = makePackets(inFile,packetType,anatFile,stimFile)
+%   HRF.metaData        - structure with info about the stimulus
 %
 %   Written by Andrew S Bock Aug 2016
 
@@ -64,11 +67,11 @@ for i = 1:length(boldDirs)
             thisVol                             = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
             stimulus{i}.values(ct,:)            = thisVol;
             stimulus{i}.timebase(ct,:)          = 0:runDur-1;
-            metaData{i}.fileName{ct}            = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
+            stimulus{i}.metaData(ct).fileName   = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
         end
     end
 end
-%% Response
+%% ROI
 switch packetType
     case 'V1'
         anatFile        = fullfile(sessionDir,'anat_templates',anatFileName);
@@ -83,46 +86,45 @@ switch packetType
             ROI{i}      = find(abs(areaData.vol)==1);
         end
 end
+%% Response
 % Convert fMRI to percent signal change, then average
 for i = 1:length(boldDirs)
     % Get bold data details
-    TR                  = inData{i}.pixdim(5); % TR in msec
-    numTRs              = size(inData{i}.vol,4);
-    runDur              = TR * numTRs; % length of run (msec)
-    thisVol             = inData{i}.vol;
+    TR                              = inData{i}.pixdim(5); % TR in msec
+    numTRs                          = size(inData{i}.vol,4);
+    runDur                          = TR * numTRs; % length of run (msec)
+    thisVol                         = inData{i}.vol;
     % reshape if a 4D volume
     if length(size(thisVol))>2
-        thisVol         = reshape(thisVol,size(thisVol,1)*size(thisVol,2)*size(thisVol,3),size(thisVol,4));
+        thisVol                     = reshape(thisVol,...
+            size(thisVol,1)*size(thisVol,2)*size(thisVol,3),size(thisVol,4));
     end
-    ROIvals             = thisVol(ROI{i},:);
-    pscVals{i}          = convert_to_psc(ROIvals);
-    meanVals{i}         = nanmean(pscVals{i});
+    ROIvals                         = thisVol(ROI{i},:);
+    pscVals                         = convert_to_psc(ROIvals);
+    timeSeries{i}                   = nanmean(pscVals);
+    response{i}.values              = timeSeries'; % could also use 'cleanData'
+    response{i}.timebase            = 0:TR:runDur-1; % beginning of each TR (msec)
+    response{i}.metaData.filename   = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
+    response{i}.metaData.packetType = packetType;
 end
 %% HRF
 for i = 1:length(boldDirs)
-    % Get bold data details
-    TR                      = inData{i}.pixdim(5); % TR in msec
-    numTRs                  = size(inData{i}.vol,4);
-    runDur                  = TR * numTRs; % length of run (msec)
-    timeSeries              = meanVals{i}'; % TR x N
     % Get the attention events
-    attFile                 = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},...
+    attFile                     = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},...
         attFileName),'files');
-    attEvents               = load(fullfile(sessionDir,'Stimuli',stimDirs{i},...
+    attEvents                   = load(fullfile(sessionDir,'Stimuli',stimDirs{i},...
         attFile{1}));
-    eventTimes              = round(attEvents(:,1)*1000); % attention events (msec)
-    sampT                   = inData{i}.pixdim(5); % TR in msec
-    [allHRF(i,:),cleanData]   = deriveHRF(...
-        timeSeries,eventTimes,sampT,HRFdur,numFreqs);
-    response{i}.values      = timeSeries'; % could also use 'cleanData'
-    response{i}.timebase    = 0:TR:runDur-1; % beginning of each TR (msec)
+    eventTimes                  = round(attEvents(:,1)*1000); % attention events (msec)
+    sampT                       = inData{i}.pixdim(5); % TR in msec
+    [allHRF(i,:)]               = deriveHRF(...
+        timeSeries{i},eventTimes,sampT,HRFdur,numFreqs);
 end
-HRF.values                  = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
-HRF.timebase                = 0:HRFdur-1;
+HRF.values                      = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
+HRF.timebase                    = 0:HRFdur-1;
+HRF.metaData.packetType         = packetType;
 %% Save outputs
 for i = 1:length(boldDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
     packets{i}.HRF          = HRF;
-    packets{i}.metaData     = metaData{i};
 end
