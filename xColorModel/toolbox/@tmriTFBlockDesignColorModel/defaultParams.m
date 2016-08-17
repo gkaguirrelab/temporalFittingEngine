@@ -21,7 +21,7 @@ p.parse(varargin{:});
 if (isempty(p.Results.DefaultParamsInfo))
     nStimuli = 10;
 else
-    nStimuli = p.Results.DefaultParamsInfo.nStimuli;
+    nStimuli = p.Results.DefaultParamsInfo.nEvents;
 end
 
 % Use general routine that is also called by the non-object oriented

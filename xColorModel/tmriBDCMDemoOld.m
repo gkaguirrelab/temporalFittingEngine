@@ -14,52 +14,28 @@ AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
 %% Construct the model object
 tmri = tmriTFBlockDesignColorModel;
 
-%% Load in some packets to play with
-%
-% Eventually, we will update this to use a fancier packet delivery
-% method, but for now we just want to prepare for that joyous day.
-%
-% The packets variable in the .mat file is a cell array of packets, each a
-% structure.
-theExampleData = load(fullfile('BDCMTestData','packets_asb1_041416.mat'));
-nPacketsRead = length(theExampleData.packets);
-nPackets = 4;
-thePackets = theExampleData.packets(1:nPackets);
-clear theExampleData
-
-%% Start by analyzing just one packet
-%
-% Adjust the example packet format to match the format that will eventually
-% be supplied
-thePacket = thePackets{1};
-for ct = 1:length(thePacket.metaData.fileName)
-    thePacket.stimulus.metaData(ct).fileName = thePacket.metaData.fileName{ct};
-    thePacket.stimulus.metaData(ct).frequency = 0; % Figure me out
-    thePacket.stimulus.metaData(ct).colordir = 'Foo'; % Figure me out
-end
-
-%% How many individual stimuli were there
-defaultParamsInfo.nEvents = size(thePacket.stimulus.values,1);
-
 %% Specify the stimulus and response. 
 %
 % The information is currently spread across two test structures, so we
 % load them both an re-arrange to our liking here.
 %
-% Be sure to define defaultParamsInfo.nEvents here, as we need it to create default
+% Be sure to define defaultParamsInfo.nStimuli here, as we need it to create default
 % parameters for the model.
-% whichRunToTest = 1;
-% stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
-% stimulus.stimValues = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
-% stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
-% stimulus.startTimesSorted_B = theTestStimuli.stimulusStruct.startTimesSorted_B;
-% stimulus.stimValuesSorted_A = theTestStimuli.stimulusStruct.stimValuesSorted_A;
-% stimulus.stimValuesSorted_B = theTestStimuli.stimulusStruct.stimValuesSorted_B;
-% stimulus.uniqueTemporalFreq = theTestStimuli.stimulusStruct.uniqueTemporalFreq;
-% stimulus.AOrB = theTestData.exampleResponses.runOrder(whichRunToTest);
-% stimulus.modulationDir = theTestData.exampleResponses.modulationDir(whichRunToTest);
-% boldResponse = squeeze(theTestData.exampleResponses.cleanedData(whichRunToTest,:));
-% clearvars('theTestStimuli','theTestData');
+theTestStimuli = load(fullfile('BDCMTestData','asb1Stimuli.mat'));
+theTestData = load(fullfile('BDCMTestData','asb1ExampleResponses.mat'));
+whichRunToTest = 1;
+stimulus.stimMatrix = squeeze(theTestStimuli.stimulusStruct.stimMatrix(whichRunToTest,:,:));
+stimulus.stimValues = squeeze(theTestStimuli.stimulusStruct.stimValuesForRunStore(whichRunToTest,:));
+stimulus.startTimesSorted_A = theTestStimuli.stimulusStruct.startTimesSorted_A;
+stimulus.startTimesSorted_B = theTestStimuli.stimulusStruct.startTimesSorted_B;
+stimulus.stimValuesSorted_A = theTestStimuli.stimulusStruct.stimValuesSorted_A;
+stimulus.stimValuesSorted_B = theTestStimuli.stimulusStruct.stimValuesSorted_B;
+stimulus.uniqueTemporalFreq = theTestStimuli.stimulusStruct.uniqueTemporalFreq;
+stimulus.AOrB = theTestData.exampleResponses.runOrder(whichRunToTest);
+stimulus.modulationDir = theTestData.exampleResponses.modulationDir(whichRunToTest);
+boldResponse = squeeze(theTestData.exampleResponses.cleanedData(whichRunToTest,:));
+clearvars('theTestStimuli','theTestData');
+defaultParamsInfo.nStimuli = size(stimulus.stimMatrix,1);
 
 %% Set parameters
 %
