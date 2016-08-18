@@ -34,7 +34,7 @@ clear theExampleData
 thePacket = thePackets{1};
 for ct = 1:length(thePacket.metaData.fileName)
     thePacket.stimulus.metaData(ct).fileName = thePacket.metaData.fileName{ct};
-    thePacket.stimulus.metaData(ct).frequency = 0; % Figure me out
+    thePacket.stimulus.metaData(ct).frequency = BDCMfilenameReader(thePacket.metaData.fileName{ct});
     thePacket.stimulus.metaData(ct).colordir = 'Foo'; % Figure me out
 end
 
@@ -93,7 +93,7 @@ end
 % clearvars('theTestHRF');
 
 %% Get parameter locking matrix
-% paramLockMatrix = tmri.lockMatrix(params0,stimulus);
+% paramLockMatrix = tmri.lockMatrix(params0,thePacket.stimulus);
 paramLockMatrix = [];
 
 %% Plot the BOLD response

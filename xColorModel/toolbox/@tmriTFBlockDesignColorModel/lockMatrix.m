@@ -14,10 +14,15 @@ p.addParameter('LockType','vanilla',@ischar);
 p.parse(params,varargin{:});
 params = p.Results.params;
 
+% extract temp freq values from meta data field
+for i = 1:length(stimulus.metaData)
+   tempFreqValues(i) = stimulus.metaData(i).frequency; 
+end
+
 %% Create the lock matrix
 switch (p.Results.LockType)
     case 'vanilla'
-        paramLockMatrix = createParamLockMatrixVanilla(stimulus.uniqueTemporalFreq,stimulus.stimValues,params.matrixCols);
+        paramLockMatrix = createParamLockMatrixVanilla(unique(tempFreqValues),tempFreqValues,params.matrixCols);
     otherwise
         error('Unknown lock type passed');
 end
