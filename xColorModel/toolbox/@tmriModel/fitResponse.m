@@ -1,11 +1,10 @@
-function [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
+function [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,stimulus,responseToFit,varargin)
 % [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,stimulus,responseToFit,varargin)
 % 
 % Fit method for the tmri class.  This is meant to be model independent, so
 % that we only have to write it once.
 %
 % Inputs:
-%   timebase - cell array of times on which data/model predictions exist
 %   stimulus - cell array of stimulus descriptions
 %   responseToFit - cell array of responses to fit
 %
@@ -17,7 +16,7 @@ function [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,
 % Optional key/value pairs
 %  'DefaultParamsInfo' - a struct passed to the defaultParams method.
 %    Empty matrix is default.
-%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
+%  'HRF' - a cell of structures describing the HRF to be used to go from neural to BOLD response.
 %    Empty matrix is default, in which case no convolution is done
 %  'paramLockMatrix' - Do parameter locking according to passed matrix.
 %    This matrix has the same number of columns as the parameter vector,
@@ -32,13 +31,12 @@ function [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,timebase,
 
 %% Parse vargin for options passed here
 p = inputParser;
-p.addRequired('timebase',@iscell);
 p.addRequired('stimulus',@iscell);
 p.addRequired('responseToFit',@iscell);
 p.addParameter('DefaultParamsInfo',[],@isstruct);
-p.addParameter('HRF',[],@isstruct);
+p.addParameter('HRF',[],@iscell);
 p.addParameter('paramLockMatrix',[],@isnumeric);
-p.parse(timebase,stimulus,responseToFit,varargin{:});
+p.parse(stimulus,responseToFit,varargin{:});
 
 %% Set initial values and reasonable bounds on parameters
 % Have a go at reasonable initial values
@@ -57,18 +55,18 @@ if (~USEGLOBAL)
     options = optimset('fmincon');
     options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
     paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-        p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
+       p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
 else
     opts = optimoptions(@fmincon,'Algorithm','interior-point');
     problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)obj.fitError(modelParamsVec,p.Results.timebase,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),...
+        @(modelParamsVec)obj.fitError(modelParamsVec,p.Results.stimulus,p.Results.responseToFit,p.Results.HRF),...
         'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
     gs = GlobalSearch;
     paramsFitVec = run(gs,problem);
 end
 
 % Get error and predicted response for final parameters
-[fVal,allFVals,predictedResponse] = obj.fitError(paramsFitVec,timebase,stimulus,responseToFit,p.Results.HRF);
+[fVal,allFVals,predictedResponse] = obj.fitError(paramsFitVec,stimulus,responseToFit,p.Results.HRF);
 
 % Convert fit parameters for return
 paramsFit = obj.vecToParams(paramsFitVec);

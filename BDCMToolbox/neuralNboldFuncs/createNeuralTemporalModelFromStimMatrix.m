@@ -39,7 +39,7 @@ function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix,
 %
 % Input properties:
 %
-%   t - a vector of time points, in seconds
+%   t - a vector of time points, in milliseconds
 %   yStimulus - a vector of stimulus amplitude. The length must be the same
 %               as t. The absolute amplitude is arbitraty.
 %   displayFitPlotIn - Boolean flag indicating if you want a plot. Optional.
@@ -56,6 +56,8 @@ function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix,
 % 05-30-2016 -  gka wrote it
 % 06-23-2016 -  gka modified to serve as a function call in fminsearch
 
+% decaying exponential expects t in terms of seconds: ms->s
+t = t./1000;
 modelLength = length(t);
 stimDimension=size(stimMatrix,1);
 

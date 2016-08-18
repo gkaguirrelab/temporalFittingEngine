@@ -1,4 +1,4 @@
-function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,timebase,stimulus,responseToFit,HRF)
+function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
 % [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,timebase,stimulus,responseToFit,HRF)
 %
 % Compute the error measure for passed model parameters, for the tmir
@@ -6,10 +6,9 @@ function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,timebase,sti
 %
 % Inputs:
 %   paramsVec - model parameters in their vector form.  Just one of these
-%   timebase - cell array of times on which data/model predictions exist
 %   stimulus - cell array of stimulus descriptions
 %   responseToFit - cell array of responses to fit
-%   HRF - structure defining the HRF.  Can be empty, in which case no HRF
+%   HRF - cell array of structures defining the HRF.  Can be empty, in which case no HRF
 %         is applied.
 %
 % Each entry of the cell arrays is for one run, and the fit is to find the
@@ -25,17 +24,25 @@ function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,timebase,sti
 %% Parse vargin for options passed here
 p = inputParser;
 p.addRequired('paramsVec',@isnumeric);
-p.addRequired('timebase',@iscell);
 p.addRequired('stimulus',@iscell);
 p.addRequired('responseToFit',@iscell);
-p.addRequired('HRF');
-p.parse(paramsVec,timebase,stimulus,responseToFit,HRF);
+p.addRequired('HRF',@iscell);
+p.parse(paramsVec,stimulus,responseToFit,HRF);
 
 params = obj.vecToParams(paramsVec);
-for ii = 1:length(timebase)
-    responsePredicted{ii} = obj.computeResponse(params,timebase{ii},stimulus{ii},'HRF',p.Results.HRF);
-    allFVals(ii) = sqrt(mean((responsePredicted{ii}-responseToFit{ii}).^2));
+
+for ii = 1:length(responseToFit)
+    % the modeled fit might be at a higher sampling rate than the actual
+    % response; determine the factor to downsample by
+    factorToDownSample = round(length(stimulus{ii}.timebase)/length(responseToFit{ii}.timebase));
+    % compute the fit
+    responsePredicted{ii} = obj.computeResponse(params,stimulus{ii}.timebase,stimulus{ii},'HRF',p.Results.HRF{ii});
+    % resample the fit
+    downSampledResponsePredicted = resample(responsePredicted{ii},1,factorToDownSample);
+    % get error measurement
+    allFVals(ii) = sqrt(mean((downSampledResponsePredicted-responseToFit{ii}.values).^2));
 end
 fVal = mean(allFVals);
+display(num2str(fVal));
 
 end

@@ -82,32 +82,33 @@ end
 %
 % For now, we know that the TRs are in one second units, and we have
 % decided to work in one second units.
-deltaT = 1;
-totalTime = size(stimulus.stimMatrix,2)-1;
-timebase = 0:deltaT:totalTime;
+% deltaT = 1;
+% totalTime = size(stimulus.stimMatrix,2)-1;
+% timebase = 0:deltaT:totalTime;
 
 %% Get the HRF
-theTestHRF = load(fullfile('BDCMTestData','asb1HRF.mat'));
-theHRF.HRF = theTestHRF.BOLDHRF;
-theHRF.timebase = 0:deltaT:(size(theHRF.HRF,2)-1);
-clearvars('theTestHRF');
+% theTestHRF = load(fullfile('BDCMTestData','asb1HRF.mat'));
+% theHRF.HRF = theTestHRF.BOLDHRF;
+% theHRF.timebase = 0:deltaT:(size(theHRF.HRF,2)-1);
+% clearvars('theTestHRF');
 
 %% Get parameter locking matrix
-paramLockMatrix = tmri.lockMatrix(params0,stimulus);
+% paramLockMatrix = tmri.lockMatrix(params0,stimulus);
+paramLockMatrix = [];
 
 %% Plot the BOLD response
-tmri.plot(timebase,boldResponse);
+tmri.plot(thePacket.response.timebase,thePacket.response.values);
 
 %% Test the fitter
 % [paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
 %                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);
-[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({timebase},{stimulus},{boldResponse}, ...
-                          'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo, ...
+[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({thePacket.stimulus},{thePacket.response}, ...
+                          'HRF',{thePacket.HRF},'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
 tmri.print(paramsFit);
-tmri.plot(timebase,fitResponse{1},'Color',[0 1 0],'NewWindow',false);
-[~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
+tmri.plot(thePacket.stimulus.timebase(1,:),fitResponse{1},'Color',[0 1 0],'NewWindow',false);
+% [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
 
 %% Test that we can obtain a neural response
 % fprintf('Simulated model parameters:\n');

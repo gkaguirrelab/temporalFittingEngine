@@ -17,15 +17,20 @@ function boldResponse = applyHRF(obj,timebase,neuralResponse,theHRF,varargin)
 p = inputParser;
 p.addRequired('timebase',@isnumeric);
 p.addRequired('neuralResponse',@isnumeric);
-p.addRequired('HRF');
+p.addRequired('HRF',@isstruct);
 p.parse(timebase,neuralResponse,theHRF,varargin{:});
 
 %% If empty matrix is passed for HRF, do nothing, otherwise convolve with HRF.
 if (isempty(theHRF))
     boldResponse = neuralResponse;
-else
+else 
+    % align HRF with 0, if not already done
+    zeroAlignedHRF = theHRF.values-theHRF.values(1);
+    % HRF and neuralResponse need to be same length: pad with 0's
+    HRFconvKernel = zeros(size(neuralResponse));
+    HRFconvKernel(1:length(zeroAlignedHRF)) = zeroAlignedHRF;
     % Convolve stimulus with HRF to get BOLD response from neural response.
-    boldResponsePreCut = conv(neuralResponse,theHRF.HRF) ;
+    boldResponsePreCut = conv(neuralResponse,HRFconvKernel) ;
     
     % Cut off extra conv values
     %
