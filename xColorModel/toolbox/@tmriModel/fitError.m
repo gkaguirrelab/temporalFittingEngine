@@ -43,6 +43,5 @@ for ii = 1:length(responseToFit)
     allFVals(ii) = sqrt(mean((downSampledResponsePredicted-responseToFit{ii}.values).^2));
 end
 fVal = mean(allFVals);
-display(num2str(fVal));
 
 end

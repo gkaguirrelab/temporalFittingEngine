@@ -38,6 +38,11 @@ for ct = 1:length(thePacket.metaData.fileName)
     thePacket.stimulus.metaData(ct).colordir = 'Foo'; % Figure me out
 end
 
+%% downsample
+
+thePacket.stimulus = tmri.downsamplePacketStruct(thePacket.stimulus,1000);
+thePacket.HRF = tmri.downsamplePacketStruct(thePacket.HRF,1000);
+
 %% How many individual stimuli were there
 defaultParamsInfo.nEvents = size(thePacket.stimulus.values,1);
 

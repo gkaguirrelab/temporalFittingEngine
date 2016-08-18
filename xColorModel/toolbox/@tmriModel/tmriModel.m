@@ -59,6 +59,7 @@ classdef tmriModel < handle
         
         % Plot fit parameters for neural model
         h = plotParams(obj,param,stimValues);
+        
     end
     
     % Methods may be called by the subclasses, but are otherwise private 
