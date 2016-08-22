@@ -24,27 +24,62 @@ tmri = tmriTFBlockDesignColorModel;
 theExampleData = load(fullfile('BDCMTestData','packets_asb1_041416.mat'));
 nPacketsRead = length(theExampleData.packets);
 nPackets = 4;
-thePackets = theExampleData.packets(1:nPackets);
+thePackets = cell(nPackets,1);
+for ii = 1:length(thePackets)
+    thePackets{ii} = theExampleData.packets{ii};
+end
 clear theExampleData
 
-%% Start by analyzing just one packet
-%
-% Adjust the example packet format to match the format that will eventually
-% be supplied
-thePacket = thePackets{1};
-for ct = 1:length(thePacket.metaData.fileName)
-    thePacket.stimulus.metaData(ct).fileName = thePacket.metaData.fileName{ct};
-    thePacket.stimulus.metaData(ct).frequency = BDCMfilenameReader(thePacket.metaData.fileName{ct});
-    thePacket.stimulus.metaData(ct).colordir = 'Foo'; % Figure me out
+% Fix example packets to look like what we have decided real packets will
+% be like.
+for ii = 1:length(thePackets)
+    thePackets{ii}.stimulus.timebase = thePackets{ii}.stimulus.timebase(1,:);
+    thePackets{ii}.response.timebase = thePackets{ii}.response.timebase(1,:);
+    thePackets{ii}.HRF.timebase = thePackets{ii}.HRF.timebase(1,:);
+    
+    for ct = 1:length(thePackets{ii}.metaData.fileName)
+        thePackets{ii}.stimulus.metaData(ct).fileName = thePackets{ii}.metaData.fileName{ct};
+        thePackets{ii}.stimulus.metaData(ct).frequency = BDCMfilenameReader(thePackets{ii}.metaData.fileName{ct});
+        thePackets{ii}.stimulus.metaData(ct).colordir = 'Foo'; % Figure me out
+    end
 end
 
-%% downsample
+%% Downsample timebase to something more manageable
+%
+% Time is in milliseconds, so with timeFactor = 100 we go to 
+% roughly 100 millisecond time steps.
+%
+% Here we are assuming that all packet stimuli live on the same
+% timebase as each other, and same for all packet HRFs.  Probably should
+% check or generalize.
+timeFactor = 100;
+startTime = thePackets{1}.stimulus.timebase(1);
+endTime = thePackets{1}.stimulus.timebase(end);
+nTimeSamples = round(endTime/timeFactor);
+newStimulusTimebase = linspace(startTime,endTime,nTimeSamples+1);
+startTime = thePackets{1}.HRF.timebase(1);
+endTime = thePackets{1}.HRF.timebase(end);
+nTimeSamples = round(endTime/timeFactor);
+newHRFTimebase = linspace(startTime,endTime,nTimeSamples+1);
 
-thePacket.stimulus = tmri.downsamplePacketStruct(thePacket.stimulus,1000);
-thePacket.HRF = tmri.downsamplePacketStruct(thePacket.HRF,1000);
+% May want a utility function to convert lists of packets into lists of
+% their substructures, and back.
+for ii = 1:nPackets
+    theStimulusList{ii} = thePackets{ii}.stimulus;
+    theHRFList{ii} = thePackets{ii}.HRF;
+end
+resampledStimulusList = tmri.resamplePacketStruct(theStimulusList,newStimulusTimebase);
+resampledHRFList = tmri.resamplePacketStruct(theHRFList,newHRFTimebase);
+for ii = 1:nPackets
+    thePackets{ii}.stimulus = resampledStimulusList{ii};
+    theHRFList{ii} = resampledHRFList{ii};
+end
 
 %% How many individual stimuli were there
-defaultParamsInfo.nEvents = size(thePacket.stimulus.values,1);
+%
+% This needs a little thought and perhaps should become a makeDesign sort
+% of function
+defaultParamsInfo.nEvents = size(thePackets{1}.stimulus.values,1);
 
 %% Specify the stimulus and response. 
 %
@@ -83,36 +118,24 @@ if (any(params1.paramMainMatrix ~= params2.paramMainMatrix))
     error('vecToParams and paramsToVec do not invert');
 end
 
-%% Set the timebase we want to compute on
-%
-% For now, we know that the TRs are in one second units, and we have
-% decided to work in one second units.
-% deltaT = 1;
-% totalTime = size(stimulus.stimMatrix,2)-1;
-% timebase = 0:deltaT:totalTime;
-
-%% Get the HRF
-% theTestHRF = load(fullfile('BDCMTestData','asb1HRF.mat'));
-% theHRF.HRF = theTestHRF.BOLDHRF;
-% theHRF.timebase = 0:deltaT:(size(theHRF.HRF,2)-1);
-% clearvars('theTestHRF');
-
 %% Get parameter locking matrix
 % paramLockMatrix = tmri.lockMatrix(params0,thePacket.stimulus);
 paramLockMatrix = [];
 
 %% Plot the BOLD response
-tmri.plot(thePacket.response.timebase,thePacket.response.values);
+%
+% Need to modify this to handle lists of packets.  Should we pass the lists
+% to plot, or should we loop around the plot function?
+% tmri.plot(thePacket.response.timebase,thePacket.response.values);
 
 %% Test the fitter
 % [paramsFit,fitResponse] = tmri.fitResponse(timebase,stimulus,boldResponse, ...
 %                           'HRF',theHRF,'DefaultParamsInfo',defaultParamsInfo);
-[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({thePacket.stimulus},{thePacket.response}, ...
-                          'HRF',{thePacket.HRF},'DefaultParamsInfo',defaultParamsInfo, ...
+[paramsFit,fVal,fitResponse] = tmri.fitResponse(thePackets,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
-tmri.print(paramsFit);
-tmri.plot(thePacket.stimulus.timebase(1,:),fitResponse{1},'Color',[0 1 0],'NewWindow',false);
+%tmri.print(paramsFit);
+%tmri.plot(thePacket.stimulus.timebase(1,:),fitResponse{1},'Color',[0 1 0],'NewWindow',false);
 % [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);
 
 %% Test that we can obtain a neural response
