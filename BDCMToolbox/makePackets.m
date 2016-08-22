@@ -27,17 +27,31 @@ end
 if ~exist('func','var') || isempty(func)
     func            = 'wdrf.tf';
 end
-% File / path defaults
-excludeStimName     = 'performance.txt';
+%% File / path defaults
 anatFileName        = 'mh.areas.anat.vol.nii.gz';
 boldOutName         = 'mh.areas.func.vol.nii.gz';
 bbregName           = 'func_bbreg.dat';
 attFileName         = '*_attentionTask.txt';
+% stimulus files
+matDir              = fullfile(sessionDir,'MatFiles');
+matFiles            = listdir(matDir,'files');
+% response files
 boldDirs            = find_bold(sessionDir);
-stimDirs            = listdir(fullfile(sessionDir,'Stimuli'),'dirs');
 % HRF defaults
+attentionTaskNames  = {'MirrorsOffMaxLMS','MirrorsOffMaxMel'};
 HRFdur              = 16000;
 numFreqs            = HRFdur/1000;
+%% Meta data
+[subjectStr,sessionDate]        = fileparts(sessionDir);
+[projectStr,subjectName]        = fileparts(subjectStr);
+[~,projectName]                 = fileparts(projectStr);
+for i = 1:length(boldDirs)
+    metaData{i}.projectName     = projectName;
+    metaData{i}.subjectName     = subjectName;
+    metaData{i}.sessionDate     = sessionDate;
+    metaData{i}.stimulusFile    = fullfile(matDir,matFiles{i});
+    metaData{i}.responseFile    = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
+end
 %% Load in fMRI data
 for i = 1:length(boldDirs)
     inFile          = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
@@ -46,31 +60,53 @@ end
 %% Stimulus
 for i = 1:length(boldDirs)
     % Get bold data details
-    TR      = inData{i}.pixdim(5); % TR in msec
-    numTRs  = size(inData{i}.vol,4);
-    runDur  = TR * numTRs; % length of run (msec)
-    zVect   = zeros(1,runDur);
-    ct = 0;
-    % stimulus files
-    stimFiles = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i}),'files');
-    for j = 1:length(stimFiles)
-        if isempty(strfind(stimFiles{j},excludeStimName))
-            % different stimulus types are specified by different stimulus files
-            stimData = load(fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j}));
-            % stimulus events for each stimulus type
-            for k = 1:size(stimData,1)
-                ct = ct + 1;
-                tmpWindow                           = ...
-                    (stimData(k,1)*1000) : ( (stimData(k,1)*1000) + (stimData(k,2)*1000)-1 );
-                tmpWindow                           = ceil(tmpWindow); % for event timing greater than msec precision, typically starting ~0 seconds
-                thisVol                             = zVect;
-                thisVol(tmpWindow)                  = 1;
-                thisVol                             = thisVol(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
-                stimulus{i}.values(ct,:)            = thisVol;
-                stimulus{i}.timebase(ct,:)          = 0:runDur-1;
-                stimulus{i}.metaData(ct).fileName   = fullfile(sessionDir,'Stimuli',stimDirs{i},stimFiles{j});
-            end
+    TR                              = inData{i}.pixdim(5); % TR in msec
+    numTRs                          = size(inData{i}.vol,4);
+    runDur                          = TR * numTRs; % length of run (msec)
+    stimulus{i}.timebase            = 0:runDur-1;
+    zVect                           = zeros(1,runDur);
+    % Load that .mat file produced by the stimulus computer
+    stimulus{i}.metaData            = load(fullfile(matDir,matFiles{i}));
+    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
+        % phase offset
+        if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
+            phaseOffsetSec = stimulus{i}.metaData.params.thePhaseOffsetSec(...
+                stimulus{i}.metaData.params.thePhaseIndices(j));
+        else
+            phaseOffsetSec = 0;
         end
+        % start time
+        startTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
+            stimulus{i}.metaData.params.responseStruct.tBlockStart + phaseOffsetSec;
+        % duration
+        if isfield(stimulus{i}.metaData.params.responseStruct.events(1).describe.params,'stepTimeSec')
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.stepTimeSec + ...
+                2*stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
+        else
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialEnd - ...
+                stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart;
+        end
+        % stimulus window
+        stimWindow                  = ceil((startTime*1000) : (startTime*1000 + ((durTime*1000)-1)));
+        % Save the stimulus values
+        thisStim                    = zVect;
+        thisStim(stimWindow)        = 1;
+        % trim stimulus
+        thisStim                    = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+        % cosine ramp onset
+        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowIn
+            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+            cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
+            thisStim(stimWindow(1:winDur*1000)) = cosOn;
+        end
+        % cosine ramp offset
+        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowOut
+            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+            cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
+            thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
+        end
+        % save stimulus values
+        stimulus{i}.values(j,:)     = thisStim;
     end
 end
 %% ROI
@@ -112,11 +148,19 @@ end
 %% HRF
 for i = 1:length(boldDirs)
     % Get the attention events
-    attFile                     = listdir(fullfile(sessionDir,'Stimuli',stimDirs{i},...
-        attFileName),'files');
-    attEvents                   = load(fullfile(sessionDir,'Stimuli',stimDirs{i},...
-        attFile{1}));
-    eventTimes                  = round(attEvents(:,1)*1000); % attention events (msec)
+    ct = 0;
+    attEvents = [];
+    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
+        % Get the attention events
+        if sum(strcmp(stimulus{i}.metaData.params.responseStruct.events(j).describe.direction,attentionTaskNames))
+            ct = ct + 1;
+            % Get the stimulus window
+            attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
+                stimulus{i}.metaData.params.responseStruct.tBlockStart + ...
+                stimulus{i}.metaData.params.thePhaseOffsetSec(stimulus{i}.metaData.params.thePhaseIndices(j));
+        end
+    end
+    eventTimes                  = round(attEvents*1000); % attention events (msec)
     sampT                       = inData{i}.pixdim(5); % TR in msec
     [allHRF(i,:)]               = deriveHRF(...
         timeSeries{i}',eventTimes,sampT,HRFdur,numFreqs);
@@ -129,4 +173,5 @@ for i = 1:length(boldDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
     packets{i}.HRF          = HRF;
+    packets{i}.metaData     = metaData{i};
 end
