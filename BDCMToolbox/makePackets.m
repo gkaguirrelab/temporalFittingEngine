@@ -96,8 +96,6 @@ for i = 1:length(boldDirs)
         % Save the stimulus values
         thisStim                    = zVect;
         thisStim(stimWindow)        = 1;
-        % trim stimulus
-        thisStim                    = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
         % cosine ramp onset
         if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowIn
             winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
@@ -110,6 +108,8 @@ for i = 1:length(boldDirs)
             cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
             thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
         end
+        % trim stimulus
+        thisStim                    = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
         % save stimulus values
         stimulus{i}.values(j,:)     = thisStim;
     end
