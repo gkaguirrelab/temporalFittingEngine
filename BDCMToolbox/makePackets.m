@@ -6,17 +6,23 @@ function [packets] = makePackets(sessionDir,packetType,func)
 %   [packets] = makePackets(sessionDir,packetType,func)
 %
 %   Outputs:
-%   stimulus.values     - M x N matrix modeling M stimulus events
-%   stimulus.timebase   - 1 x N vector of stimulus times (msec)
-%   stimulus.metaData   - structure with info about the stimulus
+%   stimulus.values         - M x N matrix modeling M stimulus events
+%   stimulus.timebase       - 1 x N vector of stimulus times (msec)
+%   stimulus.metaData       - structure with info about the stimulus
 %
-%   response.values     - 1 x TR vector of response values
-%   response.timebase   - 1 x TR vector of response times (msec)
-%   response.metaData   - structure with info about the response
+%   response.values         - 1 x TR vector of response values
+%   response.timebase       - 1 x TR vector of response times (msec)
+%   response.metaData       - structure with info about the response
 %
-%   HRF.values          - 1 x N vector of response values
-%   HRF.timebase        - 1 x N vector of response times (msec)
-%   HRF.metaData        - structure with info about the stimulus
+%   HRF.values              - 1 x N vector of response values
+%   HRF.timebase            - 1 x N vector of response times (msec)
+%   HRF.metaData            - structure with info about the stimulus
+%
+%   metaData.projectName    - project name (e.g. 'MelanopsinMR');
+%   metaData.subjectName    - subject name (e.g. 'HERO_asb1');
+%   metaData.sessionDate    - session date (e.g. '041416');
+%   metaData.stimulusFile   - fullfile(sessionDir,'MatFiles',matFiles{i});
+%   metaData.responseFile   - fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
 %
 %   Written by Andrew S Bock Aug 2016
 
