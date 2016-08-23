@@ -31,7 +31,6 @@ end
 anatFileName        = 'mh.areas.anat.vol.nii.gz';
 boldOutName         = 'mh.areas.func.vol.nii.gz';
 bbregName           = 'func_bbreg.dat';
-attFileName         = '*_attentionTask.txt';
 % stimulus files
 matDir              = fullfile(sessionDir,'MatFiles');
 matFiles            = listdir(matDir,'files');
@@ -151,13 +150,23 @@ for i = 1:length(boldDirs)
     ct = 0;
     attEvents = [];
     for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
-        % Get the attention events
-        if sum(strcmp(stimulus{i}.metaData.params.responseStruct.events(j).describe.direction,attentionTaskNames))
-            ct = ct + 1;
-            % Get the stimulus window
-            attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
-                stimulus{i}.metaData.params.responseStruct.tBlockStart + ...
-                stimulus{i}.metaData.params.thePhaseOffsetSec(stimulus{i}.metaData.params.thePhaseIndices(j));
+        switch metaData{i}.projectName
+            case 'MelanopsinMR'
+                % Get the attention events
+                if sum(strcmp(stimulus{i}.metaData.params.responseStruct.events(j).describe.direction,attentionTaskNames))
+                    ct = ct + 1;
+                    % Get the stimulus window
+                    attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
+                        stimulus{i}.metaData.params.responseStruct.tBlockStart + ...
+                        stimulus{i}.metaData.params.thePhaseOffsetSec(stimulus{i}.metaData.params.thePhaseIndices(j));
+                end
+            case 'MOUNT_SINAI'
+                if stimulus{i}.metaData.params.responseStruct.events(j).attentionTask.segmentFlag
+                    ct = ct + 1;
+                    attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).t(...
+                        stimulus{i}.metaData.params.responseStruct.events(j).attentionTask.T == 1) - ...
+                        stimulus{i}.metaData.params.responseStruct.tBlockStart;
+                end
         end
     end
     eventTimes                  = round(attEvents*1000); % attention events (msec)
