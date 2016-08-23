@@ -23,7 +23,7 @@ tmri = tmriTFBlockDesignColorModel;
 % structure.
 theExampleData = load(fullfile('BDCMTestData','packets_asb1_041416.mat'));
 nPacketsRead = length(theExampleData.packets);
-nPackets = 4;
+nPackets = 1;
 thePackets = cell(nPackets,1);
 for ii = 1:length(thePackets)
     thePackets{ii} = theExampleData.packets{ii};

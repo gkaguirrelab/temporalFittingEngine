@@ -32,16 +32,13 @@ p.parse(paramsVec,stimulus,responseToFit,HRF);
 params = obj.vecToParams(paramsVec);
 
 for ii = 1:length(responseToFit)
-    % the modeled fit might be at a higher sampling rate than the actual
-    % response; determine the factor to downsample by
-    factorToDownSample = round(length(stimulus{ii}.timebase)/length(responseToFit{ii}.timebase));
     % compute the fit
-    responsePredicted{ii} = obj.computeResponse(params,stimulus{ii}.timebase,stimulus{ii},'HRF',p.Results.HRF{ii});
-    % resample the fit
-    downSampledResponsePredicted = resample(responsePredicted{ii},1,factorToDownSample);
+    responsePredictedPreDownsample = obj.computeResponse(params,stimulus{ii}.timebase,stimulus{ii},'HRF',p.Results.HRF{ii});
+    responsePredicted{ii} = interp1(stimulus{ii}.timebase,responsePredictedPreDownsample,responseToFit{ii}.timebase);
     % get error measurement
-    allFVals(ii) = sqrt(mean((downSampledResponsePredicted-responseToFit{ii}.values).^2));
+    allFVals(ii) = sqrt(mean((responsePredicted{ii}-responseToFit{ii}.values).^2));
 end
 fVal = mean(allFVals);
+display(num2str(fVal));
 
 end
