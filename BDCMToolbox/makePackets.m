@@ -195,7 +195,7 @@ for i = 1:length(boldDirs)
         timeSeries{i}',eventTimes,sampT,HRFdur,numFreqs);
 end
 HRF.values                      = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
-HRF.values                      = HRF.values - HRF.values(1); % start the first value at zero
+%HRF.values                      = HRF.values - HRF.values(1); % start the first value at zero
 HRF.timebase                    = 0:HRFdur-1;
 HRF.metaData.packetType         = packetType;
 %% Save outputs
