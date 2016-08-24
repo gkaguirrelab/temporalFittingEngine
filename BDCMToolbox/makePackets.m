@@ -16,7 +16,7 @@ function [packets] = makePackets(sessionDir,packetType,func)
 %
 %   HRF.values              - 1 x N vector of response values
 %   HRF.timebase            - 1 x N vector of response times (msec)
-%   HRF.metaData            - structure with info about the stimulus
+%   HRF.metaData            - structure with info about the HRF
 %
 %   metaData.projectName    - project name (e.g. 'MelanopsinMR');
 %   metaData.subjectName    - subject name (e.g. 'HERO_asb1');
@@ -34,8 +34,15 @@ if ~exist('func','var') || isempty(func)
     func            = 'wdrf.tf';
 end
 %% File / path defaults
-anatFileName        = 'mh.areas.anat.vol.nii.gz';
-boldOutName         = 'mh.areas.func.vol.nii.gz';
+switch packetType
+    case {'V1' 'V2V3'}
+        anatFileName        = 'mh.areas.anat.vol.nii.gz';
+        boldOutName         = 'mh.areas.func.vol.nii.gz';
+    case 'LGN'
+        anatFileName        = 'mh.LGN.nii.gz';
+        boldOutName         = 'mh.LGN.func.vol.nii.gz';
+end
+% anatomical to functional registration file
 bbregName           = 'func_bbreg.dat';
 % stimulus files
 matDir              = fullfile(sessionDir,'MatFiles');
@@ -46,6 +53,11 @@ boldDirs            = find_bold(sessionDir);
 attentionTaskNames  = {'MirrorsOffMaxLMS','MirrorsOffMaxMel'};
 HRFdur              = 16000;
 numFreqs            = HRFdur/1000;
+% save directory
+saveDir             = fullfile(sessionDir,'Packets');
+if ~exist('saveDir','dir')
+    mkdir(saveDir);
+end
 %% Meta data
 [subjectStr,sessionDate]        = fileparts(sessionDir);
 [projectStr,subjectName]        = fileparts(subjectStr);
@@ -115,19 +127,21 @@ for i = 1:length(boldDirs)
     end
 end
 %% ROI
-switch packetType
-    case 'V1'
-        anatFile        = fullfile(sessionDir,'anat_templates',anatFileName);
-        for i = 1:length(boldDirs)
-            % project anatomical file to functional space for each run
-            bbregFile   = fullfile(sessionDir,boldDirs{i},bbregName); % registration file
-            outFile     = fullfile(sessionDir,boldDirs{i},boldOutName);
-            system(['mri_vol2vol --mov ' fullfile(sessionDir,boldDirs{i},[func '.nii.gz']) ...
-                ' --targ ' anatFile ' --o ' outFile ...
-                ' --reg ' bbregFile ' --inv --nearest']);
-            areaData    = load_nifti(outFile);
-            ROI{i}      = find(abs(areaData.vol)==1);
-        end
+anatFile            = fullfile(sessionDir,'anat_templates',anatFileName);
+for i = 1:length(boldDirs)
+    % project anatomical file to functional space for each run
+    bbregFile       = fullfile(sessionDir,boldDirs{i},bbregName); % registration file
+    outFile         = fullfile(sessionDir,boldDirs{i},boldOutName);
+    system(['mri_vol2vol --mov ' fullfile(sessionDir,boldDirs{i},[func '.nii.gz']) ...
+        ' --targ ' anatFile ' --o ' outFile ...
+        ' --reg ' bbregFile ' --inv --nearest']);
+    areaData        = load_nifti(outFile);
+    switch packetType
+        case {'V1' 'LGN'}
+            ROI{i}  = find(abs(areaData.vol)==1);
+        case 'V2V3'
+            ROI{i}  = find(abs(areaData.vol)==2 || abs(areaData.vol)==3);
+    end
 end
 %% Response
 % Convert fMRI to percent signal change, then average
@@ -191,3 +205,4 @@ for i = 1:length(boldDirs)
     packets{i}.HRF          = HRF;
     packets{i}.metaData     = metaData{i};
 end
+save(fullfile(saveDir,[packetType '.mat']),'packets');
