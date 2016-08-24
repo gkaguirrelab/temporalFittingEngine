@@ -55,7 +55,7 @@ HRFdur              = 16000;
 numFreqs            = HRFdur/1000;
 % save directory
 saveDir             = fullfile(sessionDir,'Packets');
-if ~exist('saveDir','dir')
+if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
 %% Meta data
