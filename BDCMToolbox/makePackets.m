@@ -205,4 +205,4 @@ for i = 1:length(boldDirs)
     packets{i}.HRF          = HRF;
     packets{i}.metaData     = metaData{i};
 end
-save(fullfile(saveDir,[packetType '.mat']),'packets');
+save(fullfile(saveDir,[packetType '.mat']),'packets','-v7.3');
