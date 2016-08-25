@@ -140,7 +140,7 @@ for i = 1:length(boldDirs)
         case {'V1' 'LGN'}
             ROI{i}  = find(abs(areaData.vol)==1);
         case 'V2V3'
-            ROI{i}  = find(abs(areaData.vol)==2 || abs(areaData.vol)==3);
+            ROI{i}  = find(abs(areaData.vol)==2 | abs(areaData.vol)==3);
     end
 end
 %% Response
