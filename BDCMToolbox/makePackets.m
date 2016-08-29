@@ -50,7 +50,7 @@ matFiles            = listdir(matDir,'files');
 % response files
 boldDirs            = find_bold(sessionDir);
 % HRF defaults
-attentionTaskNames  = {'MirrorsOffMaxLMS','MirrorsOffMaxMel'};
+attentionTaskNames  = {'MirrorsOffMaxLMS','MirrorsOffMaxMel','MirrorsOffSplatterControl'};
 HRFdur              = 16000;
 numFreqs            = HRFdur/1000;
 % save directory
