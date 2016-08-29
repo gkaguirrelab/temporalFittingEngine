@@ -73,6 +73,7 @@ resampledHRFList = tmri.resamplePacketStruct(theHRFList,newHRFTimebase);
 for ii = 1:nPackets
     thePackets{ii}.stimulus = resampledStimulusList{ii};
     theHRFList{ii} = resampledHRFList{ii};
+    thePackets{ii}.HRF = theHRFList{ii};
 end
 
 %% How many individual stimuli were there
@@ -134,6 +135,9 @@ paramLockMatrix = [];
 [paramsFit,fVal,fitResponse] = tmri.fitResponse(thePackets,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
+oneResponse = fitResponse{1};
+tmri.plot(thePackets{1}.response.timebase,thePackets{1}.response.values); hold on;
+tmri.plot(thePackets{1}.response.timebase,oneResponse{1},'Color',[0 1 0],'NewWindow',false);
 %tmri.print(paramsFit);
 %tmri.plot(thePacket.stimulus.timebase(1,:),fitResponse{1},'Color',[0 1 0],'NewWindow',false);
 % [~,meanParamValues] = tmri.plotParams(paramsFit,stimulus);

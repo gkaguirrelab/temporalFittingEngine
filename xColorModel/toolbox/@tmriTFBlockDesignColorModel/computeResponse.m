@@ -25,13 +25,13 @@ stimulus = p.Results.stimulus;
 
 %% First compute the neural response
 % *assume timebase is the same for all stimuli*
-individualResponses = createNeuralTemporalModelFromStimMatrix(timebase(1,:), stimulus.values,...
+individualResponses = createNeuralTemporalModelFromStimMatrix(timebase, stimulus.values,...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')), ...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'tau2')));
 neuralResponse = sum(individualResponses,1);
 
 %% Optionally, apply HRF
-response = obj.applyHRF(timebase(1,:),neuralResponse,p.Results.HRF);
+response = obj.applyHRF(timebase,neuralResponse,p.Results.HRF);
 
 %% Optional add of noise
 if (p.Results.AddNoise)
