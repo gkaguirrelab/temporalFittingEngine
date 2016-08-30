@@ -55,7 +55,7 @@ for i = 1:numFreqs
     fSet(:,ct)  = cos(t/HRFdur*2*pi*i);         % Create Cos waves for each Fq
 end
 % % Downsample the Fourier Set
-DfSet           = resample(fSet,1,sampT);
+DfSet           = downsample(fSet,sampT);
 % Only keep the linearly independent covariates
 [~,goodCovs]    = indMat(DfSet);
 fSet            = fSet(:,goodCovs);
@@ -101,7 +101,7 @@ end
 % Crop off Excess Rows (outside time-series)
 upMatrix                = tempMatrix(1:msecTC,:);
 % Downsample design matrix to resolution of time-series data
-DesignMatrix            = resample(upMatrix,1,sampT);
+DesignMatrix            = downsample(upMatrix,sampT);
 switch modelType
     case 'Fourier'
         % Only keep the linearly independent covariates
@@ -121,8 +121,7 @@ betaValues              = DesignMatrix\timeSeries;
 %% Get the estimated hrf
 switch modelType
     case 'Fourier'
-        tmp             = fSet * betaValues;
-        HRF             = tmp - mean(tmp);
+        HRF             = fSet * betaValues;
         cleanData       = timeSeries - DesignMatrix*betaValues;
     case 'FIR'
         tmp             = DesignMatrix(:,2:end);
