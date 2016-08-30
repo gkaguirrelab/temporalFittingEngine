@@ -48,11 +48,9 @@ bbregName           = 'func_bbreg.dat';
 matDir              = fullfile(sessionDir,'MatFiles');
 matFiles            = listdir(matDir,'files');
 % response files
-boldDirs            = find_bold(sessionDir);
+runDirs             = find_bold(sessionDir);
 % HRF defaults
-attentionTaskNames  = {'MirrorsOffMaxLMS','MirrorsOffMaxMel','MirrorsOffSplatterControl'};
-HRFdur              = 16000;
-numFreqs            = HRFdur/1000;
+hrfDir              = fullfile(sessionDir,'HRF');
 % save directory
 saveDir             = fullfile(sessionDir,'Packets');
 if ~exist(saveDir,'dir')
@@ -62,20 +60,20 @@ end
 [subjectStr,sessionDate]        = fileparts(sessionDir);
 [projectStr,subjectName]        = fileparts(subjectStr);
 [~,projectName]                 = fileparts(projectStr);
-for i = 1:length(boldDirs)
+for i = 1:length(runDirs)
     metaData{i}.projectName     = projectName;
     metaData{i}.subjectName     = subjectName;
     metaData{i}.sessionDate     = sessionDate;
     metaData{i}.stimulusFile    = fullfile(matDir,matFiles{i});
-    metaData{i}.responseFile    = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
+    metaData{i}.responseFile    = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
 end
 %% Load in fMRI data
-for i = 1:length(boldDirs)
-    inFile          = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
+for i = 1:length(runDirs)
+    inFile          = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
     inData{i}       = load_nifti(inFile);
 end
 %% Stimulus
-for i = 1:length(boldDirs)
+for i = 1:length(runDirs)
     % Get bold data details
     TR                              = inData{i}.pixdim(5); % TR in msec
     numTRs                          = size(inData{i}.vol,4);
@@ -128,11 +126,11 @@ for i = 1:length(boldDirs)
 end
 %% ROI
 anatFile            = fullfile(sessionDir,'anat_templates',anatFileName);
-for i = 1:length(boldDirs)
+for i = 1:length(runDirs)
     % project anatomical file to functional space for each run
-    bbregFile       = fullfile(sessionDir,boldDirs{i},bbregName); % registration file
-    outFile         = fullfile(sessionDir,boldDirs{i},boldOutName);
-    system(['mri_vol2vol --mov ' fullfile(sessionDir,boldDirs{i},[func '.nii.gz']) ...
+    bbregFile       = fullfile(sessionDir,runDirs{i},bbregName); % registration file
+    outFile         = fullfile(sessionDir,runDirs{i},boldOutName);
+    system(['mri_vol2vol --mov ' fullfile(sessionDir,runDirs{i},[func '.nii.gz']) ...
         ' --targ ' anatFile ' --o ' outFile ...
         ' --reg ' bbregFile ' --inv --nearest']);
     areaData        = load_nifti(outFile);
@@ -145,7 +143,7 @@ for i = 1:length(boldDirs)
 end
 %% Response
 % Convert fMRI to percent signal change, then average
-for i = 1:length(boldDirs)
+for i = 1:length(runDirs)
     % Get bold data details
     TR                              = inData{i}.pixdim(5); % TR in msec
     numTRs                          = size(inData{i}.vol,4);
@@ -161,45 +159,16 @@ for i = 1:length(boldDirs)
     timeSeries{i}                   = nanmean(pscVals);
     response{i}.values              = timeSeries'; % could also use 'cleanData'
     response{i}.timebase            = 0:TR:runDur-1; % beginning of each TR (msec)
-    response{i}.metaData.filename   = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
+    response{i}.metaData.filename   = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
     response{i}.metaData.packetType = packetType;
 end
-%% HRF
-for i = 1:length(boldDirs)
-    % Get the attention events
-    ct = 0;
-    attEvents = [];
-    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
-        switch metaData{i}.projectName
-            case 'MelanopsinMR'
-                % Get the attention events
-                if sum(strcmp(stimulus{i}.metaData.params.responseStruct.events(j).describe.direction,attentionTaskNames))
-                    ct = ct + 1;
-                    % Get the stimulus window
-                    attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
-                        stimulus{i}.metaData.params.responseStruct.tBlockStart + ...
-                        stimulus{i}.metaData.params.thePhaseOffsetSec(stimulus{i}.metaData.params.thePhaseIndices(j));
-                end
-            case 'MOUNT_SINAI'
-                if stimulus{i}.metaData.params.responseStruct.events(j).attentionTask.segmentFlag
-                    ct = ct + 1;
-                    attEvents(ct) = stimulus{i}.metaData.params.responseStruct.events(j).t(...
-                        stimulus{i}.metaData.params.responseStruct.events(j).attentionTask.T == 1) - ...
-                        stimulus{i}.metaData.params.responseStruct.tBlockStart;
-                end
-        end
-    end
-    eventTimes                  = round(attEvents*1000); % attention events (msec)
-    sampT                       = inData{i}.pixdim(5); % TR in msec
-    [allHRF(i,:)]               = deriveHRF(...
-        timeSeries{i}',eventTimes,sampT,HRFdur,numFreqs);
+%% HRF (if applicable)
+switch packetType
+    case {'V1' 'LGN' 'V2V3'}
+        HRF                         = load(fullfile(hrfDir,[packetType '.mat']));
 end
-HRF.values                      = mean(allHRF); % average HRFs across runs (individual HRFs are noisy)
-%HRF.values                      = HRF.values - HRF.values(1); % start the first value at zero
-HRF.timebase                    = 0:HRFdur-1;
-HRF.metaData.packetType         = packetType;
 %% Save outputs
-for i = 1:length(boldDirs)
+for i = 1:length(runDirs)
     packets{i}.stimulus     = stimulus{i};
     packets{i}.response     = response{i};
     packets{i}.HRF          = HRF;
