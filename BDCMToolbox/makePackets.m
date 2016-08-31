@@ -14,10 +14,6 @@ function packets = makePackets(sessionDir,packetType,roiType,func)
 %   response.timebase       - 1 x TR vector of response times (msec)
 %   response.metaData       - structure with info about the response
 %
-%   HRF.values              - 1 x N vector of response values
-%   HRF.timebase            - 1 x N vector of response times (msec)
-%   HRF.metaData            - structure with info about the HRF
-%
 %   metaData.projectName    - project name (e.g. 'MelanopsinMR');
 %   metaData.subjectName    - subject name (e.g. 'HERO_asb1');
 %   metaData.sessionDate    - session date (e.g. '041416');
