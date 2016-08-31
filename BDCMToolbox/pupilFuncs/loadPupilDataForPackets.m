@@ -3,7 +3,7 @@ function values = loadPupilDataForPackets(input_dir, stimulus, params)
 
 %%% EYE TRACKING DATA %%%
 % Load the eye tracking data
-Data_LiveTrack = load(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}));
+Data_LiveTrack = load(input_dir);
 
 % Find cases in which the TTL pulse signal was split over the two
 % samples, and remove the second sample.
@@ -62,25 +62,25 @@ Data_LiveTrack_IsTracked_FineMasterTime = interp1(TimeVectorLinear*params.TRDurS
 % Extract the stimulus timing
 keyPressWhich = [];
 keyPressWhen = [];
-for rr = 1:length(stimulus{i}.metaData.params.responseStruct.events)
-    keyPressWhich = [keyPressWhich stimulus{i}.metaData.params.responseStruct.events(rr).buffer.keyCode];
-    keyPressWhen = [keyPressWhen stimulus{i}.metaData.params.responseStruct.events(rr).buffer.when];
+for rr = 1:length(stimulus.metaData.params.responseStruct.events)
+    keyPressWhich = [keyPressWhich stimulus.metaData.params.responseStruct.events(rr).buffer.keyCode];
+    keyPressWhen = [keyPressWhen stimulus.metaData.params.responseStruct.events(rr).buffer.when];
 end
 
 % Extract only the ts
 keyPressWhen = keyPressWhen(keyPressWhich == 18);
 
 % Tack the first t also in this vector
-stimulus{i}.metaData_TTL = [stimulus{i}.metaData.params.responseStruct.tBlockStart keyPressWhen];
+stimulus.metaData_TTL = [stimulus.metaData.params.responseStruct.tBlockStart keyPressWhen];
 
 % Subtract the absolute time of the first t
-stimulus{i}.metaData_TTL_t0 = stimulus{i}.metaData_TTL(1);
-stimulus{i}.metaData_TTL = stimulus{i}.metaData_TTL-stimulus{i}.metaData_TTL_t0;
+stimulus.metaData_TTL_t0 = stimulus.metaData_TTL(1);
+stimulus.metaData_TTL = stimulus.metaData_TTL-stimulus.metaData_TTL_t0;
 
 % Check that we have as many TRs as we expect
 fprintf('> Expecting <strong>%g</strong> TRs - Found <strong>%g</strong> (LiveTrack) and <strong>%g</strong> (OneLight record).\n', ...
-    params.NTRsExpected, sum(Data_LiveTrack_TTLPulses), length(stimulus{i}.metaData_TTL));
-if (params.NTRsExpected == sum(Data_LiveTrack_TTLPulses)) || (params.NTRsExpected == length(stimulus{i}.metaData_TTL))
+    params.NTRsExpected, sum(Data_LiveTrack_TTLPulses), length(stimulus.metaData_TTL));
+if (params.NTRsExpected == sum(Data_LiveTrack_TTLPulses)) || (params.NTRsExpected == length(stimulus.metaData_TTL))
     fprintf('\t>> Expected number of TRs matches actual number.\n');
 else
     error('\t>> Mismatch between expected and actual number of TRs received.');
@@ -117,8 +117,8 @@ Data_LiveTrack_PupilDiameter_FineMasterTime_MeanCentered = (Data_LiveTrack_Pupil
 NFreqsToFilter = 8; % Number of low frequencies to remove
 X = [];
 for ii = 1:NFreqsToFilter
-    X(2*ii-1,:) = sin(linspace(0, 2*pi*ii, size(stimulus{i}.timebase, 2)));
-    X(2*ii,:) = cos(linspace(0, 2*pi*ii, size(stimulus{i}.timebase, 2)));
+    X(2*ii-1,:) = sin(linspace(0, 2*pi*ii, size(stimulus.timebase, 2)));
+    X(2*ii,:) = cos(linspace(0, 2*pi*ii, size(stimulus.timebase, 2)));
 end
 
 % Filter it
