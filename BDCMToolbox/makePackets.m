@@ -139,20 +139,24 @@ end
 
 %% Stimulus
 for i = 1:length(runDirs)
-    % Get bold data details
-    switch packetType
-        'bold'
-        TR                              = inData{i}.pixdim(5); % TR in msec
-        numTRs                          = size(inData{i}.vol,4);
-        'pupil'
-        % Hard coding here for now
-        TR = 0.8; numTRs = 336;
-    end
-    runDur                          = TR * numTRs; % length of run (msec)
-    stimulus{i}.timebase            = 0:runDur-1;
-    zVect                           = zeros(1,runDur);
     % Load that .mat file produced by the stimulus computer
     stimulus{i}.metaData            = load(fullfile(matDir,matFiles{i}));
+    
+    % Get bold data details
+    switch packetType
+        case 'bold'
+            TR                              = inData{i}.pixdim(5); % TR in msec
+            numTRs                          = size(inData{i}.vol,4);
+            runDur                          = TR * numTRs;
+        case 'pupil'
+            % Extract the run duration from the stimulus files since we do
+            % not have any other information available for the pupil data.
+            runDur                          = sum(stimulus{1}.metaData.params.trialDuration)*1000; % length of run (msec)
+    end
+    
+    stimulus{i}.timebase            = 0:runDur-1;
+    zVect                           = zeros(1,runDur);
+    
     for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
         % phase offset
         if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
@@ -178,14 +182,14 @@ for i = 1:length(runDirs)
         thisStim                    = zVect;
         thisStim(stimWindow)        = 1;
         % cosine ramp onset
-        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowIn
-            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowIn
+            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
             cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
             thisStim(stimWindow(1:winDur*1000)) = cosOn;
         end
         % cosine ramp offset
-        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowOut
-            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowOut
+            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
             cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
             thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
         end
@@ -199,7 +203,6 @@ end
 %% Saving data
 switch packetType
     case 'bold'
-        
         %% Save outputs
         for i = 1:length(runDirs)
             packets{i}.stimulus     = stimulus{i};
@@ -210,7 +213,8 @@ switch packetType
         save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
         
     case 'pupil'
-        % Do a bunch of pupil-related things
+        %% Do a bunch of pupil-related things
+        %
         
         %% Save outputs
         for i = 1:length(runDirs)
