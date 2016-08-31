@@ -126,7 +126,8 @@ for i = 1:length(allHRF)
         tmpHRF(ct,:) = allHRF{i}(j,:);
     end
 end
-HRF.mean                            = nanmean(tmpHRF);
+tmpmean                             = nanmean(tmpHRF);
+HRF.mean                            = tmpmean - tmpmean(1);
 HRF.sem                             = nanstd(tmpHRF) / sqrt(size(tmpHRF,1));
 HRF.numRuns                         = size(tmpHRF,1);
 for k = 1:length(sessDirs)
