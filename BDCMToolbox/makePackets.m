@@ -213,9 +213,9 @@ switch packetType
             
             switch sessionDate
                 case {'053116' '060116' '060216'}
-                    params.acquisitionFreq = 60;
-                otherwise
                     params.acquisitionFreq = 30;
+                otherwise
+                    params.acquisitionFreq = 60;
             end
             response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus{i}, params);
         end
@@ -240,5 +240,5 @@ switch packetType
             packets{i}.response     = response{i};
             packets{i}.metaData     = metaData{i};
         end
-        save(fullfile(saveDir,'.mat'),'packets','-v7.3');
+        save(fullfile(saveDir,'PupilPacket.mat'),'packets','-v7.3');
 end
