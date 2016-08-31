@@ -217,7 +217,7 @@ switch packetType
                 otherwise
                     params.acquisitionFreq = 30;
             end
-            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus, params);
+            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus{i}, params);
         end
 end
 
