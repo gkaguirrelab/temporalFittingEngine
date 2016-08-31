@@ -1,11 +1,11 @@
-function [packets] = makePackets(sessionDir,packetType,func)
+function packets = makePackets(sessionDir,packetType,roiType,func)
 
 %   Outputs a 'packets' cell array of structures, each cell containing:
 %
 %   Usage:
-%   [packets] = makePackets(sessionDir,packetType,func)
+%   packets = makePackets(sessionDir,packetType,roiType,func)
 %
-%   Outputs:
+%   Output fields in packets:
 %   stimulus.values         - M x N matrix modeling M stimulus events
 %   stimulus.timebase       - 1 x N vector of stimulus times (msec)
 %   stimulus.metaData       - structure with info about the stimulus
@@ -26,36 +26,41 @@ function [packets] = makePackets(sessionDir,packetType,func)
 %
 %   Written by Andrew S Bock Aug 2016
 
-%% set defaults
-if ~exist('packetType','var') || isempty(packetType)
-    packetType      = 'V1';
-end
-if ~exist('func','var') || isempty(func)
-    func            = 'wdrf.tf';
-end
-%% File / path defaults
 switch packetType
-    case {'V1' 'V2V3'}
-        anatFileName        = 'mh.areas.anat.vol.nii.gz';
-        boldOutName         = 'mh.areas.func.vol.nii.gz';
-    case 'LGN'
-        anatFileName        = 'mh.LGN.nii.gz';
-        boldOutName         = 'mh.LGN.func.vol.nii.gz';
+    case 'bold'
+        %% set defaults
+        if ~exist('roiType','var') || isempty(roiType)
+            roiType      = 'V1';
+        end
+        if ~exist('func','var') || isempty(func)
+            func            = 'wdrf.tf';
+        end
+        %% File / path defaults
+        switch roiType
+            case {'V1' 'V2V3'}
+                anatFileName        = 'mh.areas.anat.vol.nii.gz';
+                boldOutName         = 'mh.areas.func.vol.nii.gz';
+            case 'LGN'
+                anatFileName        = 'mh.LGN.nii.gz';
+                boldOutName         = 'mh.LGN.func.vol.nii.gz';
+        end
+        % anatomical to functional registration file
+        bbregName           = 'func_bbreg.dat';
+        % HRF defaults
+        hrfDir              = fullfile(sessionDir,'HRF');
 end
-% anatomical to functional registration file
-bbregName           = 'func_bbreg.dat';
+
 % stimulus files
 matDir              = fullfile(sessionDir,'MatFiles');
 matFiles            = listdir(matDir,'files');
 % response files
 runDirs             = find_bold(sessionDir);
-% HRF defaults
-hrfDir              = fullfile(sessionDir,'HRF');
 % save directory
 saveDir             = fullfile(sessionDir,'Packets');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
+
 %% Meta data
 [subjectStr,sessionDate]        = fileparts(sessionDir);
 [projectStr,subjectName]        = fileparts(subjectStr);
@@ -67,11 +72,8 @@ for i = 1:length(runDirs)
     metaData{i}.stimulusFile    = fullfile(matDir,matFiles{i});
     metaData{i}.responseFile    = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
 end
-%% Load in fMRI data
-for i = 1:length(runDirs)
-    inFile          = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
-    inData{i}       = load_nifti(inFile);
-end
+
+
 %% Stimulus
 for i = 1:length(runDirs)
     % Get bold data details
@@ -124,54 +126,78 @@ for i = 1:length(runDirs)
         stimulus{i}.values(j,:)     = thisStim;
     end
 end
-%% ROI
-anatFile            = fullfile(sessionDir,'anat_templates',anatFileName);
-for i = 1:length(runDirs)
-    % project anatomical file to functional space for each run
-    bbregFile       = fullfile(sessionDir,runDirs{i},bbregName); % registration file
-    outFile         = fullfile(sessionDir,runDirs{i},boldOutName);
-    system(['mri_vol2vol --mov ' fullfile(sessionDir,runDirs{i},[func '.nii.gz']) ...
-        ' --targ ' anatFile ' --o ' outFile ...
-        ' --reg ' bbregFile ' --inv --nearest']);
-    areaData        = load_nifti(outFile);
-    switch packetType
-        case {'V1' 'LGN'}
-            ROI{i}  = find(abs(areaData.vol)==1);
-        case 'V2V3'
-            ROI{i}  = find(abs(areaData.vol)==2 | abs(areaData.vol)==3);
-    end
-end
-%% Response
-% Convert fMRI to percent signal change, then average
-for i = 1:length(runDirs)
-    % Get bold data details
-    TR                              = inData{i}.pixdim(5); % TR in msec
-    numTRs                          = size(inData{i}.vol,4);
-    runDur                          = TR * numTRs; % length of run (msec)
-    thisVol                         = inData{i}.vol;
-    % reshape if a 4D volume
-    if length(size(thisVol))>2
-        thisVol                     = reshape(thisVol,...
-            size(thisVol,1)*size(thisVol,2)*size(thisVol,3),size(thisVol,4));
-    end
-    ROIvals                         = thisVol(ROI{i},:);
-    pscVals                         = convert_to_psc(ROIvals);
-    timeSeries{i}                   = nanmean(pscVals);
-    response{i}.values              = timeSeries'; % could also use 'cleanData'
-    response{i}.timebase            = 0:TR:runDur-1; % beginning of each TR (msec)
-    response{i}.metaData.filename   = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
-    response{i}.metaData.packetType = packetType;
-end
-%% HRF (if applicable)
+
 switch packetType
-    case {'V1' 'LGN' 'V2V3'}
-        HRF                         = load(fullfile(hrfDir,[packetType '.mat']));
+    case 'bold'
+        %% Load in fMRI data
+        for i = 1:length(runDirs)
+            inFile          = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+            inData{i}       = load_nifti(inFile);
+        end
+        
+        %% ROI
+        anatFile            = fullfile(sessionDir,'anat_templates',anatFileName);
+        for i = 1:length(runDirs)
+            % project anatomical file to functional space for each run
+            bbregFile       = fullfile(sessionDir,runDirs{i},bbregName); % registration file
+            outFile         = fullfile(sessionDir,runDirs{i},boldOutName);
+            system(['mri_vol2vol --mov ' fullfile(sessionDir,runDirs{i},[func '.nii.gz']) ...
+                ' --targ ' anatFile ' --o ' outFile ...
+                ' --reg ' bbregFile ' --inv --nearest']);
+            areaData        = load_nifti(outFile);
+            switch roiType
+                case {'V1' 'LGN'}
+                    ROI{i}  = find(abs(areaData.vol)==1);
+                case 'V2V3'
+                    ROI{i}  = find(abs(areaData.vol)==2 | abs(areaData.vol)==3);
+            end
+        end
+        
+        %% Response
+        % Convert fMRI to percent signal change, then average
+        for i = 1:length(runDirs)
+            % Get bold data details
+            TR                              = inData{i}.pixdim(5); % TR in msec
+            numTRs                          = size(inData{i}.vol,4);
+            runDur                          = TR * numTRs; % length of run (msec)
+            thisVol                         = inData{i}.vol;
+            % reshape if a 4D volume
+            if length(size(thisVol))>2
+                thisVol                     = reshape(thisVol,...
+                    size(thisVol,1)*size(thisVol,2)*size(thisVol,3),size(thisVol,4));
+            end
+            ROIvals                         = thisVol(ROI{i},:);
+            pscVals                         = convert_to_psc(ROIvals);
+            timeSeries{i}                   = nanmean(pscVals);
+            response{i}.values              = timeSeries'; % could also use 'cleanData'
+            response{i}.timebase            = 0:TR:runDur-1; % beginning of each TR (msec)
+            response{i}.metaData.filename   = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+            response{i}.metaData.roiType = roiType;
+        end
+        
+        %% HRF (if applicable)
+        switch roiType
+            case {'V1' 'LGN' 'V2V3'}
+                HRF                         = load(fullfile(hrfDir,[roiType '.mat']));
+        end
+        
+        %% Save outputs
+        for i = 1:length(runDirs)
+            packets{i}.stimulus     = stimulus{i};
+            packets{i}.response     = response{i};
+            packets{i}.HRF          = HRF;
+            packets{i}.metaData     = metaData{i};
+        end
+        save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
+        
+    case 'pupil'
+        % Do a bunch of pupil-related things
+        
+        %% Save outputs
+        for i = 1:length(runDirs)
+            packets{i}.stimulus     = stimulus{i};
+            packets{i}.response     = response{i};
+            packets{i}.metaData     = metaData{i};
+        end
+        save(fullfile(saveDir,'.mat'),'packets','-v7.3');
 end
-%% Save outputs
-for i = 1:length(runDirs)
-    packets{i}.stimulus     = stimulus{i};
-    packets{i}.response     = response{i};
-    packets{i}.HRF          = HRF;
-    packets{i}.metaData     = metaData{i};
-end
-save(fullfile(saveDir,[packetType '.mat']),'packets','-v7.3');
