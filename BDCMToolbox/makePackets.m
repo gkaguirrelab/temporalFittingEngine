@@ -48,13 +48,16 @@ switch packetType
         bbregName           = 'func_bbreg.dat';
         % HRF defaults
         hrfDir              = fullfile(sessionDir,'HRF');
+        % response files
+        runDirs             = find_bold(sessionDir);
+    case 'pupil'
+        runDirs = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
 end
 
 % stimulus files
 matDir              = fullfile(sessionDir,'MatFiles');
 matFiles            = listdir(matDir,'files');
-% response files
-runDirs             = find_bold(sessionDir);
+
 % save directory
 saveDir             = fullfile(sessionDir,'Packets');
 if ~exist(saveDir,'dir')
@@ -70,7 +73,12 @@ for i = 1:length(runDirs)
     metaData{i}.subjectName     = subjectName;
     metaData{i}.sessionDate     = sessionDate;
     metaData{i}.stimulusFile    = fullfile(matDir,matFiles{i});
-    metaData{i}.responseFile    = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+    switch packetType
+        case 'bold'
+            metaData{i}.responseFile    = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+        case 'pupil'
+            metaData{i}.responseFile = fullfile(sessionDir,runDirs{i});
+    end
 end
 
 
