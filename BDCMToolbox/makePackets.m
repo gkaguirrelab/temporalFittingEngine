@@ -82,59 +82,7 @@ for i = 1:length(runDirs)
 end
 
 
-%% Stimulus
-for i = 1:length(runDirs)
-    % Get bold data details
-    TR                              = inData{i}.pixdim(5); % TR in msec
-    numTRs                          = size(inData{i}.vol,4);
-    runDur                          = TR * numTRs; % length of run (msec)
-    stimulus{i}.timebase            = 0:runDur-1;
-    zVect                           = zeros(1,runDur);
-    % Load that .mat file produced by the stimulus computer
-    stimulus{i}.metaData            = load(fullfile(matDir,matFiles{i}));
-    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
-        % phase offset
-        if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
-            phaseOffsetSec = stimulus{i}.metaData.params.thePhaseOffsetSec(...
-                stimulus{i}.metaData.params.thePhaseIndices(j));
-        else
-            phaseOffsetSec = 0;
-        end
-        % start time
-        startTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
-            stimulus{i}.metaData.params.responseStruct.tBlockStart + phaseOffsetSec;
-        % duration
-        if isfield(stimulus{i}.metaData.params.responseStruct.events(1).describe.params,'stepTimeSec')
-            durTime = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.stepTimeSec + ...
-                2*stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
-        else
-            durTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialEnd - ...
-                stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart;
-        end
-        % stimulus window
-        stimWindow                  = ceil((startTime*1000) : (startTime*1000 + ((durTime*1000)-1)));
-        % Save the stimulus values
-        thisStim                    = zVect;
-        thisStim(stimWindow)        = 1;
-        % cosine ramp onset
-        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowIn
-            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
-            cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
-            thisStim(stimWindow(1:winDur*1000)) = cosOn;
-        end
-        % cosine ramp offset
-        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowOut
-            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
-            cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
-            thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
-        end
-        % trim stimulus
-        thisStim                    = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
-        % save stimulus values
-        stimulus{i}.values(j,:)     = thisStim;
-    end
-end
-
+%% Response data loading
 switch packetType
     case 'bold'
         %% Load in fMRI data
@@ -188,6 +136,73 @@ switch packetType
             case {'V1' 'LGN' 'V2V3'}
                 HRF                         = load(fullfile(hrfDir,[roiType '.mat']));
         end
+    case 'pupil'
+        
+end
+
+
+%% Stimulus
+for i = 1:length(runDirs)
+    % Get bold data details
+    switch packetType
+        'bold'
+        TR                              = inData{i}.pixdim(5); % TR in msec
+        numTRs                          = size(inData{i}.vol,4);
+        'pupil'
+        % Hard coding here for now
+        TR = 0.8; numTRs = 336;
+    end
+    runDur                          = TR * numTRs; % length of run (msec)
+    stimulus{i}.timebase            = 0:runDur-1;
+    zVect                           = zeros(1,runDur);
+    % Load that .mat file produced by the stimulus computer
+    stimulus{i}.metaData            = load(fullfile(matDir,matFiles{i}));
+    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
+        % phase offset
+        if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
+            phaseOffsetSec = stimulus{i}.metaData.params.thePhaseOffsetSec(...
+                stimulus{i}.metaData.params.thePhaseIndices(j));
+        else
+            phaseOffsetSec = 0;
+        end
+        % start time
+        startTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
+            stimulus{i}.metaData.params.responseStruct.tBlockStart + phaseOffsetSec;
+        % duration
+        if isfield(stimulus{i}.metaData.params.responseStruct.events(1).describe.params,'stepTimeSec')
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.stepTimeSec + ...
+                2*stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
+        else
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialEnd - ...
+                stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart;
+        end
+        % stimulus window
+        stimWindow                  = ceil((startTime*1000) : (startTime*1000 + ((durTime*1000)-1)));
+        % Save the stimulus values
+        thisStim                    = zVect;
+        thisStim(stimWindow)        = 1;
+        % cosine ramp onset
+        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowIn
+            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+            cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
+            thisStim(stimWindow(1:winDur*1000)) = cosOn;
+        end
+        % cosine ramp offset
+        if stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowOut
+            winDur  = stimulus{1}.metaData.params.responseStruct.events(1).describe.params.cosineWindowDurationSecs;
+            cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
+            thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
+        end
+        % trim stimulus
+        thisStim                    = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+        % save stimulus values
+        stimulus{i}.values(j,:)     = thisStim;
+    end
+end
+
+%% Saving data
+switch packetType
+    case 'bold'
         
         %% Save outputs
         for i = 1:length(runDirs)
