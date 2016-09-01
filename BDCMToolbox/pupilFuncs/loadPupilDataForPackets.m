@@ -1,4 +1,4 @@
-function values = loadPupilDataForPackets(input_dir, stimulus, params)
+function values = loadPupilDataForPackets(input_dir, stimulus, metaData, params)
 % values = loadPupilDataForPackets(input_dir, stimulus, params)
 
 %%% EYE TRACKING DATA %%%
@@ -27,7 +27,7 @@ for rr = 1:length(Data_LiveTrack.params.Report)
                 Data_LiveTrack.params.Report(rr).PupilWidth_Ch02];
             
             % Special case
-            if strcmp(dateID, '060616') && strcmp(subjectID, 'HERO_gka1');
+            if strcmp(metaData.sessionDate, '060616') && strcmp(metaData.subjectName, 'HERO_gka1');
                 Data_LiveTrack_IsTracked = [Data_LiveTrack_IsTracked Data_LiveTrack.params.Report(rr).PupilTracked ...
                     Data_LiveTrack.params.Report(rr).S2Tracked];
             else
