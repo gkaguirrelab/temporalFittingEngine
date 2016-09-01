@@ -51,9 +51,13 @@ switch packetType
         % HRF defaults
         hrfDir                              = fullfile(sessionDir,'HRF');
         % response files
-        runNames                             = find_bold(sessionDir);
+        runNames                            = find_bold(sessionDir);
     case 'pupil'
         runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
+        params.LiveTrackSamplingRate        = 60; % Hz
+        params.ResamplingFineFreq           = 1000; % 1 msec
+        params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
+        params.TRDurSecs                    = 0.8;
 end
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
@@ -63,7 +67,7 @@ saveDir                                     = fullfile(sessionDir,'Packets');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
-%% Meta data
+%% Metadata
 [subjectStr,sessionDate]                    = fileparts(sessionDir);
 [projectStr,subjectName]                    = fileparts(subjectStr);
 [~,projectName]                             = fileparts(projectStr);
@@ -79,7 +83,58 @@ for i = 1:length(runNames)
             metaData{i}.responseFile        = fullfile(sessionDir,runNames{i});
     end
 end
-%% Response data 
+%% Stimulus
+for i = 1:length(runNames)
+    % Load that .mat file produced by the stimulus computer
+    stimulus{i}.metaData                    = load(fullfile(matDir,matFiles{i}));
+    % Get run duration
+    runDur                                  = sum(stimulus{i}.metaData.params.trialDuration)*1000; % length of run (msec)
+    % Set the timebase
+    stimulus{i}.timebase                    = 0:runDur-1;
+    zVect                                   = zeros(1,runDur);
+    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
+        % phase offset
+        if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
+            phaseOffsetSec = stimulus{i}.metaData.params.thePhaseOffsetSec(...
+                stimulus{i}.metaData.params.thePhaseIndices(j));
+        else
+            phaseOffsetSec = 0;
+        end
+        % start time
+        startTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
+            stimulus{i}.metaData.params.responseStruct.tBlockStart + phaseOffsetSec;
+        % duration
+        if isfield(stimulus{i}.metaData.params.responseStruct.events(1).describe.params,'stepTimeSec')
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.stepTimeSec + ...
+                2*stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
+        else
+            durTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialEnd - ...
+                stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart;
+        end
+        % stimulus window
+        stimWindow                          = ceil((startTime*1000) : (startTime*1000 + ((durTime*1000)-1)));
+        % Save the stimulus values
+        thisStim                            = zVect;
+        thisStim(stimWindow)                = 1;
+        % cosine ramp onset
+        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowIn
+            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
+            cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
+            thisStim(stimWindow(1:winDur*1000)) = cosOn;
+        end
+        % cosine ramp offset
+        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowOut
+            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
+            cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
+            thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
+        end
+        % trim stimulus
+        thisStim                            = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
+        % save stimulus values
+        stimulus{i}.values(j,:)             = thisStim;
+    end
+end
+%% Response
 switch packetType
     case 'bold'
         % Load in fMRI data
@@ -133,11 +188,6 @@ switch packetType
                 HRF.metaData                = tmp.metaData;
         end
     case 'pupil'
-        params.LiveTrackSamplingRate        = 60; % Hz
-        params.ResamplingFineFreq           = 1000; % 1 msec
-        params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
-        params.NTRsExpected                 = runDur/800;
-        params.TRDurSecs                    = 0.8;
         for i = 1:length(runNames)
             response{i}.timebase            = stimulus{i}.timebase;
             params.TimeVectorFine           = response{i}.timebase;
@@ -147,68 +197,9 @@ switch packetType
                 otherwise
                     params.acquisitionFreq  = 60;
             end
-            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runNames{i}), stimulus{i}, params);
+            params.NTRsExpected             = runDur/(params.TRDurSecs*1000);
+            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus{i}, metaData{i}, params);
         end
-end
-%% Stimulus data
-for i = 1:length(runNames)
-    % Load that .mat file produced by the stimulus computer
-    stimulus{i}.metaData                    = load(fullfile(matDir,matFiles{i}));
-    % Get data details
-    switch packetType
-        case 'bold'
-            TR                              = inData{i}.pixdim(5); % TR in msec
-            numTRs                          = size(inData{i}.vol,4);
-            runDur                          = TR * numTRs;
-        case 'pupil'
-            % Extract the run duration from the stimulus files since we do
-            % not have any other information available for the pupil data.
-            runDur                          = sum(stimulus{1}.metaData.params.trialDuration)*1000; % length of run (msec)
-    end
-    % Set the timebase
-    stimulus{i}.timebase                    = 0:runDur-1;
-    zVect                                   = zeros(1,runDur);
-    for j = 1:size(stimulus{i}.metaData.params.responseStruct.events,2)
-        % phase offset
-        if ~isempty(stimulus{i}.metaData.params.thePhaseOffsetSec)
-            phaseOffsetSec = stimulus{i}.metaData.params.thePhaseOffsetSec(...
-                stimulus{i}.metaData.params.thePhaseIndices(j));
-        else
-            phaseOffsetSec = 0;
-        end
-        % start time
-        startTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart - ...
-            stimulus{i}.metaData.params.responseStruct.tBlockStart + phaseOffsetSec;
-        % duration
-        if isfield(stimulus{i}.metaData.params.responseStruct.events(1).describe.params,'stepTimeSec')
-            durTime = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.stepTimeSec + ...
-                2*stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
-        else
-            durTime = stimulus{i}.metaData.params.responseStruct.events(j).tTrialEnd - ...
-                stimulus{i}.metaData.params.responseStruct.events(j).tTrialStart;
-        end
-        % stimulus window
-        stimWindow                          = ceil((startTime*1000) : (startTime*1000 + ((durTime*1000)-1)));
-        % Save the stimulus values
-        thisStim                            = zVect;
-        thisStim(stimWindow)                = 1;
-        % cosine ramp onset
-        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowIn
-            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
-            cosOn   = (cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2;
-            thisStim(stimWindow(1:winDur*1000)) = cosOn;
-        end
-        % cosine ramp offset
-        if stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowOut
-            winDur  = stimulus{i}.metaData.params.responseStruct.events(j).describe.params.cosineWindowDurationSecs;
-            cosOff   = fliplr((cos(pi+linspace(0,1,winDur*1000)*pi)+1)/2);
-            thisStim(stimWindow(end-((winDur*1000)-1):end)) = cosOff;
-        end
-        % trim stimulus
-        thisStim                            = thisStim(1:runDur); % trim events past end of run (occurs for stimuli presented near the end of the run)
-        % save stimulus values
-        stimulus{i}.values(j,:)             = thisStim;
-    end
 end
 %% Save the packets
 for i = 1:length(runNames)
