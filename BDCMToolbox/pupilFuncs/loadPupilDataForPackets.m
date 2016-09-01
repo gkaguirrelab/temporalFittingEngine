@@ -127,4 +127,5 @@ end
 % Create the filtered version
 Data_LiveTrack_PupilDiameter_FineMasterTime_MeanCentered_f = r';
 Data_LiveTrack_PupilDiameter_FineMasterTime_LowFreq = Data_LiveTrack_PupilDiameter_FineMasterTime_MeanCentered-r';
-values = Data_LiveTrack_PupilDiameter_FineMasterTime_MeanCentered_f;
+% Add the DC back in
+values = Data_LiveTrack_PupilDiameter_FineMasterTime_DC + Data_LiveTrack_PupilDiameter_FineMasterTime_DC*Data_LiveTrack_PupilDiameter_FineMasterTime_MeanCentered_f;
