@@ -27,16 +27,17 @@ function packets = makePackets(sessionDir,packetType,roiType,func)
 %
 %   Written by Andrew S Bock Aug 2016
 
+%% Set defaults
 switch packetType
     case 'bold'
-        %% set defaults
+        % set defaults
         if ~exist('roiType','var') || isempty(roiType)
             roiType                         = 'V1';
         end
         if ~exist('func','var') || isempty(func)
             func                            = 'wdrf.tf';
         end
-        %% File / path defaults
+        % File / path defaults
         switch roiType
             case {'V1' 'V2V3'}
                 anatFileName                = 'mh.areas.anat.vol.nii.gz';
@@ -50,55 +51,49 @@ switch packetType
         % HRF defaults
         hrfDir                              = fullfile(sessionDir,'HRF');
         % response files
-        runDirs                             = find_bold(sessionDir);
+        runNames                             = find_bold(sessionDir);
     case 'pupil'
-        runDirs = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
+        runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
 end
-
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
 matFiles                                    = listdir(matDir,'files');
-
 % save directory
 saveDir                                     = fullfile(sessionDir,'Packets');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
-
 %% Meta data
 [subjectStr,sessionDate]                    = fileparts(sessionDir);
 [projectStr,subjectName]                    = fileparts(subjectStr);
 [~,projectName]                             = fileparts(projectStr);
-for i = 1:length(runDirs)
+for i = 1:length(runNames)
     metaData{i}.projectName                 = projectName;
     metaData{i}.subjectName                 = subjectName;
     metaData{i}.sessionDate                 = sessionDate;
     metaData{i}.stimulusFile                = fullfile(matDir,matFiles{i});
     switch packetType
         case 'bold'
-            metaData{i}.responseFile        = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+            metaData{i}.responseFile        = fullfile(sessionDir,runNames{i},[func '.nii.gz']);
         case 'pupil'
-            metaData{i}.responseFile        = fullfile(sessionDir,runDirs{i});
+            metaData{i}.responseFile        = fullfile(sessionDir,runNames{i});
     end
 end
-
-
-%% Response data loading
+%% Response data 
 switch packetType
     case 'bold'
-        %% Load in fMRI data
-        for i = 1:length(runDirs)
-            inFile                          = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+        % Load in fMRI data
+        for i = 1:length(runNames)
+            inFile                          = fullfile(sessionDir,runNames{i},[func '.nii.gz']);
             inData{i}                       = load_nifti(inFile);
         end
-        
-        %% ROI
+        % ROI
         anatFile            = fullfile(sessionDir,'anat_templates',anatFileName);
-        for i = 1:length(runDirs)
+        for i = 1:length(runNames)
             % project anatomical file to functional space for each run
-            bbregFile       = fullfile(sessionDir,runDirs{i},bbregName); % registration file
-            outFile         = fullfile(sessionDir,runDirs{i},boldOutName);
-            system(['mri_vol2vol --mov ' fullfile(sessionDir,runDirs{i},[func '.nii.gz']) ...
+            bbregFile       = fullfile(sessionDir,runNames{i},bbregName); % registration file
+            outFile         = fullfile(sessionDir,runNames{i},boldOutName);
+            system(['mri_vol2vol --mov ' fullfile(sessionDir,runNames{i},[func '.nii.gz']) ...
                 ' --targ ' anatFile ' --o ' outFile ...
                 ' --reg ' bbregFile ' --inv --nearest']);
             areaData        = load_nifti(outFile);
@@ -109,10 +104,8 @@ switch packetType
                     ROI{i}  = find(abs(areaData.vol)==2 | abs(areaData.vol)==3);
             end
         end
-        
-        %% Response
         % Convert fMRI to percent signal change, then average
-        for i = 1:length(runDirs)
+        for i = 1:length(runNames)
             % Get bold data details
             TR                              = inData{i}.pixdim(5); % TR in msec
             numTRs                          = size(inData{i}.vol,4);
@@ -128,24 +121,40 @@ switch packetType
             timeSeries{i}                   = nanmean(pscVals);
             response{i}.values              = timeSeries'; % could also use 'cleanData'
             response{i}.timebase            = 0:TR:runDur-1; % beginning of each TR (msec)
-            response{i}.metaData.filename   = fullfile(sessionDir,runDirs{i},[func '.nii.gz']);
+            response{i}.metaData.filename   = fullfile(sessionDir,runNames{i},[func '.nii.gz']);
             response{i}.metaData.roiType = roiType;
         end
-        
-        %% HRF (if applicable)
+        % HRF (if applicable)
         switch roiType
-            case {'V1' 'LGN' 'V2V3'}
-                tmp                             = load(fullfile(hrfDir,[roiType '.mat']));
-                HRF.values                      = tmp.mean; 
-                HRF.timebase                    = 0:length(HRF.values)-1;
-                HRF.metaData.roiType            = roiType;
+            case {'LGN' 'V1' 'V2V3'}
+                tmp                         = load(fullfile(hrfDir,[roiType '.mat']));
+                HRF.values                  = tmp.mean;
+                HRF.timebase                = 0:length(HRF.values)-1;
+                HRF.metaData                = tmp.metaData;
+        end
+    case 'pupil'
+        params.LiveTrackSamplingRate        = 60; % Hz
+        params.ResamplingFineFreq           = 1000; % 1 msec
+        params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
+        params.NTRsExpected                 = runDur/800;
+        params.TRDurSecs                    = 0.8;
+        for i = 1:length(runNames)
+            response{i}.timebase            = stimulus{i}.timebase;
+            params.TimeVectorFine           = response{i}.timebase;
+            switch sessionDate
+                case {'053116' '060116' '060216'}
+                    params.acquisitionFreq  = 30;
+                otherwise
+                    params.acquisitionFreq  = 60;
+            end
+            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runNames{i}), stimulus{i}, params);
         end
 end
-%% Stimulus
-for i = 1:length(runDirs)
+%% Stimulus data
+for i = 1:length(runNames)
     % Load that .mat file produced by the stimulus computer
     stimulus{i}.metaData                    = load(fullfile(matDir,matFiles{i}));
-    % Get bold data details
+    % Get data details
     switch packetType
         case 'bold'
             TR                              = inData{i}.pixdim(5); % TR in msec
@@ -201,45 +210,14 @@ for i = 1:length(runDirs)
         stimulus{i}.values(j,:)             = thisStim;
     end
 end
-%% Response packet loading pupil
-switch packetType
-    case 'pupil'
-        params.LiveTrackSamplingRate        = 60; % Hz
-        params.ResamplingFineFreq           = 1000; % 1 msec
-        params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
-        params.NTRsExpected                 = runDur/800;
-        params.TRDurSecs                    = 0.8;
-        
-        for i = 1:length(runDirs)
-            response{i}.timebase            = stimulus{i}.timebase;
-            params.TimeVectorFine           = response{i}.timebase;
-            
-            switch sessionDate
-                case {'053116' '060116' '060216'}
-                    params.acquisitionFreq  = 30;
-                otherwise
-                    params.acquisitionFreq  = 60;
-            end
-            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus{i}, params);
-        end
-end
-%% Saving data
-switch packetType
-    case 'bold'
-        %% Save outputs
-        for i = 1:length(runDirs)
-            packets{i}.stimulus             = stimulus{i};
-            packets{i}.response             = response{i};
+%% Save the packets
+for i = 1:length(runNames)
+    packets{i}.stimulus                     = stimulus{i};
+    packets{i}.response                     = response{i};
+    switch packetType
+        case 'bold'
             packets{i}.HRF                  = HRF;
-            packets{i}.metaData             = metaData{i};
-        end
-        save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
-    case 'pupil'
-        %% Save outputs
-        for i = 1:length(runDirs)
-            packets{i}.stimulus             = stimulus{i};
-            packets{i}.response             = response{i};
-            packets{i}.metaData             = metaData{i};
-        end
-        save(fullfile(saveDir,'PupilPacket.mat'),'packets','-v7.3');
+    end
+    packets{i}.metaData                     = metaData{i};
 end
+save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
