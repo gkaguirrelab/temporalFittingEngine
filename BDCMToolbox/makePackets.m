@@ -1,4 +1,4 @@
-function packets = makePackets(sessionDir,packetType,roiType,func)
+function packets = makePackets(sessionDir,packetType,roiType,func,saveFlag)
 
 %   Outputs a 'packets' cell array of structures, each cell containing:
 %
@@ -28,6 +28,9 @@ function packets = makePackets(sessionDir,packetType,roiType,func)
 %   Written by Andrew S Bock Aug 2016
 
 %% Set defaults
+if ~exist('saveFlag','var') || isempty(saveFlag)
+    saveFlag = true;
+end
 switch packetType
     case 'bold'
         % set defaults
@@ -62,10 +65,12 @@ end
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
 matFiles                                    = listdir(matDir,'files');
-% save directory
-saveDir                                     = fullfile(sessionDir,'Packets');
-if ~exist(saveDir,'dir')
-    mkdir(saveDir);
+if saveFlag
+    % save directory
+    saveDir                                     = fullfile(sessionDir,'Packets');
+    if ~exist(saveDir,'dir')
+        mkdir(saveDir);
+    end
 end
 %% Metadata
 [subjectStr,sessionDate]                    = fileparts(sessionDir);
@@ -211,4 +216,6 @@ for i = 1:length(runNames)
     end
     packets{i}.metaData                     = metaData{i};
 end
-save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
+if saveFlag
+    save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
+end
