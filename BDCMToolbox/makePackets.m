@@ -56,7 +56,7 @@ switch packetType
         % response files
         runNames                            = find_bold(sessionDir);
     case 'pupil'
-        runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.fe'), 'files');
+        runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
         params.LiveTrackSamplingRate        = 60; % Hz
         params.ResamplingFineFreq           = 1000; % 1 msec
         params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
