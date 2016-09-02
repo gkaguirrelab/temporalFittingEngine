@@ -56,14 +56,14 @@ switch packetType
         % response files
         runNames                            = find_bold(sessionDir);
     case 'pupil'
-        runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
+        runNames = listdir(fullfile(sessionDir, 'EyeTrackingFiles/*.fe'), 'files');
         params.LiveTrackSamplingRate        = 60; % Hz
         params.ResamplingFineFreq           = 1000; % 1 msec
         params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
         params.TRDurSecs                    = 0.8;
 end
 if isempty(runNames)
-   error('No runs found'); 
+   error(['No runs found in ' sessionDir]); 
 end
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
