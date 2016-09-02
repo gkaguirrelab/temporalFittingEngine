@@ -198,7 +198,7 @@ switch packetType
                     params.acquisitionFreq  = 60;
             end
             params.NTRsExpected             = runDur/(params.TRDurSecs*1000);
-            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runDirs{i}), stimulus{i}, metaData{i}, params);
+            response{i}.values = loadPupilDataForPackets(fullfile(sessionDir, 'EyeTrackingFiles', runNames{i}), stimulus{i}, metaData{i}, params);
         end
 end
 %% Save the packets
