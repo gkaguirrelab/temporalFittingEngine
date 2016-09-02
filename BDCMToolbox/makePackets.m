@@ -62,6 +62,9 @@ switch packetType
         params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
         params.TRDurSecs                    = 0.8;
 end
+if isempty(runNames)
+   error('No runs found'); 
+end
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
 matFiles                                    = listdir(matDir,'files');
