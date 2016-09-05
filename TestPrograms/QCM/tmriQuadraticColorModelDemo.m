@@ -7,9 +7,6 @@
 %% Clear and close
 clear; close all;
 
-%% Add project toolbox to Matlab path
-AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'toolbox'));
-
 %% Construct the model object
 tmri = tmriQuadraticColorModel;
 
