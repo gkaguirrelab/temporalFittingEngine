@@ -1,7 +1,7 @@
-classdef tmriTFBlockDesignColorModel < tmriModel
-% tmriQuadraticColorModel
+classdef tmriBDCM < tmriModel
+% tmriBDCM
 %
-%   tmri =  tmriTFBlockDesignColorMode();
+%   tmri =  tmriBDCM();
 % 
 % Implements a model for a block design fMRI experiment in which the color
 % direction and temporal frequency of stimuli are varied in a block design.

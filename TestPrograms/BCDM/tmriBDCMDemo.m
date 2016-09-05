@@ -8,7 +8,7 @@
 clear; close all;
 
 %% Construct the model object
-tmri = tmriTFBlockDesignColorModel;
+tmri = tmriBDCM;
 
 %% Load in some packets to play with
 %
