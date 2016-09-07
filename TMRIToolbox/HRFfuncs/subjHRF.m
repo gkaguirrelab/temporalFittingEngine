@@ -56,7 +56,6 @@ for k = 1:length(sessDirs)
     [projectStr,~]                  = fileparts(subjectStr);
     [~,projectName]                 = fileparts(projectStr);
     allHRF{k}                       = nan(length(boldDirs),HRFdur);
-    progBar = ProgressBar(length(boldDirs),'fooing...');
     for i = 1:length(boldDirs)
         % Load fMRI data
         inFile                      = fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
@@ -140,7 +139,6 @@ for k = 1:length(sessDirs)
         eventTimes                  = round(attEvents*1000); % attention events (msec)
         sampT                       = inData.pixdim(5); % TR in msec
         allHRF{k}(i,:)              = deriveHRF(timeSeries',eventTimes,sampT,HRFdur,numFreqs);
-        progBar(i);
     end
 end
 %% Save HRF
