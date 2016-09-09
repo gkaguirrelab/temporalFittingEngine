@@ -1,5 +1,5 @@
 function minCorr = retCorr(stim,TC,paramsVec)
-%UNTITLED Summary of this function goes here
+% minCorr = retCorr(stim,TC,paramsVec)
 %   Detailed explanation goes here
 x = paramsVec(1);
 y = paramsVec(2);
