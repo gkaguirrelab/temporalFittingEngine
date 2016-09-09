@@ -67,7 +67,7 @@ if isempty(runNames)
 end
 % stimulus files
 matDir                                      = fullfile(sessionDir,'MatFiles');
-matFiles                                    = listdir(matDir,'files');
+matFiles                                    = listdir([matDir '/*.mat'],'files');
 if saveFlag
     % save directory
     saveDir                                     = fullfile(sessionDir,'Packets');
