@@ -82,3 +82,15 @@ end
 [paramsFit,fVal,fitResponse] = tmri.fitResponse(packetsConc,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
+
+[~, meanParamValues] = tmri.plotParams(paramsFit,packetsConc.metaData.theFrequencyIndices);
+theFreq = thePackets{1}.stimulus.metaData.params.theFrequenciesHz ...
+           (2:length(thePackets{1}.stimulus.metaData.params.theFrequenciesHz));
+theFreqForPlot = [1 theFreq];
+figure;
+plot(theFreqForPlot,meanParamValues(1,:),'-kd','LineWidth',2,'MarkerSize',15);
+set(gca,'Xscale','log'); xlabel('Temporal Frequency (Hz)'); ylabel('Amplitude');
+set(gca,'FontSize',15); set(gca,'Xtick',theFreq); axis square;
+
+tmri.plot(packetsConc.response.timebase,packetsConc.response.values); hold on;
+tmri.plot(packetsConc.response.timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);

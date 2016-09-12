@@ -1,4 +1,4 @@
-function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
+function [h, meanParamValues] = plotParams(obj,params,stimValues,varargin)
 % plotParams(obj,params,stimulus,varargin)
 %
 % Generates plots of parameters for TF Block Design Color Model
@@ -18,27 +18,27 @@ function [h, meanParamValues] = plotParams(obj,params,stimulus,varargin)
 
 p = inputParser;
 p.addRequired('params',@isstruct);
-p.addRequired('stimulus',@isstruct);
+p.addRequired('stimValues',@isnumeric);
 p.addParameter('bFitZero',false,@islogical);
-p.parse(params,stimulus,varargin{:});
+p.parse(params,stimValues,varargin{:});
 
 % Optionally remove stimulus values of 0 (some analyses might want to leave them in)
 if ~p.Results.bFitZero
-    stimulus.stimValues = stimulus.stimValues(stimulus.stimValues~=0);
+    stimValues = stimValues(stimValues~=0);
 end
 
 % number of types of parameters, e.g. amp, tau2
 numParamTypes = length(params.paramNameCell);
 
 % get unique stimulus values
-[uniqueStimValues,~] = unique(stimulus.stimValues);
+[uniqueStimValues,~] = unique(stimValues);
 
 % for each parameter type and stimulus value
 for i = 1:numParamTypes
     for j = 1:length(uniqueStimValues)
        % go into the parameter matrix, find the appropriate column, and
        % pull out all positions with a given unique stim value
-       meanParamValues(i,j) = mean(params.paramMainMatrix(uniqueStimValues(j)==stimulus.stimValues,i));
+       meanParamValues(i,j) = mean(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i));
     end    
 end
 
