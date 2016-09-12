@@ -1,4 +1,4 @@
-function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacketList,varargin)
+function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
 % [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,thePacketList,varargin)
 %
 % Fit method for the tmri class.  This is meant to be model independent, so
@@ -29,49 +29,44 @@ function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacketList,vara
 
 %% Parse vargin for options passed here
 p = inputParser;
-p.addRequired('thePacketList',@iscell);
+p.addRequired('thePacket',@isstruct);
 p.addParameter('DefaultParamsInfo',[],@isstruct);
 p.addParameter('paramLockMatrix',[],@isnumeric);
-p.parse(thePacketList,varargin{:});
+p.parse(thePacket,varargin{:});
 
-%% Loop and fit each of the packets in the list
-nPackets = length(thePacketList);
-for ll = 1:nPackets
-    thePacket = thePacketList{ll};
-    
-    %% Set initial values and reasonable bounds on parameters
-    % Have a go at reasonable initial values
-    [paramsFit0,vlb,vub] = obj.defaultParams('DefaultParamsInfo',p.Results.DefaultParamsInfo);
-    paramsFitVec0 = obj.paramsToVec(paramsFit0);
-    vlbVec = obj.paramsToVec(vlb);
-    vubVec = obj.paramsToVec(vub);
-    
-    %% Fit that sucker
-    %
-    % I coded up the global search method, but it is very slow compared with
-    % fmincon alone, and fmincon seems to be fine.
-    %fFunction = @obj.fitError;
-    USEGLOBAL = false;
-    if (~USEGLOBAL)
-        options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-        paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-            {thePacket.stimulus},{thePacket.response},{thePacket.HRF}),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
-    else
-        opts = optimoptions(@fmincon,'Algorithm','interior-point');
-        problem = createOptimProblem('fmincon','objective', ...
-            @(modelParamsVec)obj.fitError(modelParamsVec,{thePacket.stimulus},{thePacket.response},{thePacket.HRF}),...
-            'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
-        gs = GlobalSearch;
-        paramsFitVec = run(gs,problem);
-    end
-    
-    % Get error and predicted response for final parameters
-    [fVal{ll},~,predictedResponse{ll}] = obj.fitError(paramsFitVec,{thePacket.stimulus},{thePacket.response},{thePacket.HRF});
-    
-    % Convert fit parameters for return
-    paramsFit{ll} = obj.vecToParams(paramsFitVec);
+%% Set initial values and reasonable bounds on parameters
+% Have a go at reasonable initial values
+[paramsFit0,vlb,vub] = obj.defaultParams('DefaultParamsInfo',p.Results.DefaultParamsInfo);
+paramsFitVec0 = obj.paramsToVec(paramsFit0);
+vlbVec = obj.paramsToVec(vlb);
+vubVec = obj.paramsToVec(vub);
+
+%% Fit that sucker
+%
+% I coded up the global search method, but it is very slow compared with
+% fmincon alone, and fmincon seems to be fine.
+%fFunction = @obj.fitError;
+USEGLOBAL = false;
+if (~USEGLOBAL)
+    options = optimset('fmincon');
+    options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
+    paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
+        thePacket.stimulus,thePacket.response,thePacket.HRF),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
+else
+    opts = optimoptions(@fmincon,'Algorithm','interior-point');
+    problem = createOptimProblem('fmincon','objective', ...
+        @(modelParamsVec)obj.fitError(modelParamsVec,thePacket.stimulus,thePacket.response,thePacket.HRF),...
+        'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
+    gs = GlobalSearch;
+    paramsFitVec = run(gs,problem);
 end
+
+% Get error and predicted response for final parameters
+[fVal,predictedResponse] = obj.fitError(paramsFitVec,thePacket.stimulus,thePacket.response,thePacket.HRF);
+
+% Convert fit parameters for return
+paramsFit = obj.vecToParams(paramsFitVec);
+
 
 end
 

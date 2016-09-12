@@ -1,4 +1,4 @@
-function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
+function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
 % [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,timebase,stimulus,responseToFit,HRF)
 %
 % Compute the error measure for passed model parameters, for the tmir
@@ -24,21 +24,18 @@ function [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,stimulus,res
 %% Parse vargin for options passed here
 p = inputParser;
 p.addRequired('paramsVec',@isnumeric);
-p.addRequired('stimulus',@iscell);
-p.addRequired('responseToFit',@iscell);
-p.addRequired('HRF',@iscell);
+p.addRequired('stimulus',@isstruct);
+p.addRequired('responseToFit',@isstruct);
+p.addRequired('HRF',@isstruct);
 p.parse(paramsVec,stimulus,responseToFit,HRF);
 
 params = obj.vecToParams(paramsVec);
 
-for ii = 1:length(responseToFit)
-    % compute the fit
-    responsePredictedPreDownsample = obj.computeResponse(params,stimulus{ii}.timebase,stimulus{ii},'HRF',p.Results.HRF{ii});
-    responsePredicted{ii} = interp1(stimulus{ii}.timebase,responsePredictedPreDownsample,responseToFit{ii}.timebase);
-    % get error measurement
-    allFVals(ii) = sqrt(mean((responsePredicted{ii}-responseToFit{ii}.values).^2));
-end
-fVal = mean(allFVals);
-%display(num2str(fVal));
+% compute the fit
+responsePredictedPreDownsample = obj.computeResponse(params,stimulus.timebase,stimulus,'HRF',p.Results.HRF);
+responsePredicted = interp1(stimulus.timebase,responsePredictedPreDownsample,responseToFit.timebase);
+% get error measurement
+fVal = sqrt(mean((responsePredicted-responseToFit.values).^2));
+display(num2str(fVal));
 
 end

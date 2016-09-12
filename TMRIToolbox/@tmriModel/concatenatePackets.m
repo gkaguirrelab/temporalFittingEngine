@@ -73,6 +73,9 @@ for i = 1:length(thePackets)
     theFrequencyIndicesStore = [theFrequencyIndicesStore thePackets{i}.stimulus.metaData.params.theFrequencyIndices];
 end
 
+stimulusTB = linspace(min(stimulusTB),max(stimulusTB),length(stimulusTB));
+responseTB = linspace(min(responseTB),max(responseTB),length(responseTB));
+
 % assign to struct
 packetsConc.stimulus.timebase = stimulusTB;
 packetsConc.stimulus.values = stimulusValues;

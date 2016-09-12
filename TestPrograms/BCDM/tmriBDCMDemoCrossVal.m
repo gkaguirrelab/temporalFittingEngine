@@ -78,3 +78,7 @@ params2 = tmri.vecToParams(x1);
 if (any(params1.paramMainMatrix ~= params2.paramMainMatrix))
     error('vecToParams and paramsToVec do not invert');
 end
+
+[paramsFit,fVal,fitResponse] = tmri.fitResponse(packetsConc,'DefaultParamsInfo',defaultParamsInfo, ...
+                          'paramLockMatrix',paramLockMatrix);
+fprintf('Model parameter from fits:\n');
