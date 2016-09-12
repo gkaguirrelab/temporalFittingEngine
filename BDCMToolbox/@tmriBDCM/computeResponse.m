@@ -6,7 +6,7 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 % Optional key/value pairs
 %   'AddNoise'
 %     true or false(default) 
-%  'HRF' - a cell of structures describing the HRF to be used to go from neural to BOLD response.
+%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
 %    Empty matrix is default, in which case no convolution is done
 
 % Parse input. At the moment this does type checking on the params input

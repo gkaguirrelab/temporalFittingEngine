@@ -20,7 +20,7 @@ tmri = tmriBDCM;
 %% DOWNSAMPLE STIMULI TO THE DESIRED RESOLUTION
 
 % common factor to downsample by
-timeFactor = 100;
+timeFactor = 200;
 
 startTime = thePackets{1}.stimulus.timebase(1);
 endTime = thePackets{1}.stimulus.timebase(end);
@@ -78,11 +78,13 @@ params2 = tmri.vecToParams(x1);
 if (any(params1.paramMainMatrix ~= params2.paramMainMatrix))
     error('vecToParams and paramsToVec do not invert');
 end
-
+%%
+% do the fit
 [paramsFit,fVal,fitResponse] = tmri.fitResponse(packetsConc,'DefaultParamsInfo',defaultParamsInfo, ...
                           'paramLockMatrix',paramLockMatrix);
 fprintf('Model parameter from fits:\n');
 
+% plot amplitudes
 [~, meanParamValues] = tmri.plotParams(paramsFit,packetsConc.metaData.theFrequencyIndices);
 theFreq = thePackets{1}.stimulus.metaData.params.theFrequenciesHz ...
            (2:length(thePackets{1}.stimulus.metaData.params.theFrequenciesHz));
@@ -91,6 +93,6 @@ figure;
 plot(theFreqForPlot,meanParamValues(1,:),'-kd','LineWidth',2,'MarkerSize',15);
 set(gca,'Xscale','log'); xlabel('Temporal Frequency (Hz)'); ylabel('Amplitude');
 set(gca,'FontSize',15); set(gca,'Xtick',theFreq); axis square;
-
+% plot fit
 tmri.plot(packetsConc.response.timebase,packetsConc.response.values); hold on;
 tmri.plot(packetsConc.response.timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);

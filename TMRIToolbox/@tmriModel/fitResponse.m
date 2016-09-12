@@ -1,14 +1,13 @@
 function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
-% [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,thePacketList,varargin)
+% [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,thePacket,varargin)
 %
 % Fit method for the tmri class.  This is meant to be model independent, so
 % that we only have to write it once.
 %
 % Inputs:
-%   stimulus - cell array of stimulus descriptions
-%   responseToFit - cell array of responses to fit
+%   thePacket: big packet of concatenated packets
 %
-% Each entry of the cell arrays is for one run, and the fit is to find the
+% The packet contains runs from multiple packets, and the fit is to find the
 % parameters that minimize the average fit error, taken over the runs.
 % Doing it this way allows us to more easily use this routine for cross
 % validation.
@@ -25,7 +24,7 @@ function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin
 %   paramsFit: fit parameters
 %   fVal: mean value of fit error, mean taken over runs.
 %   allFVals: vector of fit errors for the individual runs.
-%   predictedResponse: cell array of the predicted response, one for each run
+%   predictedResponse: big vector containing the fit response, concatenated
 
 %% Parse vargin for options passed here
 p = inputParser;
