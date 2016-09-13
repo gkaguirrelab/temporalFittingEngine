@@ -1,11 +1,13 @@
-function packets = makePackets(sessionDir,packetType,roiType,func,saveFlag)
+function packet = makePacket(params)
 
-%   Outputs a 'packets' cell array of structures, each cell containing:
+%   Outputs a 'packet' structure with stimulus, response, metaData, and
+%   (optionally) HRF information
 %
 %   Usage:
-%   packets = makePackets(sessionDir,packetType,roiType,func)
+%   packet = makePacket(params)
 %
 %   Output fields in packets:
+%
 %   stimulus.values         - M x N matrix modeling M stimulus events
 %   stimulus.timebase       - 1 x N vector of stimulus times (msec)
 %   stimulus.metaData       - structure with info about the stimulus
@@ -21,6 +23,7 @@ function packets = makePackets(sessionDir,packetType,roiType,func,saveFlag)
 %   metaData.responseFile   - fullfile(sessionDir,boldDirs{i},[func '.nii.gz']);
 %
 %   If packetType == 'bold', also outputs:
+%
 %   HRF.values              - 1 x N vector of response values
 %   HRF.timebase            - 1 x N vector of response times (msec)
 %   HRF.metaData            - structure with info about the HRF
@@ -211,13 +214,13 @@ switch packetType
 end
 %% Save the packets
 for i = 1:length(runNames)
-    packets{i}.stimulus                     = stimulus{i};
-    packets{i}.response                     = response{i};
+    packet{i}.stimulus                     = stimulus{i};
+    packet{i}.response                     = response{i};
     switch packetType
         case 'bold'
-            packets{i}.HRF                  = HRF;
+            packet{i}.HRF                  = HRF;
     end
-    packets{i}.metaData                     = metaData{i};
+    packet{i}.metaData                     = metaData{i};
 end
 if saveFlag
     save(fullfile(saveDir,[roiType '.mat']),'packets','-v7.3');
