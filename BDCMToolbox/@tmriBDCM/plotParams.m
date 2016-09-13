@@ -1,4 +1,4 @@
-function [h, meanParamValues] = plotParams(obj,params,stimValues,varargin)
+function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimValues,varargin)
 % plotParams(obj,params,stimulus,varargin)
 %
 % Generates plots of parameters for TF Block Design Color Model
@@ -39,6 +39,8 @@ for i = 1:numParamTypes
        % go into the parameter matrix, find the appropriate column, and
        % pull out all positions with a given unique stim value
        meanParamValues(i,j) = mean(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i));
+       stdErrorParamValues(i,j) = std(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i)) ...
+                                      ./length(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i));
     end    
 end
 

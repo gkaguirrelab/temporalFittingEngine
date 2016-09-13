@@ -85,12 +85,12 @@ end
 fprintf('Model parameter from fits:\n');
 
 % plot amplitudes
-[~, meanParamValues] = tmri.plotParams(paramsFit,packetsConc.metaData.theFrequencyIndices);
+[~, meanParamValues,stdErrorParamValues] = tmri.plotParams(paramsFit,packetsConc.metaData.theFrequencyIndices);
 theFreq = thePackets{1}.stimulus.metaData.params.theFrequenciesHz ...
            (2:length(thePackets{1}.stimulus.metaData.params.theFrequenciesHz));
 theFreqForPlot = [1 theFreq];
 figure;
-plot(theFreqForPlot,meanParamValues(1,:),'-kd','LineWidth',2,'MarkerSize',15);
+plot(theFreqForPlot,meanParamValues(1,:),'-kd','LineWidth',2,'MarkerSize',15); hold on
 set(gca,'Xscale','log'); xlabel('Temporal Frequency (Hz)'); ylabel('Amplitude');
 set(gca,'FontSize',15); set(gca,'Xtick',theFreq); axis square;
 % plot fit
