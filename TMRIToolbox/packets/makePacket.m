@@ -6,16 +6,15 @@ function packet = makePacket(params)
 %   Usage:
 %   packet = makePacket(params)
 %
-%   Input params structure:
-%   params.sessionDir
-%   params.runNum
-%   params.responseFile
-%   params.stimulusFile
-%   params.hrfFile
-%   params.timeSeries
-%   params.TR
-%   params.roiType
-%   params.packetType
+%   params structure:
+%   params.packetType       - 'bold' or 'pupil'
+%   params.sessionDir       - session directory, full path
+%   params.stimulusFile     - full path to stimulus file
+%   params.responseFile     - full path to response file
+%   params.timeSeries       - 1 x N vector of response values
+%   params.respTimeBase     - 1 x N vector of response times (msec)
+%   % if strcmp(params.packetType,'bold')
+%   params.hrfFile          - full path to HRF file
 %
 %   Output fields in packets:
 %
@@ -23,8 +22,8 @@ function packet = makePacket(params)
 %   stimulus.timebase       - 1 x N vector of stimulus times (msec)
 %   stimulus.metaData       - structure with info about the stimulus
 %
-%   response.values         - 1 x TR vector of response values
-%   response.timebase       - 1 x TR vector of response times (msec)
+%   response.values         - 1 x N vector of response values
+%   response.timebase       - 1 x N vector of response times (msec)
 %   response.metaData       - structure with info about the response
 %
 %   metaData.projectName    - project name (e.g. 'MelanopsinMR');
@@ -118,20 +117,14 @@ end
 switch params.packetType
     case 'bold'
         % Get bold data details
-        numTRs                              = size(params.timeSeries,2);
-        respDur                             = params.TR * numTRs; % length of run (msec)
-        response.values                     = timeSeries'; % could also use 'cleanData'
-        response.timebase                   = 0:params.TR:respDur-1; % beginning of each TR (msec)
+        response.values                     = params.timeSeries;
+        response.timebase                   = params.respTimeBase;
         response.metaData.filename          = params.responseFile;
-        response.metaData.roiType           = params.roiType;
         % HRF (if applicable)
-        switch roiType
-            case {'LGN' 'V1' 'V2V3'}
-                tmp                         = load(params.hrfFile);
-                HRF.values                  = tmp.mean;
-                HRF.timebase                = 0:length(HRF.values)-1;
-                HRF.metaData                = tmp.metaData;
-        end
+        tmp                                 = load(params.hrfFile);
+        HRF.values                          = tmp.HRF.mean;
+        HRF.timebase                        = 0:length(HRF.values)-1;
+        HRF.metaData                        = tmp.HRF.metaData;
     case 'pupil'
         response.timebase                   = stimulus.timebase;
         params.TimeVectorFine               = response.timebase;
@@ -142,13 +135,19 @@ switch params.packetType
                 params.acquisitionFreq      = 60;
         end
         params.NTRsExpected                 = runDur/(params.TRDurSecs*1000);
+        
+        %%%%% Manuel will pull out this section, eliminating the need for 'params.runNum' %%%%%
+        
         response.values                     = loadPupilDataForPackets(fullfile(params.sessionDir, 'EyeTrackingFiles', runNames{params.runNum}), stimulus, metaData, params);
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
 end
 %% Save the packets
 packet.stimulus                     = stimulus;
 packet.response                     = response;
-switch packetType
+packet.metaData                     = metaData;
+switch params.packetType
     case 'bold'
         packet.HRF                  = HRF;
 end
-packet.metaData                     = metaData;
