@@ -13,6 +13,8 @@ resp                    = load_nifti(params.responseFile);
 TR                      = resp.pixdim(5)/1000;
 runDur                  = size(resp.vol,4);
 params.respTimeBase     = 0:TR:(runDur*TR)-TR;
+%% laod the stimulus file
+[params.stimValues params.stimTimeBase params.stimMetaData] = makeStimStruct(params);
 %% If 'bold', get HRF
 if strcmp(params.packetType,'bold')
     params.hrfFile      = fullfile(params.sessionDir,'HRF','V1.mat');
