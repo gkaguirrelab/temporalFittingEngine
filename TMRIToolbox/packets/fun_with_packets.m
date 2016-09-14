@@ -14,7 +14,7 @@ TR                      = resp.pixdim(5)/1000;
 runDur                  = size(resp.vol,4);
 params.respTimeBase     = 0:TR:(runDur*TR)-TR;
 %% laod the stimulus file
-[params.stimValues params.stimTimeBase params.stimMetaData] = makeStimStruct(params);
+[params.stimValues,params.stimTimeBase,params.stimMetaData] = makeStimStruct(params);
 %% If 'bold', get HRF
 if strcmp(params.packetType,'bold')
     params.hrfFile      = fullfile(params.sessionDir,'HRF','V1.mat');
@@ -46,7 +46,7 @@ pscVol                  = convert_to_psc(flatVol);
 V1signal                = pscVol(V1ind,:);
 medianV1                = median(V1signal,1);
 % run dummyFit
-params.timeSeries       = medianV1;
+params.respValues       = medianV1;
 packet                  = makePacket(params);
 eventNum                = 1; % first stimulus event
 [B,R2]                  = dummyFit(packet,eventNum);
