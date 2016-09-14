@@ -40,6 +40,9 @@ function packet = makePacket(params)
 %   kernel.timebase         - 1 x N vector of response times (msec)
 %   kernel.metaData         - structure with info about the HRF
 %
+%   Otherwise, the fields in kernel are the empty matrix ([]).
+%
+%
 %   Written by Andrew S Bock Aug 2016
 
 % stimulus files
