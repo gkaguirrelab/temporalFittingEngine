@@ -86,12 +86,12 @@ stimulus.metaData_TTL_t0 = stimulus.metaData_TTL(1);
 stimulus.metaData_TTL = stimulus.metaData_TTL-stimulus.metaData_TTL_t0;
 
 % Check that we have as many TRs as we expect
-fprintf('> Expecting <strong>%g</strong> TRs - Found <strong>%g</strong> (LiveTrack) and <strong>%g</strong> (OneLight record).\n', ...
+fprintf('\t> Expecting <strong>%g</strong> TRs - Found <strong>%g</strong> (LiveTrack) and <strong>%g</strong> (OneLight record).\n', ...
     NTRsExpected, sum(Data_LiveTrack_TTLPulses), length(stimulus.metaData_TTL));
 if (NTRsExpected == sum(Data_LiveTrack_TTLPulses)) || (NTRsExpected == length(stimulus.metaData_TTL))
-    fprintf('\t>> Expected number of TRs matches actual number.\n');
+    fprintf('\t\t>> Expected number of TRs matches actual number.\n');
 else
-    error('\t>> Mismatch between expected and actual number of TRs received.');
+    error('\t\t>> Mismatch between expected and actual number of TRs received.');
 end
 
 % We now have four variables of interest
