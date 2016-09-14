@@ -19,7 +19,7 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 p = inputParser;
 p.addRequired('params',@isstruct);
 p.addRequired('timebase',@isnumeric);
-p.addRequired('stimulus',@isnumeric);
+p.addRequired('stimulus',@isstruct);
 p.addParameter('AddNoise',false,@islogical);
 p.addParameter('HRF',[]);
 p.parse(params,timebase,stimulus,varargin{:});
