@@ -17,7 +17,7 @@ params.respTimeBase     = 0:TR:(runDur*TR)-TR;
 if strcmp(params.packetType,'bold')
     params.hrfFile      = fullfile(params.sessionDir,'HRF','V1.mat');
 end
-%% Loop through the reponse data
+%% run 'dummyFit' for every voxel
 volDims                 = size(resp.vol);
 flatVol                 = reshape(resp.vol,volDims(1)*volDims(2)*volDims(3),volDims(4));
 % Convert to percent signal change
@@ -32,5 +32,21 @@ for i = 1:size(pscVol,1)
     [B(i),R2(i)]            = dummyFit(packet,eventNum);
     progBar(i);
 end
+%% run 'dummyFit' for V1 only
+anatFile                = fullfile(params.sessionDir,'Series_012_fMRI_MaxMelPulse_A_AP_run01','mh.areas.func.vol.nii.gz');
+anat                    = load_nifti(anatFile);
+V1ind                   = find(abs(anat.vol)==1);
+volDims                 = size(resp.vol);
+flatVol                 = reshape(resp.vol,volDims(1)*volDims(2)*volDims(3),volDims(4));
+% Convert to percent signal change
+pscVol                  = convert_to_psc(flatVol);
+% Pull out the V1 signal
+V1signal                = pscVol(V1ind,:);
+medianV1                = median(V1signal,1);
+% run dummyFit
+params.timeSeries       = medianV1;
+packet                  = makePacket(params);
+eventNum                = 1; % first stimulus event
+[B,R2]                  = dummyFit(packet,eventNum);
 
 
