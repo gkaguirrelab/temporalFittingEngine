@@ -12,6 +12,7 @@ function packet = makePacket(params)
 %   params.stimulusFile     - full path to stimulus file
 %   params.stimValues       - 1 x N vector of stimulus values
 %   params.stimTimeBase     - 1 x N vector of stimulus times (msec)
+%   params.stimMetaData     - Any stimulus meta data
 %   params.responseFile     - full path to response file
 %   params.respValues       - 1 x N vector of response values
 %   params.respTimeBase     - 1 x N vector of response times (msec)
