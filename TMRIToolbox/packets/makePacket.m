@@ -109,6 +109,10 @@ switch params.packetType
         kernel.values                       = tmp.HRF.mean;
         kernel.timebase                     = 0:length(kernel.values)-1;
         kernel.metaData                     = tmp.HRF.metaData;
+    otherwise
+        kernel.values                       = [];
+        kernel.timebase                     = [];
+        kernel.metaData                     = [];
 end
 % Get data details
 response.values                     = params.timeSeries;
@@ -118,7 +122,4 @@ response.metaData.filename          = params.responseFile;
 packet.stimulus                     = stimulus;
 packet.response                     = response;
 packet.metaData                     = metaData;
-switch params.packetType
-    case 'bold'
-        packet.kernel               = kernel;
-end
+packet.kernel                       = kernel;
