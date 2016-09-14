@@ -58,16 +58,16 @@ values = stimulus.values;
 % Trim meta data. Extract the relevant information. We assume that stimulus
 % types are described by direction, frequency, and contrast. This might
 % change.
-conditionArray = [stimulus.metaData.params.theDirections' stimulus.metaData.params.theFrequencyIndices' stimulus.metaData.params.theContrastRelMaxIndices']
+conditionArray = [stimulus.metaData.params.theDirections' stimulus.metaData.params.theFrequencyIndices' stimulus.metaData.params.theContrastRelMaxIndices'];
 [uniqueConditions, ~, idx] = unique(conditionArray, 'rows');
 metaData.stimTypes = idx;
 for ii = 1:length(uniqueConditions)
-    if stimulus.metaData.params.theFrequenciesHz == -1
+    if ~(stimulus.metaData.params.theFrequenciesHz == -1)
         % Fill out here
     else
-        tmp = strsplit(metaData.params.modulationFiles, ',');
+        tmp = strsplit(stimulus.metaData.params.modulationFiles, ',');
         tmp = strsplit(tmp{conditionArray(ii, 1)}, '-');
         [~, tmp2] = fileparts(tmp{3});
-        metaData.stimLabels{ii} = [tmp{2} '_' tmp2 '_' num2str(100*metaData.params.theContrastsPct(conditionArray(ii, 3))*metaData.params.theContrastMax) '%'];
+        metaData.stimLabels{ii} = [tmp{2} '_' tmp2 '_' num2str(100*stimulus.metaData.params.theContrastsPct(conditionArray(ii, 3))*stimulus.metaData.params.theContrastMax) '%'];
     end
 end
