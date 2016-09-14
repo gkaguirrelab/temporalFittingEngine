@@ -42,20 +42,6 @@ function packet = makePacket(params)
 %
 %   Written by Andrew S Bock Aug 2016
 
-%% Set defaults
-switch params.packetType
-    case 'bold'
-        runNames                            = find_bold(params.sessionDir);
-    case 'pupil'
-        runNames                            = listdir(fullfile(params.sessionDir, 'EyeTrackingFiles/*.mat'), 'files');
-        params.LiveTrackSamplingRate        = 60; % Hz
-        params.ResamplingFineFreq           = 1000; % 1 msec
-        params.BlinkWindowSample            = -50:50; % Samples surrounding the blink event
-        params.TRDurSecs                    = 0.8;
-end
-if isempty(runNames)
-    error(['No runs found in ' sessionDir]);
-end
 % stimulus files
 %% Metadata
 [subjectStr,sessionDate]                    = fileparts(params.sessionDir);
@@ -118,33 +104,16 @@ end
 %% Response
 switch params.packetType
     case 'bold'
-        % Get bold data details
-        response.values                     = params.timeSeries;
-        response.timebase                   = params.respTimeBase;
-        response.metaData.filename          = params.responseFile;
         % HRF (if applicable)
         tmp                                 = load(params.hrfFile);
         kernel.values                       = tmp.HRF.mean;
         kernel.timebase                     = 0:length(kernel.values)-1;
         kernel.metaData                     = tmp.HRF.metaData;
-    case 'pupil'
-        response.timebase                   = stimulus.timebase;
-        params.TimeVectorFine               = response.timebase;
-        switch sessionDate
-            case {'053116' '060116' '060216'}
-                params.acquisitionFreq      = 30;
-            otherwise
-                params.acquisitionFreq      = 60;
-        end
-        params.NTRsExpected                 = runDur/(params.TRDurSecs*1000);
-        
-        %%%%% Manuel will pull out this section, eliminating the need for 'params.runNum' %%%%%
-        
-        response.values                     = loadPupilDataForPackets(fullfile(params.sessionDir, 'EyeTrackingFiles', runNames{params.runNum}), stimulus, metaData, params);
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
 end
+% Get data details
+response.values                     = params.timeSeries;
+response.timebase                   = params.respTimeBase;
+response.metaData.filename          = params.responseFile;
 %% Save the packets
 packet.stimulus                     = stimulus;
 packet.response                     = response;
