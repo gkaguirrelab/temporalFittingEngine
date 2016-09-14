@@ -48,5 +48,3 @@ params.timeSeries       = medianV1;
 packet                  = makePacket(params);
 eventNum                = 1; % first stimulus event
 [B,R2]                  = dummyFit(packet,eventNum);
-
-
