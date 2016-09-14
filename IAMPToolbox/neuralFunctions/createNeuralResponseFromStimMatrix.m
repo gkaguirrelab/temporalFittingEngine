@@ -26,10 +26,7 @@ stimDimension=size(stimMatrix,1);
 
 % We loop through each column of the stimulus matrix
 for instance=1:stimDimension
-    
-    % Obtain the model parameters for this stimulus
-    param.amplitude=ampVec(instance);
-    
+        
     %% The neural response is the stimulus input
     % scaled by the amplitude parameter
     neuralMatrix(instance,:) = stimMatrix(instance,:).*ampVec(instance);
