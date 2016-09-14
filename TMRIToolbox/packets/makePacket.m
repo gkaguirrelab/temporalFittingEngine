@@ -13,7 +13,9 @@ function packet = makePacket(params)
 %   params.responseFile     - full path to response file
 %   params.timeSeries       - 1 x N vector of response values
 %   params.respTimeBase     - 1 x N vector of response times (msec)
-%   % if strcmp(params.packetType,'bold')
+%
+%   If strcmp(params.packetType,'bold')
+%
 %   params.hrfFile          - full path to HRF file
 %
 %   Output fields in packets:
@@ -34,9 +36,9 @@ function packet = makePacket(params)
 %
 %   If packetType == 'bold', also outputs:
 %
-%   HRF.values              - 1 x N vector of response values
-%   HRF.timebase            - 1 x N vector of response times (msec)
-%   HRF.metaData            - structure with info about the HRF
+%   kernel.values           - 1 x N vector of response values
+%   kernel.timebase         - 1 x N vector of response times (msec)
+%   kernel.metaData         - structure with info about the HRF
 %
 %   Written by Andrew S Bock Aug 2016
 
@@ -122,9 +124,9 @@ switch params.packetType
         response.metaData.filename          = params.responseFile;
         % HRF (if applicable)
         tmp                                 = load(params.hrfFile);
-        HRF.values                          = tmp.HRF.mean;
-        HRF.timebase                        = 0:length(HRF.values)-1;
-        HRF.metaData                        = tmp.HRF.metaData;
+        kernel.values                       = tmp.HRF.mean;
+        kernel.timebase                     = 0:length(kernel.values)-1;
+        kernel.metaData                     = tmp.HRF.metaData;
     case 'pupil'
         response.timebase                   = stimulus.timebase;
         params.TimeVectorFine               = response.timebase;
@@ -149,5 +151,5 @@ packet.response                     = response;
 packet.metaData                     = metaData;
 switch params.packetType
     case 'bold'
-        packet.HRF                  = HRF;
+        packet.kernel               = kernel;
 end
