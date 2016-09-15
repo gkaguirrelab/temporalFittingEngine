@@ -9,8 +9,8 @@ function [params,paramsLb,paramsUb] = defaultParams(obj,varargin)
 %
 % % Optional key/value pairs
 %  'DefaultParamsInfo' - A struct passed to the defaultParams method.  This
-%  struct should have a field called nStimuli, which is used by this
-%  routine.  If this struct is not passed, nStimuli is set to 10.
+%  struct should have a field called nInstances, which is used by this
+%  routine.  If this struct is not passed, nStimuli is set to 1.
 
 %% Parse vargin for options passed here
 p = inputParser;
@@ -19,15 +19,20 @@ p.parse(varargin{:});
 
 %% Handle default number of stimuli
 if (isempty(p.Results.DefaultParamsInfo))
-    nInstances = 10;
+    nInstances = 1;
 else
     nInstances = p.Results.DefaultParamsInfo.nInstances;
 end
 
-% Use general routine that is also called by the non-object oriented
-% version of this model.  For that reason, we'll need to do a little
-% reformating.
+% Assemble the param structure. This is done by calling out to
+%  another routine that actually assigns the parameter labels
+%  and values. Once back in this routine, we assemble into the format
+%  needed for the fitting engine.
+
+% Call out to the parameter definition routine for this method
 paramStruct = parameterDefinitionTPUP(nInstances);
+
+% Assemble the fields of params
 params.paramNameCell = paramStruct.paramNameCell;
 params.paramMainMatrix = paramStruct.paramMainMatrix;
 params.matrixRows = size(params.paramMainMatrix,1);

@@ -1,7 +1,10 @@
 function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimValues,varargin)
 % plotParams(obj,params,stimulus,varargin)
 %
-% Generates plots of parameters for the instance amplitude model
+% Generates plots of parameters
+
+%% GKA STILL NEEDS TO WRITE THIS
+
 %
 % Inputs:
 %   params   : parameter structure

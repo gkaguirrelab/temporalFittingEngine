@@ -7,6 +7,8 @@ function paramLockMatrix = lockMatrix(obj,params,stimulus,varargin)
 %  'LockType' - What kind of locking to do
 %    'vanilla' - Default sensible locking.
 
+%% CURRENTLY NOT IMPLEMENTED
+
 %% Parse input.
 p = inputParser;
 p.addRequired('params',@isstruct);

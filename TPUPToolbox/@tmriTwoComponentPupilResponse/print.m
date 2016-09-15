@@ -16,7 +16,7 @@ p.addParameter('PrintType','parameters',@ischar);
 p.parse(params,varargin{:});
 params = p.Results.params;
 
-% Quadratic parameters
+% print the parameters
 fprintf('Number of stimuli specified: %d\n',params.matrixRows);
 fprintf('Number of parameter cols: %d\n',params.matrixCols);
 for ii = 1:params.matrixCols
