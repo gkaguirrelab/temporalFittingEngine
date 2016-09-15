@@ -52,7 +52,7 @@ else
     fprintf('.');
     
     %% Optionally, convolve with a passed kernel
-    response = obj.applyHRF(timebase,response,p.Results.HRF);
+%    response = obj.applyHRF(timebase,response,p.Results.HRF);
     
     %% Optional add noise
     if (p.Results.AddNoise)
