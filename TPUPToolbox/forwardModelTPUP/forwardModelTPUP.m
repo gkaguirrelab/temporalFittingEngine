@@ -1,6 +1,6 @@
-function [responseMatrix] = forwardModelTPUP(t,stimulusMatrix, startTimeVec, gammaTauVec, sustainedAmpVec, sustainedTauVec, persistentAmpVec, persistentT50Vec, persistentAlphaVec)
+function [responseMatrix] = forwardModelTPUP(tMSECS,stimulusMatrix, startTimeVec, gammaTauVec, sustainedAmpVec, sustainedTauVec, persistentAmpVec, persistentT50Vec, persistentAlphaVec)
 
-%% creatPupilTemporalModel
+%% forwardModelTPUP
 %
 % Models the pupil temporal response as two, temporally
 % overlapping components, each controlled with an amplitude and one or
@@ -37,9 +37,13 @@ function [responseMatrix] = forwardModelTPUP(t,stimulusMatrix, startTimeVec, gam
 % 09-13-2016 - converted to be used within the temporalFittingEngine
 %
 
+% the model has parameters that are tuned for units of seconds, so
+% we convert our time base here.
+tSECS=tMSECS/1000;
+
 % derive some basic properties of the stimuls matrix and model
-numInstances=size(stimMatrix,1);
-modelLength = length(t);
+numInstances=size(stimulusMatrix,1);
+modelLength = length(tSECS);
 
 % pre-allocate the responseMatrix variable here for speed
 responseMatrix=zeros(numInstances,modelLength);
@@ -48,7 +52,7 @@ responseMatrix=zeros(numInstances,modelLength);
 for i=1:numInstances
     
     % grab the current stimulus
-    stimulus=stimulusMatrix(i,:);
+    stimulus=stimulusMatrix(i,:)';
     
     % grab the params for this stimulus instance
     
@@ -68,19 +72,19 @@ for i=1:numInstances
     param.persistentAlpha = persistentAlphaVec(i);  % time constant of the decay of the super-saturating function.
     
     %% Convolve the stimulus vector with a gamma function
-    gammaIRF = t .* exp(-t/param.gammaTau);
+    gammaIRF = tSECS .* exp(-tSECS/param.gammaTau);
     
     % scale to preserve total area after convolution
     gammaIRF=gammaIRF/sum(gammaIRF);
     
     % perform the convolution
     gammaStimulus = conv(stimulus,gammaIRF);
-    gammaStimulus = gammaStimulus(1:length(t));
+    gammaStimulus = gammaStimulus(1:length(tSECS));
     
     %% Create the sustained component
     % Create the exponential low-pass function that defines the time-domain
     % properties of the sustain
-    sustainedMultiplier=(exp(-1*param.sustainedTau*t));
+    sustainedMultiplier=(exp(-1*param.sustainedTau*tSECS));
     
     % scale to preserve the max after multiplication
     sustainedMultiplier=sustainedMultiplier/max(sustainedMultiplier);
@@ -94,21 +98,21 @@ for i=1:numInstances
     
     %% Create the persistent component
     % Create the super-saturating function that defines the persistent phase
-    persistentIRF = createSuperSaturatingFunction(t,[param.persistentT50,param.persistentAlpha]);
+    persistentIRF = createSuperSaturatingFunction(tSECS,[param.persistentT50,param.persistentAlpha]);
     
     % scale to preserve total area after convolution
     persistentIRF=persistentIRF/sum(persistentIRF);
     
     % perform the convolution
     yPersistent = conv(gammaStimulus,persistentIRF);
-    yPersistent = yPersistent(1:length(t));
+    yPersistent = yPersistent(1:length(tSECS));
     
     % scale to make sure this component has unit amplitude prior to application
     % of the Amplitude parameter
     yPersistent = (yPersistent/max(yPersistent))*param.persistentAmp;
     
     %% Implement the temporal shift
-    shiftAmount=find(t>=param.startTime);
+    shiftAmount=find(tSECS>=param.startTime);
     shiftAmount=shiftAmount(1);
     gammaStimulus = circshift(gammaStimulus,[shiftAmount,0]);
     gammaStimulus(1:shiftAmount)=0;
@@ -122,7 +126,7 @@ for i=1:numInstances
     yPersistent=yPersistent*(-1);
     
     %% combine the elements and store
-    yPupil=sum([ySustained,yPersistent],2);
+    yPupil=sum([ySustained;yPersistent],1);
     responseMatrix(i,:)=yPupil;
     
 end % loop over stimulus instances

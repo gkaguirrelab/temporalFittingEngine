@@ -37,17 +37,16 @@ individualResponses = forwardModelTPUP(timebase, stimulus.values,...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'sustainedAmp')), ...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'sustainedTau')), ...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'persistentAmp')), ...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')), ...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'persistentT50')), ...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'persistentAlpha'))     );
-summedResponse = sum(individualResponses,1);
+response = sum(individualResponses,1);
 
 %% Optionally, convolve with a passed kernel
-response = obj.applyHRF(timebase,summedResponse,p.Results.HRF);
+%response = obj.applyHRF(timebase,summedResponse,p.Results.HRF);
 
 %% Optional add noise
-if (p.Results.AddNoise)
-    response = response + normrnd(0,params.noiseSd,size(response));
-end
+%if (p.Results.AddNoise)
+%    response = response + normrnd(0,params.noiseSd,size(response));
+%end
 
 end
