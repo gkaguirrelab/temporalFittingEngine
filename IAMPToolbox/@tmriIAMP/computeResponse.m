@@ -31,10 +31,10 @@ stimulus = p.Results.stimulus;
 % *assume timebase is the same for all stimuli*
 individualResponses = forwardModel(timebase, stimulus.values,...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')));
-neuralResponse = sum(individualResponses,1);
+summedResponse = sum(individualResponses,1);
 
-%% Optionally, convolve with HRF
-response = obj.applyHRF(timebase,neuralResponse,p.Results.HRF);
+%% Optionally, convolve with a kernel
+response = obj.applyHRF(timebase,summedResponse,p.Results.HRF);
 
 %% Optional add noise
 if (p.Results.AddNoise)
