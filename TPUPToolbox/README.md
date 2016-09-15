@@ -17,3 +17,10 @@ The fit searches over 7 parameters:
 % persistentAmp - amplitude scaling of the persistent response
 % persistentT50 - time to half-peak of the super-saturating function (seconds)
 % persistentAlpha - time constant of the decay of the super-saturating function (seconds).
+
+KNOW ISSUES
+- Need to implement these core methods
+	* lockMatrix
+	* plotParams
+- The kernel convolution stage in the ComputeResponse method is broken (currently commented out)
+- The simulations folder is a mess
