@@ -35,6 +35,6 @@ responsePredictedPreDownsample = obj.computeResponse(params,stimulus.timebase,st
 responsePredicted = interp1(stimulus.timebase,responsePredictedPreDownsample,responseToFit.timebase);
 % get error measurement
 fVal = sqrt(mean((responsePredicted-responseToFit.values).^2));
-display(num2str(fVal));
+%display(num2str(fVal));
 
 end

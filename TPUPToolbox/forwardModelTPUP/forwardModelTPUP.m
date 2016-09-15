@@ -57,22 +57,22 @@ for i=1:numInstances
     % grab the params for this stimulus instance
     
     % parameters of the overall model
-    param.startTime = startTimeVec(i); % left or right tie shift for the entire model
+    localParams.startTime = startTimeVec(i); % left or right tie shift for the entire model
     
     % parameters of the initial gamma convolution
-    param.gammaTau = gammaTauVec(i);  % time constant of the transient gamma function
+    localParams.gammaTau = gammaTauVec(i);  % time constant of the transient gamma function
     
     % parameters of the sustained response
-    param.sustainedAmp = sustainedAmpVec(i); % amplitude scaling of the sustained response
-    param.sustainedTau = sustainedTauVec(i); % time constant of the low-pass (exponential decay) component.
+    localParams.sustainedAmp = sustainedAmpVec(i); % amplitude scaling of the sustained response
+    localParams.sustainedTau = sustainedTauVec(i); % time constant of the low-pass (exponential decay) component.
     
     % parameters of the persistent response
-    param.persistentAmp = persistentAmpVec(i); % Amplitude of the persistent filter
-    param.persistentT50 = persistentT50Vec(i); % time to half-peak of the super-saturating function
-    param.persistentAlpha = persistentAlphaVec(i);  % time constant of the decay of the super-saturating function.
+    localParams.persistentAmp = persistentAmpVec(i); % Amplitude of the persistent filter
+    localParams.persistentT50 = persistentT50Vec(i); % time to half-peak of the super-saturating function
+    localParams.persistentAlpha = persistentAlphaVec(i);  % time constant of the decay of the super-saturating function.
     
     %% Convolve the stimulus vector with a gamma function
-    gammaIRF = tSECS .* exp(-tSECS/param.gammaTau);
+    gammaIRF = tSECS .* exp(-tSECS/localParams.gammaTau);
     
     % scale to preserve total area after convolution
     gammaIRF=gammaIRF/sum(gammaIRF);
@@ -84,7 +84,7 @@ for i=1:numInstances
     %% Create the sustained component
     % Create the exponential low-pass function that defines the time-domain
     % properties of the sustain
-    sustainedMultiplier=(exp(-1*param.sustainedTau*tSECS));
+    sustainedMultiplier=(exp(-1*localParams.sustainedTau*tSECS));
     
     % scale to preserve the max after multiplication
     sustainedMultiplier=sustainedMultiplier/max(sustainedMultiplier);
@@ -94,11 +94,11 @@ for i=1:numInstances
     
     % scale to make sure this component has unit amplitude prior to application
     % of the Amplitude parameter
-    ySustained = (ySustained/max(ySustained))*param.sustainedAmp;    
+    ySustained = (ySustained/max(ySustained))*localParams.sustainedAmp;    
     
     %% Create the persistent component
     % Create the super-saturating function that defines the persistent phase
-    persistentIRF = createSuperSaturatingFunction(tSECS,[param.persistentT50,param.persistentAlpha]);
+    persistentIRF = createSuperSaturatingFunction(tSECS,[localParams.persistentT50,localParams.persistentAlpha]);
     
     % scale to preserve total area after convolution
     persistentIRF=persistentIRF/sum(persistentIRF);
@@ -109,10 +109,10 @@ for i=1:numInstances
     
     % scale to make sure this component has unit amplitude prior to application
     % of the Amplitude parameter
-    yPersistent = (yPersistent/max(yPersistent))*param.persistentAmp;
+    yPersistent = (yPersistent/max(yPersistent))*localParams.persistentAmp;
     
     %% Implement the temporal shift
-    shiftAmount=find(tSECS>=param.startTime);
+    shiftAmount=find(tSECS>=localParams.startTime);
     shiftAmount=shiftAmount(1);
     gammaStimulus = circshift(gammaStimulus,[shiftAmount,0]);
     gammaStimulus(1:shiftAmount)=0;
