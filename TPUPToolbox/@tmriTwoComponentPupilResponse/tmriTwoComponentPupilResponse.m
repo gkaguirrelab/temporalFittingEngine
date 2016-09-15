@@ -1,4 +1,4 @@
-classdef tmriTPUP < tmriModel
+classdef tmriTwoComponentPupilResponse < tmriModel
 % tmriTPUP
 %
 %   tmri =  tmriTPUP();

@@ -1,4 +1,4 @@
-function [responseMatrix] = forwardModel(t,stimulusMatrix, startTimeVec, gammaTauVec, sustainedAmpVec, sustainedTauVec, persistentAmpVec, persistentT50Vec, persistentAlphaVec)
+function [responseMatrix] = forwardModelTPUP(t,stimulusMatrix, startTimeVec, gammaTauVec, sustainedAmpVec, sustainedTauVec, persistentAmpVec, persistentT50Vec, persistentAlphaVec)
 
 %% creatPupilTemporalModel
 %

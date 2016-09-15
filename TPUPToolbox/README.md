@@ -1,2 +1,3 @@
-# mriTemporalFitting
-Routines to fit temporal aspects of MRI data, including neural IRFs, delayed normalization, and the AB Watson TTF
+# TPUPToolbox
+
+This toolbox implements a two-component model for the fitting of pupil responses to a step function of stimulation.
