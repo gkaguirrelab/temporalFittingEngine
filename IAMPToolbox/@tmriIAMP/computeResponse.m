@@ -29,7 +29,7 @@ stimulus = p.Results.stimulus;
 
 %% First compute the neural response
 % *assume timebase is the same for all stimuli*
-individualResponses = forwardModel(timebase, stimulus.values,...
+individualResponses = forwardModelIAMP(timebase, stimulus.values,...
     params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')));
 summedResponse = sum(individualResponses,1);
 
