@@ -56,9 +56,12 @@ end
 packetsConc = tmri.concatenatePackets(thePackets);
 % put HRF back in
 packetsConc.HRF = thePackets{1}.HRF;
+% put in stimulus metadata
+metaDataConc = tmri.concMetaDataBDCM(thePackets);
+packetsConc.stimulus.metaData.theFrequencyIndices = metaDataConc.theFrequencyIndices;
 % locking matrix
-paramLockMatrix = createParamLockMatrixVanilla(unique(packetsConc.metaData.theFrequencyIndices) ...
-                                               ,packetsConc.metaData.theFrequencyIndices,2);
+paramLockMatrix = createParamLockMatrixVanilla(unique(packetsConc.stimulus.metaData.theFrequencyIndices) ...
+                                               ,packetsConc.stimulus.metaData.theFrequencyIndices,2);
 
 defaultParamsInfo.nEvents = size(packetsConc.stimulus.values,1);
 
@@ -85,7 +88,7 @@ end
 fprintf('Model parameter from fits:\n');
 
 % plot amplitudes
-[~, meanParamValues,stdErrorParamValues] = tmri.plotParams(paramsFit,packetsConc.metaData.theFrequencyIndices);
+[~, meanParamValues,stdErrorParamValues] = tmri.plotParams(paramsFit,packetsConc.stimulus.metaData.theFrequencyIndices);
 theFreq = thePackets{1}.stimulus.metaData.params.theFrequenciesHz ...
            (2:length(thePackets{1}.stimulus.metaData.params.theFrequenciesHz));
 theFreqForPlot = [1 theFreq];

@@ -2,7 +2,8 @@ function metaData = extractMetaDataBDCM(obj,packet)
 
 % function metaData = extractMetaDataBDCM(obj,packet)
 %
-% for BDCM study. Takes in packet, and pulls out frequency indices
+% for BDCM study. Takes in packet, and pulls out frequency indices. Returns
+% a struct.
 
 p = inputParser;
 p.addRequired('packet',@isstruct);

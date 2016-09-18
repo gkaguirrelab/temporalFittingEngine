@@ -3,7 +3,8 @@ function packetsConc = concatenatePackets(obj,thePackets)
 % function packetsConc = concatenatePackets(packets)
 %
 % takes in a list of packets, and concatenates their stimulus and response
-% timebases, as well as their stimulus and response values
+% timebases, as well as their stimulus and response values. returns a
+% struct.
 
 p = inputParser;
 p.addRequired('thePackets',@iscell);
@@ -36,8 +37,6 @@ packetPositionMarker = 1;
 % mark the end of the current stimulus and response timebases
 stimulusTBmarker = 0;
 responseTBmarker = 0;
-% store frequency indices
-theFrequencyIndicesStore = [];
 
 for i = 1:length(thePackets)
     % concatenate response values
@@ -70,7 +69,6 @@ for i = 1:length(thePackets)
     stimulusTBmarker = stimulusTB(length(stimulusTB));
     responseTBmarker = responseTB(length(responseTB));
     
-    theFrequencyIndicesStore = [theFrequencyIndicesStore thePackets{i}.stimulus.metaData.params.theFrequencyIndices];
 end
 
 stimulusTB = linspace(min(stimulusTB),max(stimulusTB),length(stimulusTB));
@@ -81,6 +79,5 @@ packetsConc.stimulus.timebase = stimulusTB;
 packetsConc.stimulus.values = stimulusValues;
 packetsConc.response.timebase = responseTB;
 packetsConc.response.values = responseValues;
-packetsConc.metaData.theFrequencyIndices = theFrequencyIndicesStore;
 
 end

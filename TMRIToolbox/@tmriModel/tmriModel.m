@@ -60,11 +60,10 @@ classdef tmriModel < handle
         % Plot fit parameters for neural model
         h = plotParams(obj,param,stimValues);
         
-        % concatenate packets in a manner specific to BDCM
-        packetsConc = concatenatePackets(obj,thePackets);
-        
         % extract relevant BDCM metadata
         metaData = extractMetaDataBDCM(obj,packet)
+        
+        metaData = concMetaDataBDCM(obj,thePackets)
         
     end
     
