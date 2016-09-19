@@ -53,11 +53,10 @@ save('TCcell', 'TCcell', '-v7.3')
 
 for v = 1:size(V1tc,1)
     r = corr(V1tc(v,:)',TCcell.TCmat');
-    paramPreds(v,:) = TCcell.params(find( r == max(r)),:);
-    
+    paramPreds(v,:) = TCcell.params(find( r == max(r)),:);  
 end
 
-    
+
 
 
 
