@@ -13,19 +13,17 @@ fieldSize               = stimSize/2; % radius of stimuluated visual field in de
 subjectDist             = 106.5;
 screenHgt               = 1080;
 framesPerTR             = 8;
-gridScale               = 1;
-maxXY                   = fieldSize*gridScale;
-gridPoints              = 50; % based on mrVista (default is 50)
-sampleRate              = maxXY./gridPoints; % sample rate in visual angle
+gridPoints              = 101;
+sampleRate              = stimSize/gridPoints; % sample rate in visual angle
 sigList                 = 1;
 TR                      = 0.8; % seconds
 %% load the stimulus file
 tmp                     = load(fullfile(dataDir,'pRFimages.mat'));
 
 %% Binarize the stimulus
-stim                    = tmp.imagesFull;
-stim(stim ~=128)        = 1;
-stim(stim == 128 )      = 0;
+stim                    = 0.*tmp.imagesFull;
+oneImage                = tmp.imagesFull ~= 128; % not background
+stim(oneImage)          = 1;
 
 %% Average the frames within each TR
 start                   = 1:framesPerTR:size(stim,3);
@@ -35,7 +33,8 @@ for i = 1:length(start)
     meanImages(:,:,i) = mean(stim(:,:,start(i):stop(i)),3);
 end
 %% Create X, Y, and sigma
-tmpgrid                 = -maxXY:sampleRate:maxXY;
+%tmpgrid                 = -fieldSize:sampleRate:fieldSize;
+tmpgrid                 = linspace(-fieldSize,fieldSize,gridPoints);
 [x,y]                   = meshgrid(tmpgrid,tmpgrid);
 tmpx0                   = x(:);
 tmpy0                   = y(:);
@@ -46,9 +45,9 @@ y0                      = repmat(tmpy0,size(sigList,1),1);
 sigs                    = repmat(sigList,size(tmpx0,1),1);
 %% resample images to sampling grid
 nImages = size(meanImages, 3);
-resampled = zeros((1+gridScale*(gridPoints/gridScale))^2,nImages);
+resampled = zeros(gridPoints^2,nImages);
 for ii = 1:nImages
-    tmp_im = imresize(meanImages(:,:,ii), 1+gridScale*[gridPoints/gridScale gridPoints/gridScale]);
+    tmp_im = imresize(meanImages(:,:,ii), [gridPoints gridPoints]);
     resampled(:, ii) = tmp_im(:);
 end
 %% Add black around stimulus region, to model the actual visual field (not just the bars)
@@ -71,36 +70,38 @@ end
 %% Make/load HRF
 HRF = doubleGammaHrf(TR);
 %% Make predicted timecoures from stimulus images
+predTCs                 = nan(size(images))';
+progBar                 = ProgressBar(length(predvals),'making predictions...');
 for n=1:length(predvals)
-    nSigs               = sigs(predvals{n},:);
-    nx0                 = x0(predvals{n});
-    ny0                 = y0(predvals{n});
+    tSigs               = sigs(predvals{n},:);
+    tx0                 = x0(predvals{n});
+    ty0                 = y0(predvals{n});
     % Allow x, y, sigma to be a matrix so that the final output will be
     % size(X,1) by size(x0,2). This way we can make many RFs at the same time.
-    if numel(nSigs)~=1,
-        sz1 = size(X,1);
-        sz2 = size(nSigs,1);
-        X   = repmat(X,1,sz2);
-        Y   = repmat(Y(:),1,sz2);
-        nx0 = repmat(nx0',sz1,1);
-        ny0 = repmat(ny0',sz1,1);
-        nSigs = repmat(nSigs,1,1,sz1);
-        nSigs = permute(nSigs,[3 1 2]);
+    if numel(tSigs)~=1,
+        sz1             = size(X,1);
+        sz2             = size(tSigs,1);
+        tX              = repmat(X,1,sz2);
+        tY              = repmat(Y(:),1,sz2);
+        nx0             = repmat(tx0',sz1,1);
+        ny0             = repmat(ty0',sz1,1);
+        nSigs           = repmat(tSigs,1,1,sz1);
+        nSigs           = permute(nSigs,[3 1 2]);
     end
     % Translate grid so that center is at RF center
-    nX = X - nx0;   % positive x0 moves center right
-    nY = Y - ny0;   % positive y0 moves center up
+    nX                  = tX - nx0;   % positive x0 moves center right
+    nY                  = tY - ny0;   % positive y0 moves center up
     % make gaussian on current grid
-    rf = exp (-(nY.^2 + nX.^2) ./ (2*nSigs(:,:,1).^2));
+    rf                  = exp (-(nY.^2 + nX.^2) ./ (2*nSigs(:,:,1).^2));
     % Convolve images with HRF
-    allstimimages = filter(HRF,1, images');
-    % Convolve images (with HRF) with receptive field
-    pred = allstimimages*rf;
+    imagesHRF           = filter(HRF,1, images');
+    % Convolve images (with HRF) with Gaussian receptive field
+    pred                = imagesHRF*rf;
     % Set timecourses with very little variation (var<0.1) to flat
-    % above images are set to be %BOLD/degree2
-    pred = set_to_flat(pred);
-    % store
-    predTCs(:,(predvals{n} + (h-1)*nn)) = pred;
+    pred                = set_to_flat(pred);
+    % store the predictions
+    predTCs(:,predvals{n}) = pred;
+    progBar(n);
 end
 %%
 
