@@ -2,7 +2,7 @@
 %
 %   Script to find pRFs
 %
-%   Written by Michael Barnette and Andrew S Bock Sep 2016
+%   Written by Michael Barnett and Andrew S Bock Sep 2016
 
 %% set defaults
 [~, tmpName]            = system('whoami');
@@ -108,7 +108,9 @@ end
 
 
 
-%%
+%% Deprecated
+
+
 
 %% convert degrees to pixels
 DVA = rad2deg(2*atan(stimSize/(2*subjectDist)));
