@@ -1,23 +1,29 @@
-% retSearch.m
+% % retSearch.m
+% 
+% %% set defaults
+% dataDir = '/Users/Shared/Matlab/gkaguirrelab/mriTemporalFitting/PRFToolbox/';
+% 
+% %% load the stimulus file
+% tmp = load(fullfile(dataDir,'pRFimages.mat'));
 
-%% set defaults
-dataDir = '/Users/Shared/Matlab/gkaguirrelab/mriTemporalFitting/PRFToolbox/';
+% %% Binarize the stimulus
+% stim = tmp.imagesFull;
+% stim(stim ~=128) = 1;
+% stim(stim == 128 ) = 0;
 
-%% load the stimulus file
-tmp = load(fullfile(dataDir,'pRFimages.mat'));
+%load binary stim images
 
-%% Binarize the stimulus
-stim = tmp.imagesFull;
-stim(stim ~=128) = 1;
-stim(stim == 128 ) = 0;
+load('/Users/micalan/Dropbox (Aguirre-Brainard Lab)/retData/binImageFull.mat');
 
 %% Downsample the frames 
 framesPerPos = 8;
-start = 1:framesPerPos:size(stim,3);
-stop = start(2)-1:framesPerPos:size(stim,3);
+start = 1:framesPerPos:size(binImageFull,3);
+stop = start(2)-1:framesPerPos:size(binImageFull,3);
 for i = 1:length(start)
-    downStim(:,:,i) = mean(stim(:,:,start(i):stop(i)),3);
+    downStim(:,:,i) = mean(binImageFull(:,:,start(i):stop(i)),3);
 end
+padStim = padarray(downStim,[round(0.5*size(downStim,1)),round(0.5*size(downStim,1))]);
+clear downStim binImageFull
 
 %convert degrees to pixels
 stimSize = 39.2257;
@@ -26,22 +32,24 @@ screenHgt = 1080;
 DVA = rad2deg(2*atan(stimSize/(2*subjectDist)));
 pxlPerDeg = round(((screenHgt)/(DVA))/2);
 
-X = 0:pxlPerDeg:size(downStim,1);
-Y = 0:pxlPerDeg:size(downStim,2);
+X = 0:2*pxlPerDeg:size(padStim,1);
+Y = 0:2*pxlPerDeg:size(padStim,2);
 X = X(2:end-1);
 Y = Y(2:end-1);
-sigmaList = 13:13:26*5;
+sigmaList = [26];
 
 
 
-%% generat a predictions
+%% generate a predictions
 count = 1;
 tic 
 for x = 1:length(X)
+    display(x)
     for y = 1:length(Y)
+        display(y)
         for s = 1:length(sigmaList)
 
-            TCcell.TCmat(count,:) = makePredTC(downStim,X(x),Y(y),sigmaList(s));
+            TCcell.TCmat(count,:) = makePredTC(padStim,X(x),Y(y),sigmaList(s));
             TCcell.params(count,:) = [X(x),Y(y),sigmaList(s)];
             count = count+1;
         end
