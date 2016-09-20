@@ -8,13 +8,12 @@
 [~, tmpName]            = system('whoami');
 userName                = strtrim(tmpName); % Get user name
 dataDir                 = ['/Users/' userName '/Dropbox-Aguirre-Brainard-Lab/retData'];
-stimSize                = 39.2257;
-fieldSize               = stimSize/2; % radius of stimuluated visual field in degrees visual angle
+fieldSize               = 19.6129; % radius of stimuluated visual field in degrees visual angle
+padFactor               = 2; % how much padding outside of the stimulated visual field
 subjectDist             = 106.5;
 screenHgt               = 1080;
 framesPerTR             = 8;
 gridPoints              = 101;
-sampleRate              = stimSize/gridPoints; % sample rate in visual angle
 sigList                 = 1;
 TR                      = 0.8; % seconds
 sessionDir              = '/data/jag/TOME/TOME_3001/081916b';
@@ -35,9 +34,12 @@ meanImages              = nan(size(stim,1),size(stim,2),size(stim,3)/framesPerTR
 for i = 1:length(start)
     meanImages(:,:,i) = mean(stim(:,:,start(i):stop(i)),3);
 end
+%% Add black around stimulus region, to model the actual visual field (not just the bars)
+padImages = padarray(meanImages,(padFactor/2)*[(screenHgt/2) (screenHgt/2)]);
+
 %% Create X, Y, and sigma
 %tmpgrid                 = -fieldSize:sampleRate:fieldSize;
-tmpgrid                 = linspace(-fieldSize,fieldSize,gridPoints);
+tmpgrid                 = linspace(-fieldSize*padFactor,fieldSize*padFactor,gridPoints);
 [x,y]                   = meshgrid(tmpgrid,tmpgrid);
 tmpx0                   = x(:);
 tmpy0                   = y(:);
@@ -47,17 +49,12 @@ x0                      = repmat(tmpx0,size(sigList,1),1);
 y0                      = repmat(tmpy0,size(sigList,1),1);
 sigs                    = repmat(sigList,size(tmpx0,1),1);
 %% resample images to sampling grid
-nImages = size(meanImages, 3);
-resampled = zeros(gridPoints^2,nImages);
+nImages = size(padImages, 3);
+images = zeros(gridPoints^2,nImages);
 for ii = 1:nImages
-    tmp_im = imresize(meanImages(:,:,ii), [gridPoints gridPoints]);
-    resampled(:, ii) = tmp_im(:);
+    tmp_im = imresize(padImages(:,:,ii), [gridPoints gridPoints]);
+    images(:, ii) = tmp_im(:);
 end
-%% Add black around stimulus region, to model the actual visual field (not just the bars)
-
-%%% need to do this %%%
-
-images = resampled; % do this for now
 %% Break up into smaller matrices
 nn = numel(x0); % grid points
 [predPerTask,predTasks] = calc_tasks(nn,ceil(nn/1000));
@@ -111,12 +108,14 @@ progBar                 = ProgressBar(size(obsData.V1tc,1),'calculating pRFs...'
 pRFs.x0                 = nan(size(obsData.V1tc,1),1);
 pRFs.y0                 = nan(size(obsData.V1tc,1),1);
 pRFs.sig                = nan(size(obsData.V1tc,1),1);
+pRFs.rVal               = nan(size(obsData.V1tc,1),1);
 for i = 1:size(obsData.V1tc,1)
     pRFcorrs            = corr(obsData.V1tc(i,:)',predTCs);
-    [~,best]            = max(pRFcorrs);
+    [rVal,bestInd]      = max(pRFcorrs);
     pRFs.x0(i)          = x0(best);
     pRFs.y0(i)          = y0(best);
     pRFs.sig(i)         = sigs(best);
+    pRFs.rVal(i)        = rVal;
     if ~mod(i,100);progBar(i);end
 end
 [pRFs.pol,pRFs.ecc] = cart2pol(pRFs.x0,pRFs.y0);
