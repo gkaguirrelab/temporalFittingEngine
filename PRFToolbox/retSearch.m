@@ -112,9 +112,9 @@ pRFs.rVal               = nan(size(obsData.V1tc,1),1);
 for i = 1:size(obsData.V1tc,1)
     pRFcorrs            = corr(obsData.V1tc(i,:)',predTCs);
     [rVal,bestInd]      = max(pRFcorrs);
-    pRFs.x0(i)          = x0(best);
-    pRFs.y0(i)          = y0(best);
-    pRFs.sig(i)         = sigs(best);
+    pRFs.x0(i)          = x0(bestInd);
+    pRFs.y0(i)          = y0(bestInd);
+    pRFs.sig(i)         = sigs(bestInd);
     pRFs.rVal(i)        = rVal;
     if ~mod(i,100);progBar(i);end
 end
