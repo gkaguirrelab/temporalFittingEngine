@@ -17,12 +17,12 @@ gridPoints              = 101;
 sampleRate              = stimSize/gridPoints; % sample rate in visual angle
 sigList                 = 1;
 TR                      = 0.8; % seconds
-%% load the stimulus file
-tmp                     = load(fullfile(dataDir,'pRFimages.mat'));
-
+%% load the data
+stimData                    = load(fullfile(dataDir,'pRFimages.mat'));
+obsData                     = load(fullfile(dataDir,'V1tc.mat'));
 %% Binarize the stimulus
-stim                    = 0.*tmp.imagesFull;
-oneImage                = tmp.imagesFull ~= 128; % not background
+stim                    = 0.*stimData.imagesFull;
+oneImage                = stimData.imagesFull ~= 128; % not background
 stim(oneImage)          = 1;
 
 %% Average the frames within each TR
@@ -103,8 +103,20 @@ for n=1:length(predvals)
     predTCs(:,predvals{n}) = pred;
     progBar(n);
 end
-%%
-
+%% Find pRFs
+progBar                 = ProgressBar(size(obsData.V1tc,1),'calculating pRFs...');
+pRFs.x0                 = nan(size(obsData.V1tc,1),1);
+pRFs.y0                 = nan(size(obsData.V1tc,1),1);
+pRFs.sig                = nan(size(obsData.V1tc,1),1);
+for i = 1:size(obsData.V1tc,1)
+    pRFcorrs            = corr(obsData.V1tc(i,:)',predTCs);
+    [~,best]            = max(pRFcorrs);
+    pRFs.x0(i)          = x0(best);
+    pRFs.y0(i)          = y0(best);
+    pRFs.sig(i)         = sigs(best);
+    if ~mod(i,100);progBar(i);end
+end
+[pRFs.pol,pRFs.ecc] = cart2pol(pRFs.x0,pRFs.y0);
 
 
 
