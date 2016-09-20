@@ -17,6 +17,9 @@ gridPoints              = 101;
 sampleRate              = stimSize/gridPoints; % sample rate in visual angle
 sigList                 = 1;
 TR                      = 0.8; % seconds
+sessionDir              = '/data/jag/TOME/TOME_3001/081916b';
+anatTemplate            = fullfile(sessionDir,'anat_templates','lh.areas.anat.nii.gz');
+subjectName             = 'TOME_3001';
 %% load the data
 stimData                    = load(fullfile(dataDir,'pRFimages.mat'));
 obsData                     = load(fullfile(dataDir,'V1tc.mat'));
@@ -117,48 +120,12 @@ for i = 1:size(obsData.V1tc,1)
     if ~mod(i,100);progBar(i);end
 end
 [pRFs.pol,pRFs.ecc] = cart2pol(pRFs.x0,pRFs.y0);
-
-
-
-
-%% Deprecated
-
-
-
-%% convert degrees to pixels
-DVA = rad2deg(2*atan(stimSize/(2*subjectDist)));
-pxlPerDeg = round(((screenHgt)/(DVA))/2);
-X = 0:pxlPerDeg:size(images,1);
-Y = 0:pxlPerDeg:size(images,2);
-X = X(2:end-1);
-Y = Y(2:end-1);
-%% generat a predictions
-count = 1;
-tic
-for x = 1:length(X)
-    for y = 1:length(Y)
-        for s = 1:length(sigmaList)
-            
-            TCcell.TCmat(count,:) = makePredTC(images,X(x),Y(y),sigmaList(s));
-            TCcell.params(count,:) = [X(x),Y(y),sigmaList(s)];
-            count = count+1;
-        end
-    end
-end
-toc
-save('TCcell', 'TCcell', '-v7.3')
-% V1tc
-
-for v = 1:size(V1tc,1)
-    r = corr(V1tc(v,:)',TCcell.TCmat');
-    paramPreds(v,:) = TCcell.params(find( r == max(r)),:);
-end
-
-
-
-
-
-
-
-
-
+%% Plot pRFs
+a                       = load_nifti(anatTemplate);
+V1ind                   = find(abs(a.vol)==1);
+ecc                     = nan(size(a.vol));
+pol                     = nan(size(a.vol));
+ecc(V1ind)              = pRFs.ecc;
+pol(V1ind)              = pRFs.pol;
+surface_plot('ecc',ecc,subjectName);
+surface_plot('pol',pol,subjectName);
