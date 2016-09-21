@@ -1,7 +1,6 @@
-classdef tmriTwoComponentPupilResponse < tmriModel
-% tmriTPUP
+classdef tfeTwoComponentPupilResponse < tfe
+% tfeTPUP
 %
-%   tmri =  tmriTPUP();
 % 
 
     % Public, read-only properties.

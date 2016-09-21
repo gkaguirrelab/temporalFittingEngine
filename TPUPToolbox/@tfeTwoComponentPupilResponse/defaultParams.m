@@ -8,20 +8,20 @@ function [params,paramsLb,paramsUb] = defaultParams(obj,varargin)
 % get vector form.
 %
 % % Optional key/value pairs
-%  'DefaultParamsInfo' - A struct passed to the defaultParams method.  This
+%  'defaultParamsInfo' - A struct passed to the defaultParams method.  This
 %  struct should have a field called nInstances, which is used by this
 %  routine.  If this struct is not passed, nStimuli is set to 1.
 
 %% Parse vargin for options passed here
 p = inputParser;
-p.addParameter('DefaultParamsInfo',[],@isstruct);
+p.addParameter('defaultParamsInfo',[],@isstruct);
 p.parse(varargin{:});
 
 %% Handle default number of stimuli
-if (isempty(p.Results.DefaultParamsInfo))
+if (isempty(p.Results.defaultParamsInfo))
     nInstances = 1;
 else
-    nInstances = p.Results.DefaultParamsInfo.nInstances;
+    nInstances = p.Results.defaultParamsInfo.nInstances;
 end
 
 % Assemble the param structure. This is done by calling out to

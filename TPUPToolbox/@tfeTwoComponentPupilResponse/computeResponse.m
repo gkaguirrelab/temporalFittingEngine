@@ -8,9 +8,9 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 %   response), under the control of 7 parameters.
 %
 % Optional key/value pairs
-%   'AddNoise'
+%   'addNoise'
 %     true or false(default)
-%  'HRF' - a structure describing a kernel to be used to be applied after
+%  'kernel' - a structure describing a kernel to be used to be applied after
 %    the forward model. Empty matrix is default, in which case no
 %    convolution is performed done
 
@@ -21,8 +21,8 @@ p = inputParser;
 p.addRequired('params',@isstruct);
 p.addRequired('timebase',@isnumeric);
 p.addRequired('stimulus',@isstruct);
-p.addParameter('AddNoise',false,@islogical);
-p.addParameter('HRF',[]);
+p.addParameter('addNoise',false,@islogical);
+p.addParameter('kernel',[]);
 p.parse(params,timebase,stimulus,varargin{:});
 params = p.Results.params;
 timebase = p.Results.timebase;
@@ -52,10 +52,10 @@ else
     fprintf('.');
     
     %% Optionally, convolve with a passed kernel
-%    response = obj.applyHRF(timebase,response,p.Results.HRF);
+%    response = obj.applyKernel(timebase,response,p.Results.kernel);
     
     %% Optional add noise
-    if (p.Results.AddNoise)
+    if (p.Results.addNoise)
         response = response + normrnd(0,params.noiseSd,size(response));
     end
 end

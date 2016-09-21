@@ -1,5 +1,5 @@
-function resampledStructList = resamplePacketStruct(obj,packetStructList,newTimebase,varargin)
-% function resampledStruct = resamplePacketStruct(packetStructList,newTimebase,varargin
+function resampledPacketStructList = resampleTimebase(obj,packetStructList,newTimebase,varargin)
+% function resampledPacketStructList = resampleTimebase(obj,packetStructList,newTimebase,varargin)
 %
 % Resamples timebase and values within a list of structs to the passed
 % new timebase.  Preserves the other fields of each struct in the passed
@@ -25,7 +25,7 @@ p.parse(packetStructList,newTimebase,varargin{:});
 %
 % For each, duplicate the input structure, but empty the timebase and values fields
 nStructs = length(packetStructList);
-resampledStructList = cell(size(packetStructList));
+resampledPacketStructList = cell(size(packetStructList));
 for ll = 1:nStructs
     resampledStruct = packetStructList{ll};
     resampledStruct.timebase = newTimebase;
@@ -42,6 +42,6 @@ for ll = 1:nStructs
     end
     
     % Tuck this into the retun list
-    resampledStructList{ll} = resampledStruct;
-end
+    resampledPacketStructList{ll} = resampledStruct;
+end % loop over nStructs
 end

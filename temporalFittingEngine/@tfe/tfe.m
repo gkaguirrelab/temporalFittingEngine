@@ -1,7 +1,8 @@
-classdef tmriModel < handle
-% The @tmri parent class for modeling temporal responses.
+classdef tfe < handle
+% The @tfe parent class for modeling temporal responses.
 % 
 % 6/26/16  dhb  Started in on this
+% 9/21/16  gka  Massive restructuring
 
     % Public read/write properties
     properties              
@@ -57,14 +58,9 @@ classdef tmriModel < handle
         % Compute forward simulation of the implemented model, given the parameters
         response = computeResponse(obj,params,timebase,stimulus,varargin);
         
-        % Plot fit parameters for neural model
-        h = plotParams(obj,param,stimValues);
-        
-        % extract relevant BDCM metadata
-        metaData = extractMetaDataBDCM(obj,packet)
-        
-        metaData = concMetaDataBDCM(obj,thePackets)
-        
+        % Test packets for validity for the model subclass
+        packetValidity = isPacket(obj,thePacket)
+                
     end
     
     % Methods may be called by the subclasses, but are otherwise private 

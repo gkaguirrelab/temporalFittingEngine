@@ -1,4 +1,4 @@
-function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
+function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,kernel)
 % [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
 %
 % Compute the error measure for passed model parameters, for the tmir
@@ -8,7 +8,7 @@ function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFi
 %   paramsVec - model parameters in their vector form.  Just one of these
 %   stimulus - struct containing stimulus, timebase, and metadata
 %   responseToFit - struct containing response to fit
-%   HRF - structure defining the HRF.  Can be empty, in which case no HRF
+%   kernel - structure defining the kernel.  Can be empty, in which case no kernel
 %         is applied.
 %
 % find the parameters that minimize the average fit error, taken over the runs.
@@ -24,17 +24,16 @@ p = inputParser;
 p.addRequired('paramsVec',@isnumeric);
 p.addRequired('stimulus',@isstruct);
 p.addRequired('responseToFit',@isstruct);
-p.addRequired('HRF',@isstruct);
-p.parse(paramsVec,stimulus,responseToFit,HRF);
+p.addRequired('kernel',@isstruct);
+p.parse(paramsVec,stimulus,responseToFit,kernel);
 
 params = obj.vecToParams(paramsVec);
 
 % compute the fit
-responsePredictedPreDownsample = obj.computeResponse(params,stimulus.timebase,stimulus,'HRF',p.Results.HRF);
+responsePredictedPreDownsample = obj.computeResponse(params,stimulus.timebase,stimulus,'kernel',p.Results.kernel);
 % downsample to resolution of data
 responsePredicted = interp1(stimulus.timebase,responsePredictedPreDownsample,responseToFit.timebase);
 % get error measurement
 fVal = sqrt(mean((responsePredicted-responseToFit.values).^2));
-%display(num2str(fVal));
 
 end
