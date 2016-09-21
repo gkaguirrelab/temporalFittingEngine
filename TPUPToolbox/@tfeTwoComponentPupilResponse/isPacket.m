@@ -1,10 +1,16 @@
 function packetValidity = isPacket(obj,thePacket)
 % packetValidity = isPacket(obj,thePacket)
 %
-% tests the passed packet for validity for this model method
+% Function to test if the passed `packet` is well-formed.
+%
+% 9/14/16   ms      Wrote it.
 
-
-% Currently not implemented
-packetValidity=true;
-
+if isfield(thePacket, 'stimulus') && ...
+        isfield(thePacket, 'response') && ...
+        isfield(thePacket, 'kernel') && ...
+        isfield(thePacket, 'metaData') && ...
+        length(thePacket) == 1
+    packetValidity = true;
+else
+    packetValidity = false;
 end
