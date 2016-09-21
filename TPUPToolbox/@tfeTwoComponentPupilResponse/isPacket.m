@@ -6,7 +6,11 @@ function packetValidity = isPacket(obj,thePacket)
 % 9/14/16   ms      Wrote it.
 % 9/21/16   gka     Expanded functionality and reporting
 
-fprintf('Checking the passed packet\n');
+% the packet is innocent until proven guilty
+packetValidity = true;
+
+% let the user know what we are about to do
+fprintf('Checking the passed packet...\n');
 
 % Check for the presence of elementary fields
 if isfield(thePacket, 'stimulus') && ...
@@ -57,8 +61,8 @@ if isempty(thePacket.stimulus.timebase)
     packetValidity = false;
 end
 
-% Check to see if the initial value of response.values is zero
-if ~(thePacket.response.values(1)==0)
-    warning('The first value of response.values is not equal to zero')
+% Check to see if the initial value of response.values is a small number
+if thePacket.response.values(1) > 0.001
+    warning('The first value of response.values is not approximately zero')
     packetValidity = false;
 end
