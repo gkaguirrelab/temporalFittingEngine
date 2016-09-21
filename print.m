@@ -1,4 +1,4 @@
-function print(obj,params,varargin)
+function paramPrint(obj,params,varargin)
 % print(obj,params,varargin)
 %
 % Print out the parameters to the command window

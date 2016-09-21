@@ -42,7 +42,7 @@ classdef tfe < handle
         [params,paramsLb,paramsUb] = defaultParams(obj,varargin);
         
         % Print parameters
-        print(obj,params,varagin);
+        paramPrint(obj,params,varagin);
         
         % Get parameter locking matrix for this model
         paramLockMatrix = lockMatrix(obj,params,varargin);
