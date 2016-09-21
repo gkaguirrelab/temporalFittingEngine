@@ -52,7 +52,7 @@ else
     fprintf('.');
     
     %% Optionally, convolve with a passed kernel
-%    response = obj.applyKernel(timebase,response,p.Results.kernel);
+    response = obj.applyKernel(timebase,response,p.Results.kernel);
     
     %% Optional add noise
     if (p.Results.addNoise)

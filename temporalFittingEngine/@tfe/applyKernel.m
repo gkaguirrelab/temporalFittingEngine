@@ -23,7 +23,7 @@ p.addRequired('theKernel',@isstruct);
 p.parse(timebase,modelResponse,theKernel,varargin{:});
 
 %% If empty matrix is passed for kernel, do nothing,
-if (isempty(theKernel))
+if (isempty(theKernel.values))
     convModelResponse = modelResponse;
 else %   convolve with kernel.
     % align kernel with 0, if not already done
