@@ -34,10 +34,10 @@ stimulus = p.Results.stimulus;
 theLengths = diag(stimulus'*Q*stimulus);
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
-neuralResponse = path([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
+neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
 
 %% Optionally, apply HRF
-response = obj.applyKernal(timebase,neuralResponse,p.Results.HRF);
+response = obj.applyKernel(timebase,neuralResponse,p.Results.HRF);
 
 %% Optional add of noise
 if (p.Results.AddNoise)
