@@ -19,7 +19,7 @@ classdef tfe < handle
 %   paramsToVec - Convert parameters structure to vector format
 %   vecToParams - Conver parameters vector to structure format
 %   lockMatrix - Construct parameter locking matrix for the model
-%   print - Print useful things about the parameters
+%   paramPrint - Print useful things about the parameters
 
 % 6/26/16  dhb  Started in on this
 % 9/21/16  gka  Massive restructuring
