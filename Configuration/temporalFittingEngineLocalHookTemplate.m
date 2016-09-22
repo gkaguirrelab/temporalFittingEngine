@@ -1,4 +1,4 @@
-function mriTemporalFitting
+function mriTemporalFittingLocalHook
 % mriTemporalFitting
 %
 % Configure things for working on the IBIOColorDetect project.
