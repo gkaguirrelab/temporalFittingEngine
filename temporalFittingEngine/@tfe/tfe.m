@@ -1,6 +1,26 @@
 classdef tfe < handle
-% The @tfe parent class for modeling temporal responses.
-% 
+% The @tfe parent class for modeling temporal responses.  This implements
+% methods that are model independent and defines the API for subclasses
+% that implement particular models.
+%
+% Methods implemented in this class:
+%   fitResponse - Use a model to fit a temporal response
+%   fitError - Compute error between model fit and response
+%   applyKernal - Apply a convolution kernal to a response
+%   concatenatePackets - Take multiple data packets and concatenate into one
+%     long packet. 
+%   resampleTimebase - Change temporal sampling of a signal
+%   plot - Plot response and fit
+%
+% Methods that must be implemented in subclasses
+%   computeResponse - Compute model response
+%   isPacket - Verify that packet has right format for model
+%   defaultParams - Return a default set of parameters
+%   paramsToVec - Convert parameters structure to vector format
+%   vecToParams - Conver parameters vector to structure format
+%   lockMatrix - Construct parameter locking matrix for the model
+%   print - Print useful things about the parameters
+
 % 6/26/16  dhb  Started in on this
 % 9/21/16  gka  Massive restructuring
 

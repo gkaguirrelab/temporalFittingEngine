@@ -1,15 +1,16 @@
 function response = computeResponse(obj,params,timebase,stimulus,varargin)
 % response = computeResponse(obj,params,timebase,stimulus,varargin)
 % 
-% Compute method for the quadratic model.
+% Compute method for the quadratic color model.
 %
 % Optional key/value pairs
-%   'AddNoise'
-%     true or false(default) 
-%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
-%    Empty matrix is default, in which case no convolution is done
+%   'AddNoise' - true/false (default false).  Add noise to computed
+%     response?  Useful for simulations.
+%  'HRF' - structure (default empty).  Structure describing HRF to be used
+%     to go from neural to BOLD response. If empty, no convolution is done
 
-% Parse input. At the moment this does type checking on the params input
+%% Parse input.
+% At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
 p = inputParser;
@@ -33,10 +34,10 @@ stimulus = p.Results.stimulus;
 theLengths = diag(stimulus'*Q*stimulus);
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
-neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
+neuralResponse = path([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
 
 %% Optionally, apply HRF
-response = obj.applyHRF(timebase,neuralResponse,p.Results.HRF);
+response = obj.applyKernal(timebase,neuralResponse,p.Results.HRF);
 
 %% Optional add of noise
 if (p.Results.AddNoise)

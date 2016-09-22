@@ -4,12 +4,13 @@ function response = computeResponse(obj,params,timebase,stimulus,varargin)
 % Compute method for the BTRM model.
 %
 % Optional key/value pairs
-%   'AddNoise'
-%     true or false(default) 
-%  'HRF' - a structure describing the HRF to be used to go from neural to BOLD response.
-%    Empty matrix is default, in which case no convolution is done
+%   'AddNoise' - true/false (default false).  Add noise to computed
+%     response?  Useful for simulations.
+%  'HRF' - structure (default empty).  Structure describing HRF to be used
+%     to go from neural to BOLD response. If empty, no convolution is done
 
-% Parse input. At the moment this does type checking on the params input
+%% Parse input.
+% At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
 p = inputParser;

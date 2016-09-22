@@ -1,12 +1,12 @@
 function convModelResponse = applyKernel(obj,timebase,modelResponse,theKernel,varargin)
-% boldResponse = applyKernel(obj,timebase,modelResponse,theKernel,varargin)
+% convModelResponse = applyKernel(obj,timebase,modelResponse,theKernel,varargin)
 % 
 % Apply a convolution kernel to the modeled response. In a typical
 % application, this will be a hemodynamic response function applied to
 % a model of neural activity to produce a BOLD fMRI response.
 %
-% We assume that the kernel structure contains a single field, kernel, on
-% the same timebase spacing as the model response.
+% Both modelResponse and theKernal arguments are structures, containing
+% timebase and value fields.  The timebases do not need to be the same.
 %
 % Inputs:
 %   timebase - times on which data/model predictions exist (in msecs)
