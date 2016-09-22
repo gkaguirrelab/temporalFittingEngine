@@ -1,7 +1,7 @@
-classdef tmriQuadraticColorModel < tmriModel
-% tmriQuadraticColorModel
+classdef tfeQCM < tfe
+% tfeQCM
 %
-%   tmri = tmriQuadraticColorModel();
+%   tfe = tfeQCM();
 % 
 % Implements a model that is quadratic in the color contrast of the
 % stimulus.

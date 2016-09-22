@@ -1,16 +1,20 @@
-classdef tmriQuadraticColorModelTest < matlab.unittest.TestCase
+classdef tfeQCMTest < matlab.unittest.TestCase
+    % Basic unit tests for QCM model code, using Matlab's unit test
+    % framework.  Change to directory that contains this program and 
+    % execute "runtests" at the Matlab command line.
     
     properties
         testFigure;
     end
     
+    % Initial setup for tests
     methods (TestClassSetup)
         function initTests(obj)
-            AddToMatlabPathDynamically(fullfile(fileparts(which(mfilename)),'..','toolbox'));
             obj.testFigure = figure; clf; hold on
         end
     end
     
+    % Teardown after tests
     methods (TestClassTeardown)
         function closeTests(obj)
             close(obj.testFigure);
@@ -19,8 +23,8 @@ classdef tmriQuadraticColorModelTest < matlab.unittest.TestCase
     
     methods (Test)
         % Test that instantiating the class doesn't crash
-        function tmriModelConstructorTest(obj)
-            tmri = tmriQuadraticColorModel;
+        function tfeQCMConstructorTest(obj)
+            tfe = tfeQCM;
         end
         
         % Test that paramsToVec and vecToParams invert
@@ -28,28 +32,28 @@ classdef tmriQuadraticColorModelTest < matlab.unittest.TestCase
         % This also tests that defaultParams returns a parameter struct and
         % that print prints it out.
         function paramsToVecTest(obj)
-            tmri = tmriQuadraticColorModel;
-            params0 = tmri.defaultParams;
-            tmri.print(params0);
+            tfe = tfeQCM;
+            params0 = tfe.defaultParams;
+            tfe.paramPrint(params0);
             
-            x0 = tmri.paramsToVec(params0);
+            x0 = tfe.paramsToVec(params0);
             x1 = x0;
             x1(1) = 2;
             x1(2) = 0.5;
             x1(3) = pi/2;
             x1(7) = 3;
-            params1 = tmri.vecToParams(x1);
-            x2 = tmri.paramsToVec(params1);
+            params1 = tfe.vecToParams(x1);
+            x2 = tfe.paramsToVec(params1);
             obj.assertEqual(x1,x2);
         end
         
         % Test that we can simulate a neural response
         function neuralResponseTest(obj)
             % Construct the model object
-            tmri = tmriQuadraticColorModel;
+            tfe = tfeQCM;
             
             % Set parameters
-            params0 = tmri.defaultParams;
+            params0 = tfe.defaultParams;
 
             % Set the timebase we want to compute on
             deltaT = 1;
@@ -65,9 +69,9 @@ classdef tmriQuadraticColorModelTest < matlab.unittest.TestCase
             end
             
             % Generate response and plot
-            neuralResponse = tmri.computeResponse(params0,timebase,stimulus,'AddNoise',true);
+            neuralResponse = tfe.computeResponse(params0,timebase,stimulus,'AddNoise',true);
             figure(obj.testFigure);
-            tmri.plot(timebase,neuralResponse,'NewWindow',false);
+            tfe.plot(timebase,neuralResponse,'NewWindow',false);
         end
     end
     

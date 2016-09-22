@@ -1,8 +1,7 @@
 function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,kernel)
 % [fVal,allFVals,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFit,HRF)
 %
-% Compute the error measure for passed model parameters, for the tmir
-% class.
+% Compute the error measure for passed model parameters, for the tfe class.
 %
 % Inputs:
 %   paramsVec - model parameters in their vector form.  Just one of these
@@ -11,9 +10,9 @@ function [fVal,responsePredicted] = fitError(obj,paramsVec,stimulus,responseToFi
 %   kernel - structure defining the kernel.  Can be empty, in which case no kernel
 %         is applied.
 %
-% find the parameters that minimize the average fit error, taken over the runs.
-% Doing it this way allows us to more easily use this routine for cross
-% validation.
+% Optional key/value pairs
+%  'errorType' - string (default 'rmse') Type of error to compute.
+%    'rmse' - Root mean squared error.
 %
 % Outputs: 
 %   fVal: mean value of fit error, mean taken over runs.
@@ -27,13 +26,16 @@ p.addRequired('responseToFit',@isstruct);
 p.addRequired('kernel',@isstruct);
 p.parse(paramsVec,stimulus,responseToFit,kernel);
 
+%% Convert parameters to vector form
 params = obj.vecToParams(paramsVec);
 
-% compute the fit
+%% Compute the fit based on the timebase of the stimulus
 responsePredictedPreDownsample = obj.computeResponse(params,stimulus.timebase,stimulus,'kernel',p.Results.kernel);
-% downsample to resolution of data
+
+%% Downsample to computed response to timebase of the response
 responsePredicted = interp1(stimulus.timebase,responsePredictedPreDownsample,responseToFit.timebase);
-% get error measurement
+
+%% Get fit error measurement
 fVal = sqrt(mean((responsePredicted-responseToFit.values).^2));
 
 end

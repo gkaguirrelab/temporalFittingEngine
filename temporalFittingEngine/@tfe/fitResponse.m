@@ -1,5 +1,5 @@
 function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
-% [paramsFit,fVal,allFVals,predictedResponse] = fitResponse(obj,thePacket,varargin)
+% [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
 %
 % Fit method for the tfe class.  This is meant to be model independent, so
 % that we only have to write it once.
@@ -8,18 +8,16 @@ function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin
 %   thePacket: a valid packet
 %
 % Optional key/value pairs
-%  'defaultParamsInfo' - a struct passed to the defaultParams method.
-%    Empty matrix is default.
-%  'paramLockMatrix' - Do parameter locking according to passed matrix.
-%    This matrix has the same number of columns as the parameter vector,
-%    and each row contains a 1 and a -1, which locks the two corresponding
-%    parameters to each other.
+%  'defaultParamsInfo' - struct (default empty).  This is passed to the defaultParams method.
+%  'paramLockMatrix' - matrix (default empty). If not emptye, do parameter locking according
+%    to passed matrix. This matrix has the same number of columns as the
+%    parameter vector, and each row contains a 1 and a -1, which locks the
+%    two corresponding parameters to each other.
 %
 % Outputs:
 %   paramsFit: fit parameters
 %   fVal: mean value of fit error, mean taken over runs.
-%   allFVals: vector of fit errors for the individual runs.
-%   predictedResponse: big vector containing the fit response, concatenated
+%   predictedResponse: big vector containing the fit response
 
 %% Parse vargin for options passed here
 p = inputParser;
