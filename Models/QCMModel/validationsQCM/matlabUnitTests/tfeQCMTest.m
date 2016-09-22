@@ -1,6 +1,7 @@
 classdef tfeQCMTest < matlab.unittest.TestCase
     % Basic unit tests for QCM model code, using Matlab's unit test
-    % framework.
+    % framework.  Change to directory that contains this program and 
+    % execute "runtests" at the Matlab command line.
     
     properties
         testFigure;
@@ -33,7 +34,7 @@ classdef tfeQCMTest < matlab.unittest.TestCase
         function paramsToVecTest(obj)
             tfe = tfeQCM;
             params0 = tfe.defaultParams;
-            tfe.print(params0);
+            tfe.paramPrint(params0);
             
             x0 = tfe.paramsToVec(params0);
             x1 = x0;
