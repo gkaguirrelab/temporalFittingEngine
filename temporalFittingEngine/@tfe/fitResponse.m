@@ -1,5 +1,5 @@
-function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
-% [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin)
+function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,varargin)
+% [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,varargin)
 %
 % Fit method for the tfe class.  This is meant to be model independent, so
 % that we only have to write it once.
@@ -13,6 +13,9 @@ function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin
 %    to passed matrix. This matrix has the same number of columns as the
 %    parameter vector, and each row contains a 1 and a -1, which locks the
 %    two corresponding parameters to each other.
+%  'searchMethod - string (default 'fmincon').  Specify search method
+%    'fmincon' - Use fmincon
+%    'global' - Use global search
 %
 % Outputs:
 %   paramsFit: fit parameters
@@ -22,8 +25,9 @@ function [paramsFit,fVal,predictedResponse] = fitResponse(obj,thePacket,varargin
 %% Parse vargin for options passed here
 p = inputParser;
 p.addRequired('thePacket',@isstruct);
-p.addParameter('defaultParamsInfo',[],@isstruct);
+p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('paramLockMatrix',[],@isnumeric);
+p.addParameter('searchMethod','fmincon',@ischar);
 p.parse(thePacket,varargin{:});
 
 %% Set initial values and reasonable bounds on parameters
@@ -34,23 +38,22 @@ vlbVec = obj.paramsToVec(vlb);
 vubVec = obj.paramsToVec(vub);
 
 %% David sez: "Fit that sucker"
-%
-% I coded up the global search method, but it is very slow compared with
-% fmincon alone, and fmincon seems to be fine.
-
-USEGLOBAL = false;
-if (~USEGLOBAL)
-    options = optimset('fmincon');
-    options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
-    paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-        thePacket.stimulus,thePacket.response,thePacket.kernel),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
-else
-    opts = optimoptions(@fmincon,'Algorithm','interior-point');
-    problem = createOptimProblem('fmincon','objective', ...
-        @(modelParamsVec)obj.fitError(modelParamsVec,thePacket.stimulus,thePacket.response,thePacket.kernel),...
-        'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
-    gs = GlobalSearch;
-    paramsFitVec = run(gs,problem);
+switch (p.Results.searchMethod)
+    case 'fmincon'
+        options = optimset('fmincon');
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
+        paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
+            thePacket.stimulus,thePacket.response,thePacket.kernel),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
+    case 'global'
+        % Slow but might work better
+        opts = optimoptions(@fmincon,'Algorithm','interior-point');
+        problem = createOptimProblem('fmincon','objective', ...
+            @(modelParamsVec)obj.fitError(modelParamsVec,thePacket.stimulus,thePacket.response,thePacket.kernel),...
+            'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
+        gs = GlobalSearch;
+        paramsFitVec = run(gs,problem);
+    otherwise
+        error('Do not know how to fit that sucker with specified method');
 end
 
 % Get error and predicted response for final parameters
