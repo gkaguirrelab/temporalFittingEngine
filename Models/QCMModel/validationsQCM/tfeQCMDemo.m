@@ -8,7 +8,7 @@
 clear; close all;
 
 %% Construct the model object
-tmri = tmriQuadraticColorModel;
+tmri = tfeQCM('verbosity','high');
 
 %% Set parameters
 %
@@ -16,7 +16,7 @@ tmri = tmriQuadraticColorModel;
 % we normalize the first to 1 so we only need five numbers here.
 params0 = tmri.defaultParams;
 fprintf('Default model parameters:\n');
-tmri.print(params0);
+tmri.paramPrint(params0);
 
 %% Set the timebase we want to compute on
 deltaT = 1;
@@ -44,13 +44,15 @@ params1.crfSemi = 0.5;
 params1.crfExponent = 3;
 params1.noiseSd = 0.02;
 fprintf('Simulated model parameters:\n');
-tmri.print(params1);
+tmri.paramPrint(params1);
 responseToFit = tmri.computeResponse(params1,timebase,stimulus,'AddNoise',true);
 tmri.plot(timebase,responseToFit);
 
+%% Construct a packet
+
 %% Test the fitter
-[paramsFit,fVal,allFVals,fitResponse] = tmri.fitResponse({timebase},{stimulus},{responseToFit});
+[paramsFit,fVal,fitResponse] = tmri.fitResponse({timebase},{stimulus},{responseToFit});
 fprintf('Model parameter from fits:\n');
-tmri.print(paramsFit);
+tmri.paramPrint(paramsFit);
 tmri.plot(timebase,fitResponse{1},'Color',[0 1 0],'NewWindow',false);
 
