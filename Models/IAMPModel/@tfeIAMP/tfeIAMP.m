@@ -1,8 +1,10 @@
-classdef tmriIAMP < tmriModel
-% tmriIAMP
+classdef tfeIAMP < tfe
+% tfeIAMP
 %
-%   tmri =  tmriAMP();
-% 
+%   tfe =  tfeIAMP(varagin);
+%
+% Inherits optional key/value pairs from parent class tfe.
+
 
     % Public, read-only properties.
     properties (SetAccess = private, GetAccess = public)
@@ -20,8 +22,18 @@ classdef tmriIAMP < tmriModel
     properties (Dependent)
     end
     
-    % Methods that must be implemented (Abstract in parent class).
-    methods (Access=public)             
+    % Methods.  Most public methods are implemented in a separate function,
+    % but we put the constructor here.
+    methods (Access=public)
+        % Constructor
+        function obj = tfeIAMP(varargin)
+            
+            % Base class constructor
+            obj = obj@tfe(varargin{:});
+            
+            % You could do model specific stuff here.
+
+        end
     end 
     
     % Get methods for dependent properties

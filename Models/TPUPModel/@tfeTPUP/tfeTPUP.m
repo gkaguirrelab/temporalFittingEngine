@@ -1,7 +1,11 @@
-classdef tfeTwoComponentPupilResponse < tfe
+classdef tfeTPUP < tfe
 % tfeTPUP
 %
-% 
+%   tfe = tfeTPUP(varargin)
+%
+% Two component pupil response model.
+%
+% Inherits optional key/value pairs from parent class tfe.
 
     % Public, read-only properties.
     properties (SetAccess = private, GetAccess = public)
@@ -19,8 +23,18 @@ classdef tfeTwoComponentPupilResponse < tfe
     properties (Dependent)
     end
     
-    % Methods that must be implemented (Abstract in parent class).
-    methods (Access=public)             
+    % Methods.  Most public methods are implemented in a separate
+    % function, but we put the class constructor here.  
+    methods (Access=public)
+        % Constructor
+        function obj = tfeTPUP(varargin)
+            
+            % Base class constructor
+            obj = obj@tfe(varargin{:});
+            
+            % You could do model specific stuff here.
+
+        end
     end 
     
     % Get methods for dependent properties

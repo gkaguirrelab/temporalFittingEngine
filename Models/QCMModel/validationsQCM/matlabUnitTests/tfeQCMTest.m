@@ -27,6 +27,14 @@ classdef tfeQCMTest < matlab.unittest.TestCase
             tfe = tfeQCM;
         end
         
+        % Test that we can set verbosity
+        function tfeQCMVerbosityTest(obj)
+            tfe = tfeQCM('verbosity','high');
+            if (~strcmp(tfe.verbosity,'high'))
+                error('Failed to set verbosity to high on create');
+            end
+        end
+        
         % Test that paramsToVec and vecToParams invert
         % 
         % This also tests that defaultParams returns a parameter struct and
