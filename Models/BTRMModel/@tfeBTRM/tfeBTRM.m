@@ -1,10 +1,12 @@
-classdef tmriBDCM < tmriModel
-% tmriBDCM
+classdef tfeBTRM < tfe
+% tfeBTRM
 %
-%   tmri =  tmriBDCM();
+%   tfe =  tfeBTRM(vargin);
 % 
 % Implements a model for a block design fMRI experiment in which the color
 % direction and temporal frequency of stimuli are varied in a block design.
+%
+% Inherits optional key/value pairs from parent class tfe.
 %
 % 7/25/16  dhb, bc  Started on this.
 
@@ -24,8 +26,18 @@ classdef tmriBDCM < tmriModel
     properties (Dependent)
     end
     
-    % Methods that must be implemented (Abstract in parent class).
-    methods (Access=public)             
+    % Methods.  Most public methods are implemented in a separate function,
+    % but we put the constructor here.
+    methods (Access=public)
+        % Constructor
+        function obj = tfeBTRM(varargin)
+            
+            % Base class constructor
+            obj = obj@tfe(varargin{:});
+            
+            % You could do model specific stuff here.
+
+        end
     end 
     
     % Get methods for dependent properties

@@ -1,10 +1,12 @@
 classdef tfeQCM < tfe
 % tfeQCM
 %
-%   tfe = tfeQCM();
+%   tfe = tfeQCM(varargin);
 % 
 % Implements a model that is quadratic in the color contrast of the
 % stimulus.
+%
+% Inherits optional key/value pairs from parent class tfe.
 %
 % 6/26/16  dhb  Started in on this.
 
@@ -23,8 +25,18 @@ classdef tfeQCM < tfe
     properties (Dependent)
     end
     
-    % Methods that must be implemented (Abstract in parent class).
-    methods (Access=public)             
+    % Methods.  Most public methods are implemented in a separate function,
+    % but we put the constructor here.
+    methods (Access=public)
+        % Constructor
+        function obj = tfeQCM(varargin)
+            
+            % Base class constructor
+            obj = obj@tfe(varargin{:});
+            
+            % You could do model specific stuff here.
+
+        end
     end 
     
     % Get methods for dependent properties

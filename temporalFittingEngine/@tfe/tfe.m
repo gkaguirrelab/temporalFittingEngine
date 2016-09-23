@@ -20,6 +20,12 @@ classdef tfe < handle
 %   vecToParams - Conver parameters vector to structure format
 %   lockMatrix - Construct parameter locking matrix for the model
 %   paramPrint - Print useful things about the parameters
+%
+% The class constructor can take optional key/value pairs as follows.
+%  'verbosity' - string (default 'none').  Verbsoity level for method
+%      diagnostic printout
+%      'none' - No diagnostic printout
+%      'high' - Print everything we can think might be useful.
 
 % 6/26/16  dhb  Started in on this
 % 9/21/16  gka  Massive restructuring
@@ -34,7 +40,9 @@ classdef tfe < handle
         
     % Public, read-only properties.  These can be set by methods of the
     % parent class (that is, this class) but not by methods of subclasses.
-    properties (SetAccess = private, GetAccess = public)  
+    properties (SetAccess = private, GetAccess = public)
+        % Verbosity level, set at constructor time.
+        verbosity
     end
     
     % Protected properties; Methods of the parent class and all of its
@@ -49,9 +57,19 @@ classdef tfe < handle
     % Public methods
     %
     % Methods defined in separate files are public by default, so we don't
-    % explicitly decare them.  But, if you wanted to write the whole body
-    % of some short public method here, you could do so.
+    % explicitly decare them.
+    %
+    % We do stick the constructor method here.
     methods (Access=public)
+        % Constructor
+        function obj = tfe(varargin)
+                     
+            %% Parse vargin for options passed here
+            p = inputParser;
+            p.addParameter('verbosity','none',@ischar);
+            p.parse(varargin{:});
+            obj.verbosity = p.Results.verbosity;
+        end
     end
     
     % Methods that must only be implemented in the subclasses.
