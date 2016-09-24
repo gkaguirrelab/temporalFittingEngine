@@ -9,7 +9,7 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %
 % Optional key/value pairs
 %  'defaultParamsInfo' - struct (default empty).  This is passed to the defaultParams method.
-%  'paramLockMatrix' - matrix (default empty). If not emptye, do parameter locking according
+%  'paramLockMatrix' - matrix (default empty). If not empty, do parameter locking according
 %    to passed matrix. This matrix has the same number of columns as the
 %    parameter vector, and each row contains a 1 and a -1, which locks the
 %    two corresponding parameters to each other.
@@ -33,6 +33,11 @@ p.parse(thePacket,varargin{:});
 % Check packet validity
 if (~obj.isPacket(thePacket))
     error('The passed packet is not valid for this model');
+else
+    switch (obj.verbosity)
+        case 'high'
+            fprintf('valid\n');
+    end
 end
 
 %% Set initial values and reasonable bounds on parameters
@@ -43,6 +48,11 @@ vlbVec = obj.paramsToVec(vlb);
 vubVec = obj.paramsToVec(vub);
 
 %% David sez: "Fit that sucker"
+switch (obj.verbosity)
+    case 'high'
+        fprintf('Fitting.');
+end
+
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
@@ -64,9 +74,15 @@ end
 % Get error and predicted response for final parameters
 [fVal,modelResponseStruct] = obj.fitError(paramsFitVec,thePacket);
 
+switch (obj.verbosity)
+    case 'high'
+        fprintf('\n');
+        fprintf('Fit error value: %g', fVal);
+        fprintf('\n');
+end
+
 % Convert fit parameters for return
 paramsFit = obj.vecToParams(paramsFitVec);
-
 
 end
 

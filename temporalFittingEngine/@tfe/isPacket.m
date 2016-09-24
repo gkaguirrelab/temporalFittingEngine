@@ -9,7 +9,7 @@ packetValidity = true;
 % let the user know what we are about to do
 switch (obj.verbosity)
     case 'high'
-        fprintf('Checking the passed packet...\n');
+        fprintf('Checking the passed packet...');
 end
 
 % Check for the presence of primary fields
@@ -81,23 +81,29 @@ if ~(size(thePacket.stimulus.values,2)==length(thePacket.stimulus.timebase))
     packetValidity = false;
 end
 
-% If the kernel values and timebase fields are not empty, make sure that
-% they are of the proper dimensions and of the same length
+% If the kernel values and timebase fields are defined and not empty,
+%  make sure that they are of the proper dimensions and of the same length
 if isfield(thePacket.kernel, 'values') && ...
         isfield(thePacket.kernel, 'timebase')
-    if ~(size(thePacket.kernel.values,1)==1)
-        warning('The field kernel.value is defined but not a single row vector')
-        packetValidity = false;
-    end
-    if ~(size(thePacket.kernel.timebase,1)==1)
-        warning('The field kernel.timebase is defined but not a single row vector')
-        packetValidity = false;
-    end
-    if ~(size(thePacket.kernel.values)==length(thePacket.kernel.timebase))
-        warning('kernel.timebase and kernel.values are defined but not equal in length')
-        packetValidity = false;
-    end
-end
+    if ~isempty(thePacket.kernel.values) &&...
+            ~isempty(thePacket.kernel.timebase)
+
+        % the kernel fields are defined and not empty. Check them.
+        if ~(size(thePacket.kernel.values,1)==1)
+            warning('The field kernel.value is defined but not a single row vector')
+            packetValidity = false;
+        end
+        if ~(size(thePacket.kernel.timebase,1)==1)
+            warning('The field kernel.timebase is defined but not a single row vector')
+            packetValidity = false;
+        end
+        if ~(size(thePacket.kernel.values)==length(thePacket.kernel.timebase))
+            warning('kernel.timebase and kernel.values are defined but not equal in length')
+            packetValidity = false;
+        end
+        
+    end % if the kernel fields are not empty
+end % if the kernel fields are defined
 
 % Check that the stimulus fields are not empty
 if isempty(thePacket.stimulus.values)
