@@ -48,14 +48,14 @@ persistentAlphaVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'persist
 timebaseMsecs=stimulusStruct.timebase;
 timebaseSecs=timebaseMsecs/1000;
 
-% derive some basic properties of the stimuls values
+% derive some basic properties of the stimulus values
 numInstances=size(stimulusStruct.values,1);
 modelLength = length(timebaseSecs);
 
 % pre-allocate the responseMatrix variable here for speed
 responseMatrix=zeros(numInstances,modelLength);
 
-%% We loop through each column of the stimulus matrix
+%% We loop through each row of the stimulus matrix
 for i=1:numInstances
     
     % grab the current stimulus
