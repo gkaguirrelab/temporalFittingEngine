@@ -14,9 +14,13 @@ function convModelResponseStruct = applyKernel(obj,modelResponseStruct,kernelStr
 % Optional key/value pairs
 
 %% Parse vargin for options passed here
-p = inputParser;
+%
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
 p.addRequired('modelResponseStruct',@isstruct);
-p.addRequired('kernelStruct',@(x)(isemtpy(x) | isstruct(x)));
+p.addRequired('kernelStruct',@(x)(isempty(x) | isstruct(x)));
 p.parse(modelResponseStruct,kernelStruct,varargin{:});
 
 %% Propagate all fields forward

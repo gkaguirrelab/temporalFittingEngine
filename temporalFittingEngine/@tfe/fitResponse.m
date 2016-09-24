@@ -30,6 +30,11 @@ p.addParameter('paramLockMatrix',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.parse(thePacket,varargin{:});
 
+% Check packet validity
+if (~obj.isPacket(thePacket))
+    error('The passed packet is not valid for this model');
+end
+
 %% Set initial values and reasonable bounds on parameters
 % Have a go at reasonable initial values
 [paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo);
@@ -43,7 +48,7 @@ switch (p.Results.searchMethod)
         options = optimset('fmincon');
         options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-            thePacket.stimulus,thePacket.response,thePacket.kernel),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
+            thePacket),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
     case 'global'
         % Slow but might work better
         opts = optimoptions(@fmincon,'Algorithm','interior-point');
@@ -57,7 +62,7 @@ switch (p.Results.searchMethod)
 end
 
 % Get error and predicted response for final parameters
-[fVal,predictedResponse] = obj.fitError(paramsFitVec,thePacket.stimulus,thePacket.response,thePacket.kernel);
+[fVal,modelResponseStruct] = obj.fitError(paramsFitVec,thePacket);
 
 % Convert fit parameters for return
 paramsFit = obj.vecToParams(paramsFitVec);

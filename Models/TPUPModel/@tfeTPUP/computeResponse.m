@@ -15,7 +15,7 @@ function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelS
 p = inputParser;
 p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
-p.addRequired('kernelStruct',@isstruct);
+p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('addNoise',false,@islogical);
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
@@ -30,7 +30,9 @@ else
     
     %% Compute the forward model
     % *assume timebase is the same for all stimuli*
-    % GEOFF PICK IT UP HERE.
+    % GEOFF PICK IT UP HERE.  NOTE FROM DHB: I UPDATED THE CONVOLUTION AND
+    % NOISE ADDITION TO MATCH WHAT I THOUGHT IT WOULD EVENTUALLY BE, BASED
+    % ON WHAT I WAS DOING IN THE QCM VERSION.
     individualResponses = forwardModelTPUP(params,stimulusStruct,...
         params.paramMainMatrix(:,strcmp(params.paramNameCell,'startTime')), ...
         params.paramMainMatrix(:,strcmp(params.paramNameCell,'gammaTau')), ...
@@ -45,11 +47,11 @@ else
     fprintf('.');
     
     %% Optionally, convolve with a passed kernel
-    response = obj.applyKernel(modelResponsStruct,kernelStruct,varargin{:});
+    modelResponseStruct = obj.applyKernel(modelResponsStruct,kernelStruct,varargin{:});
     
     %% Optional add noise
     if (p.Results.addNoise)
-        response = response + normrnd(0,params.noiseSd,size(response));
+        modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(response));
     end
 end
 

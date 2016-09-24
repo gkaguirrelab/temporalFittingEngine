@@ -20,7 +20,7 @@ p = inputParser;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('newTimebase',@isnumeric);
 p.addParameter('method','interp1_linear',@ischar);
-p.parse(structList,newTimebase,varargin{:});
+p.parse(inputStruct,newTimebase,varargin{:});
 
 %% Resample
 %
@@ -28,13 +28,13 @@ p.parse(structList,newTimebase,varargin{:});
 resampledStruct = inputStruct;
 nRows = size(inputStruct.values,1);
 resampledStruct.timebase = newTimebase;
-resampledStruct.values = zeros(nRows,length(newTimesbase));
+resampledStruct.values = zeros(nRows,length(newTimebase));
 
 % Loop over each row of values, and downsample
 for ii = 1:nRows
     switch (p.Results.method)
         case 'interp1_linear'
-            resampledStruct.values(ii,:) = interp1(structList.timebase,structList.values(ii,:),newTimebase,'linear');
+            resampledStruct.values(ii,:) = interp1(inputStruct.timebase,inputStruct.values(ii,:),newTimebase,'linear');
         otherwise
             error('Unknown method specified');
     end
