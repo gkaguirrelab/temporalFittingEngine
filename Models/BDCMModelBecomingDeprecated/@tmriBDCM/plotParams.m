@@ -1,4 +1,4 @@
-function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimValues,varargin)
+function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimValues,bPlot,varargin)
 % plotParams(obj,params,stimulus,varargin)
 %
 % Generates plots of parameters for TF Block Design Color Model
@@ -6,10 +6,11 @@ function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimVa
 % Inputs:
 %   params   : parameter structure
 %   stimulus : stimulus structure
+%   bPlot    : plot or not
 %
 % Optional key/value pairs
 %   'bFitZero' - boolean specifying whether to count '0' stimuli as stimuli
-%                (default false)
+%                (default true)
 % Outputs:
 %   h: the figure handle
 %   meanParamValues: m x n matrix of mean parameters, where m is the number
@@ -19,8 +20,9 @@ function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimVa
 p = inputParser;
 p.addRequired('params',@isstruct);
 p.addRequired('stimValues',@isnumeric);
+p.addRequired('bPlot',@isnumeric);
 p.addParameter('bFitZero',false,@islogical);
-p.parse(params,stimValues,varargin{:});
+p.parse(params,stimValues,bPlot,varargin{:});
 
 % Optionally remove stimulus values of 0 (some analyses might want to leave them in)
 if ~p.Results.bFitZero
@@ -44,14 +46,18 @@ for i = 1:numParamTypes
     end    
 end
 
-h = figure;
-set(h,'Position',[398 380 1099 664]);
-for i = 1:numParamTypes
-    subplot(1,numParamTypes,i)
-    plot(uniqueStimValues,meanParamValues(i,:),'-k^','MarkerSize',10,'LineWidth',1.5); axis square;
-    set(gca,'Xscale','log'); set(gca,'Xtick',uniqueStimValues);
-    ylabel(params.paramNameCell(i)); xlabel('Temporal frequency');
-    set(gca,'FontSize',15);
+if bPlot == 1
+    h = figure;
+    set(h,'Position',[398 380 1099 664]);
+    for i = 1:numParamTypes
+        subplot(1,numParamTypes,i)
+        plot(uniqueStimValues,meanParamValues(i,:),'-k^','MarkerSize',10,'LineWidth',1.5); axis square;
+        set(gca,'Xscale','log'); set(gca,'Xtick',uniqueStimValues);
+        ylabel(params.paramNameCell(i)); xlabel('Temporal frequency');
+        set(gca,'FontSize',15);
+    end
+else
+    h = [];
 end
 
 end

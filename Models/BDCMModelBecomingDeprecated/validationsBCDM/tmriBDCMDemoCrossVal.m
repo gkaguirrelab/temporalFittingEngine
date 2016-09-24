@@ -51,51 +51,6 @@ for ii = 1:length(thePackets)
     thePackets{ii}.HRF = theHRFList{ii};
 end
 
-%%
-% concatenate packets
-packetsConc = tmri.concatenatePackets(thePackets);
-% put HRF back in
-packetsConc.HRF = thePackets{1}.HRF;
-% put in stimulus metadata
-metaDataConc = tmri.concMetaDataBDCM(thePackets);
-packetsConc.stimulus.metaData.theFrequencyIndices = metaDataConc.theFrequencyIndices;
-% locking matrix
-paramLockMatrix = createParamLockMatrixVanilla(unique(packetsConc.stimulus.metaData.theFrequencyIndices) ...
-                                               ,packetsConc.stimulus.metaData.theFrequencyIndices,2);
+%% CROSS VALIDATION, FITTING ALL BUT PACKET #3
 
-defaultParamsInfo.nEvents = size(packetsConc.stimulus.values,1);
-
-%% Set parameters
-%
-% Six parameters define a quadratic form in three dimensions, but
-% we normalize the first to 1 so we only need five numbers here.
-params0 = tmri.defaultParams('DefaultParamsInfo',defaultParamsInfo);
-fprintf('Default model parameters:\n');
-tmri.print(params0);
-
-%% Test paramsToVec and vecToParams
-params1 = params0;
-params1.paramsMainMatrix = rand(size(params1.paramMainMatrix));
-x1 = tmri.paramsToVec(params1);
-params2 = tmri.vecToParams(x1);
-if (any(params1.paramMainMatrix ~= params2.paramMainMatrix))
-    error('vecToParams and paramsToVec do not invert');
-end
-%%
-% do the fit
-[paramsFit,fVal,fitResponse] = tmri.fitResponse(packetsConc,'DefaultParamsInfo',defaultParamsInfo, ...
-                          'paramLockMatrix',paramLockMatrix);
-fprintf('Model parameter from fits:\n');
-
-% plot amplitudes
-[~, meanParamValues,stdErrorParamValues] = tmri.plotParams(paramsFit,packetsConc.stimulus.metaData.theFrequencyIndices);
-theFreq = thePackets{1}.stimulus.metaData.params.theFrequenciesHz ...
-           (2:length(thePackets{1}.stimulus.metaData.params.theFrequenciesHz));
-theFreqForPlot = [1 theFreq];
-figure;
-plot(theFreqForPlot,meanParamValues(1,:),'-kd','LineWidth',2,'MarkerSize',15); hold on
-set(gca,'Xscale','log'); xlabel('Temporal Frequency (Hz)'); ylabel('Amplitude');
-set(gca,'FontSize',15); set(gca,'Xtick',theFreq); axis square;
-% plot fit
-tmri.plot(packetsConc.response.timebase,packetsConc.response.values); hold on;
-tmri.plot(packetsConc.response.timebase,fitResponse,'Color',[0 1 0],'NewWindow',false);
+[fVal responsePredicted] = tmri.crossValBDCM(thePackets,3);
