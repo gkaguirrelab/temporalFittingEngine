@@ -4,7 +4,7 @@ function x = paramsToVec(obj,params,varargin)
 % Convert vector form of parameters to struct
 %
 % Key/value pairs
-%   'UseNoiseParam'
+%   'useNoiseParam'
 %     true or false (default) 
 
 % Parse input

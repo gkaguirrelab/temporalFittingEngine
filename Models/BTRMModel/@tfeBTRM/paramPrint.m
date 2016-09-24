@@ -6,7 +6,7 @@ function print(obj,params,varargin)
 % Key/value pairs
 %   'PrintType'
 %     'parameters' (default)
-
+ 
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
@@ -16,7 +16,7 @@ p.addParameter('PrintType','parameters',@ischar);
 p.parse(params,varargin{:});
 params = p.Results.params;
 
-% Quadratic parameters
+% print the parameters
 fprintf('Number of stimuli specified: %d\n',params.matrixRows);
 fprintf('Number of parameter cols: %d\n',params.matrixCols);
 for ii = 1:params.matrixCols

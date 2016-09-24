@@ -1,5 +1,5 @@
-function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix, ampVec, tau2vec)
-%% createNeuralTemporalModelFromStimMatrix
+function [modelResponseStruct] = forwardModelBTRM(params,stimulusStruct)
+%% forwardModelBTRM
 %
 % This function creates a model of neural response given a vector of
 % stimulus input, a vector of time points, and a set of parameters.
@@ -52,72 +52,81 @@ function [neuralMatrix] = createNeuralTemporalModelFromStimMatrix(t, stimMatrix,
 %   t - the temporal vector
 %   paramOut - the parameters passed back out
 %
-%
-% 05-30-2016 -  gka wrote it
-% 06-23-2016 -  gka modified to serve as a function call in fminsearch
-
-% decaying exponential expects t in terms of seconds: ms->s
-t = t./1000;
-modelLength = length(t);
-stimDimension=size(stimMatrix,1);
-
-%% define default parameters
-% parameters of the stimulus. This could be derived by examining the first
-% derivative of the stimulus instead of using this hard-coded value.
-param.afterResponseTiming = 10; % Time after stimulus onset at which the offset response occurs.
-
-% parameters of the neural filters
-param.MRamplitude = 1;      % multiplicative scaling of the stimulus into the main neural response. Should be unbounded.
-param.ARampRelative = 0;    % multiplicative scaling of the after-response, relative to main. Reasonable bounds [-1:1]
-param.tau1 = 0.005;         % time constant of the neural IRF (in seconds). In fMRI data modeling, this will be held fixed.
-param.epsilon = .35;        % compressive non-linearity parameter. Reasonable bounds [0.1:1]
-param.tau2 = 0.001;         % time constant of the low-pass (exponential decay) component. Reasonable bounds [0.0001:0.1]
 
 
-% We loop through each column of the stimulus matrix
-for s=1:stimDimension
+%% Unpack the params
+%    These parameters are active for modeling of fMRI time series data:
+%      amplitude - multiplicative scaling of the stimulus.
+%      tauExponentialDecay - time constant of the low-pass (exponential
+%        decay) component. Reasonable bounds [0.0001:0.1]
+%    These parameters operate at neural timescales, so may be held fixed in
+%    the modeling of fMRI data:
+%      tauNeuralIRF - time constant of the neural IRF (in seconds). A
+%        typical valye might be 0.005 secs (5 msecs)
+%      epsilonCompression - compressive non-linearity parameter. Reasonable
+%        bounds [0.1:1]
+
+amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
+tauExponentialDecayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauExponentialDecay'));
+tauNeuralIRFVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauNeuralIRF'));
+epsilonCompressionVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'epsilonCompression'));
+
+%% Define basic model features
+
+% the model has parameters that are tuned for units of seconds, so
+% we convert our timebase
+timebaseMsecs=stimulusStruct.timebase;
+timebaseSecs=timebaseMsecs/1000;
+
+% derive some basic properties of the stimulus values
+numInstances=size(stimulusStruct.values,1);
+modelLength = length(timebaseSecs);
+
+% pre-allocate the responseMatrix variable here for speed
+responseMatrix=zeros(numInstances,modelLength);
+
+%% We loop through each column of the stimulus matrix
+for i=1:numInstances
     
-    % Obtain the model parameters for this stimulus
-    param.MRamplitude=ampVec(s);
-    param.tau2 = tau2vec(s);
+    % grab the current stimulus
+    stimulus=stimulusStruct.values(i,:)';
     
     %% The neural response begins as the stimulus input
     % scaled by the main response amplitude parameter
-    yStimulus = stimMatrix(s,:);
-    yNeural = yStimulus.*param.MRamplitude;
+    yNeural = stimulus*amplitudeVec(i);
     
     %% find the initial peak of the scaled stimulus
     initialPeakPoint=find(abs(yNeural)==max(abs(yNeural)));
     initialPeakPoint=initialPeakPoint(1);
     initialPeakValue=yNeural(initialPeakPoint);
     
-%     %% Apply gamma convolution
-%     % Define a gamma function that transforms the
-%     % stimulus input into a profile of neural activity (e.g., LFP)
-%     gammaIRF = t .* exp(-t/param.tau1);
-%     
-%     %scale the IRF to preserve area of response after convolution
-%     gammaIRF=gammaIRF./sum(gammaIRF);
-%     
-%     % Obtain first stage, linear model, which is the scaled stimulus
-%     % convolved by the neural IRF.
-%     yNeural = conv(yNeural,gammaIRF);
-%     yNeural = yNeural(1:modelLength);
-%     
-%     %% Implement the compressive non-linearity stage
-%     % Obtain second stage, CTS model, which is the output of the linear stage
-%     % subjected to a compressive non-linearity. While this is implemented here
-%     % as a power law function, it is worth noting that very similar functions
-%     % are produced by implementing this as an instantaneous divisive
-%     % normalization.
-%     yNeural = yNeural.^param.epsilon;
-%     
-%     % Restore the peak signed, abs amplitude
-%     yNeural=(yNeural/yNeural(initialPeakPoint))*initialPeakValue;
+    %% Apply gamma convolution
+    % Define a gamma function that transforms the
+    % stimulus input into a profile of neural activity (e.g., LFP)
+    gammaIRF = timebaseSecs .* exp(-timebaseSecs/tauNeuralIRFVec(i));
+    
+    %scale the IRF to preserve area of response after convolution
+    gammaIRF=gammaIRF./sum(gammaIRF);
+    
+    % Obtain first stage, linear model, which is the scaled stimulus
+    % convolved by the neural IRF.
+    yNeural = conv(yNeural,gammaIRF);
+    yNeural = yNeural(1:modelLength);
+    
+    %% Implement the compressive non-linearity stage
+    % Obtain second stage, CTS model, which is the output of the linear stage
+    % subjected to a compressive non-linearity. While this is implemented here
+    % as a power law function, it is worth noting that very similar functions
+    % are produced by implementing this as an instantaneous divisive
+    % normalization.
+    yNeural = yNeural.^epsilonCompressionVec(i);
+    
+    % Restore the peak signed, abs amplitude
+    yNeural=(yNeural/yNeural(initialPeakPoint))*initialPeakValue;
     
     % Create the exponential low-pass function that defines the time-domain
     % properties of the normalization
-    decayingExponential=(exp(-1*param.tau2*t));
+    decayingExponential=(exp(-1*tauExponentialDecayVec(i)*timebaseSecs));
     
     % Position the decaying exponential to have unit value at that time
     % point of the initial peak.
@@ -128,16 +137,13 @@ for s=1:stimDimension
     % Apply the exponential decay as a multiplicative scaling
     yNeural=yNeural.*decayingExponential;
     
-    %% Create the after-response
-    % This is assumed to be a shifted, scaled version of the main response.
-    yNeuralAR = yNeural * param.ARampRelative;
-    yNeuralAR = circshift(yNeuralAR,[0,param.afterResponseTiming]);
-    yNeuralAR(1:param.afterResponseTiming)=NaN;
-    yNeural = nansum([yNeural;yNeuralAR]);
-    
     %% Place yNeural into the growing neuralMatrix
-    neuralMatrix(s,:)=yNeural;
+    responseMatrix(s,:)=yNeural;
     
-end % loop over columns of the stimulus matrix
+end % loop over rows of the stimulus matrix
+
+%% Build the modelResponseStruct to return
+modelResponseStruct.timebase=stimulusStruct.timebase;
+modelResponseStruct.values=sum(responseMatrix,1);
 
 end

@@ -1,42 +1,40 @@
-function response = computeResponse(obj,params,timebase,stimulus,varargin)
-% response = computeResponse(obj,params,timebase,stimulus,varargin)
-% 
-% Compute method for the BTRM model.
+function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
+% modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
+%
+% Compute method for the block temporal response model.
+%
+% Operates by calling forwardModelBTRM and then the applyKernel tfe method.
 %
 % Optional key/value pairs
 %   'AddNoise' - true/false (default false).  Add noise to computed
-%     response?  Useful for simulations.
-%  'HRF' - structure (default empty).  Structure describing HRF to be used
-%     to go from neural to BOLD response. If empty, no convolution is done
+%     response? Useful for simulations.
 
-%% Parse input.
-% At the moment this does type checking on the params input
+% Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
 p = inputParser;
 p.addRequired('params',@isstruct);
-p.addRequired('timebase',@isnumeric);
-p.addRequired('stimulus',@isstruct);
+p.addRequired('stimulusStruct',@isstruct);
+p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('addNoise',false,@islogical);
-p.addParameter('HRF',[],@isstruct);
-p.parse(params,timebase,stimulus,varargin{:});
-params = p.results.params;
-timebase = p.results.timebase;
-stimulus = p.results.stimulus;
+p.parse(params,stimulusStruct,kernelStruct,varargin{:});
+params = p.Results.params;
 
-%% First compute the neural response
-% *assume timebase is the same for all stimuli*
-individualResponses = createNeuralTemporalModelFromStimMatrix(timebase, stimulus.values,...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude')), ...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'tau2')));
-neuralResponse = sum(individualResponses,1);
+%% Compute the forward model
+modelResponseStruct = forwardModelBTRM(params,stimulusStruct);
 
-%% Optionally, apply HRF
-response = obj.applyHRF(timebase,neuralResponse,p.results.HRF);
+% report an iteration has completed
+switch (obj.verbosity)
+    case 'high'
+        fprintf('.');
+end
 
-%% Optional add of noise
-if (p.results.addNoise)
-    response = response + normrnd(0,params.noiseSD,size(response));
+%% Optionally, convolve with a passed kernel
+modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
+
+%% Optional add noise
+if (p.Results.addNoise)
+    modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
 end
 
 end

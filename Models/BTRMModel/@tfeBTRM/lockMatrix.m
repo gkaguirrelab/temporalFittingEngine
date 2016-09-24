@@ -7,12 +7,14 @@ function paramLockMatrix = lockMatrix(obj,params,stimulus,varargin)
 %  'LockType' - What kind of locking to do
 %    'vanilla' - Default sensible locking.
 
+%% CURRENTLY NOT IMPLEMENTED
+
 %% Parse input.
 p = inputParser;
 p.addRequired('params',@isstruct);
 p.addParameter('LockType','vanilla',@ischar);
 p.parse(params,varargin{:});
-params = p.results.params;
+params = p.Results.params;
 
 % extract temp freq values from meta data field
 for i = 1:length(stimulus.metaData)
@@ -20,9 +22,9 @@ for i = 1:length(stimulus.metaData)
 end
 
 %% Create the lock matrix
-switch (p.results.LockType)
+switch (p.Results.LockType)
     case 'vanilla'
-        paramLockMatrix = createVanillaLockMatrixBTRM(unique(tempFreqValues),tempFreqValues,params.matrixCols);
+        paramLockMatrix = createParamLockMatrixVanilla(unique(tempFreqValues),tempFreqValues,params.matrixCols);
     otherwise
         error('Unknown lock type passed');
 end

@@ -1,14 +1,11 @@
 classdef tfeBTRM < tfe
-% tfeBTRM
+% tfeTPUP
 %
-%   tfe =  tfeBTRM(vargin);
-% 
-% Implements a model for a block design fMRI experiment in which the color
-% direction and temporal frequency of stimuli are varied in a block design.
+%   tfe = tfeBTRM(varargin)
+%
+% Blocked temporal response model.
 %
 % Inherits optional key/value pairs from parent class tfe.
-%
-% 7/25/16  dhb, bc  Started on this.
 
     % Public, read-only properties.
     properties (SetAccess = private, GetAccess = public)
@@ -26,11 +23,11 @@ classdef tfeBTRM < tfe
     properties (Dependent)
     end
     
-    % Methods.  Most public methods are implemented in a separate function,
-    % but we put the constructor here.
+    % Methods.  Most public methods are implemented in a separate
+    % function, but we put the class constructor here.  
     methods (Access=public)
         % Constructor
-        function obj = tfeBTRM(varargin)
+        function obj = tfeTPUP(varargin)
             
             % Base class constructor
             obj = obj@tfe(varargin{:});
