@@ -66,20 +66,20 @@ classdef tfeQCMTest < matlab.unittest.TestCase
             % Set the timebase we want to compute on
             deltaT = 1;
             totalTime = 1000;
-            timebase = 0:deltaT:totalTime;
+            stimulusStruct.timebase = 0:deltaT:totalTime;
             
             % Specify the stimulus.
-            nTimeSamples = size(timebase,2);
+            nTimeSamples = size(stimulusStruct.timebase,2);
             filter = fspecial('gaussian',[1 nTimeSamples],6);
-            stimulus= rand(3,nTimeSamples);
+            stimulusStruct.values = rand(3,nTimeSamples);
             for i = 1:3
-                stimulus(i,:) = ifft(fft(stimulus(i,:)) .* fft(filter));
+                stimulusStruct.values(i,:) = ifft(fft(stimulusStruct.values(i,:)) .* fft(filter));
             end
             
-            % Generate response and plot
-            neuralResponse = tfe.computeResponse(params0,timebase,stimulus,'AddNoise',true);
+            % Generate response and plot. No convolution kernal passed.
+            modelResponseStruct = tfe.computeResponse(params0,stimulusStruct,[],'AddNoise',true);
             figure(obj.testFigure);
-            tfe.plot(timebase,neuralResponse,'NewWindow',false);
+            tfe.plot(modelResponseStruct,'NewWindow',false);
         end
     end
     
