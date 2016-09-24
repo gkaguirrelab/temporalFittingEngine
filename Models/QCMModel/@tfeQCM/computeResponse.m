@@ -25,7 +25,7 @@ params = p.Results.params;
 %
 % This represents the quadaratic component of the neural response after
 % application of the quadratic
-theLengths = diag(stimulusStruct.values'*Q*stimulusStruct.values);
+theLengths = diag(stimulusStruct.values'*Q*stimulusStruct.values)';
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
 neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
@@ -41,5 +41,6 @@ modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{
 if (p.Results.addNoise)
     modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
 end
+
 
 end

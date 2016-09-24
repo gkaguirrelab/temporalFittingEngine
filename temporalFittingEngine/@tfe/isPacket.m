@@ -10,7 +10,10 @@ function packetValidity = isPacket(obj,thePacket)
 packetValidity = true;
 
 % let the user know what we are about to do
-fprintf('Checking the passed packet...\n');
+switch (obj.verbosity)
+    case 'high'
+        fprintf('Checking the passed packet...\n');
+end
 
 % Check for the presence of elementary fields
 if isfield(thePacket, 'stimulus') && ...
@@ -39,7 +42,7 @@ if ~(size(thePacket.response.timebase,1)==1)
     packetValidity = false;
 end
 
-% exit at this stage if the packet is bad, as we can't check the the
+% Exit at this stage if the packet is bad, as we can't check the the
 % response field lengths
 if ~packetValidity
     return
