@@ -1,4 +1,4 @@
-function h = plotResponse(obj,timebase,response,varargin)
+function h = plotResponse(obj,responseStruct,varargin)
 % plotResponse(obj,timebase,response,varargin)
 % 
 % Plot the time-varying response 
@@ -11,12 +11,10 @@ function h = plotResponse(obj,timebase,response,varargin)
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
 p = inputParser;
-p.addRequired('timebase',@isnumeric);
-p.addRequired('response',@isnumeric);
+p.addRequired('responseStruct',@isstruct);
 p.addParameter('NewWindow',true,@islogical);
 p.addParameter('Color',[1 0 0],@isnumeric);
-p.parse(timebase,response,varargin{:});
-
+p.parse(responseStruct,varargin{:});
 
 %% Make the figure
 if (p.Results.NewWindow)
@@ -26,6 +24,6 @@ else
 end
 
 %% Plot
-plot(p.Results.timebase,p.Results.response,'Color',p.Results.Color,'LineWidth',2);
+plot(responseStruct.timebase,responseStruct.values,'Color',p.Results.Color,'LineWidth',2);
 xlabel('Time (seconds)')
 ylabel('Response');
