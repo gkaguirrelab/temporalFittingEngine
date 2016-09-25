@@ -16,7 +16,7 @@ temporalFit.paramPrint(params0);
 
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
-totalTime = 26000; % in msecs
+totalTime = 50000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
@@ -55,26 +55,35 @@ kernelStruct.values=hrf;
 kernelStruct.timebase=stimulusStruct.timebase;
 
 %% Create a modeled fMRI response, with added noise
-params0.noiseSd = 0.02;
+params0.noiseSd = 0.05;
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
-modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',false);
+modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
 temporalFit.plot(modelResponseStruct);
 hold on
 plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k');
 plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b');
 
-% 
-% 
-% %% Construct a packet
-% thePacket.stimulus = stimulusStruct;
-% thePacket.response = modelResponseStruct;
-% thePacket.kernel = [];
-% thePacket.metaData = [];
-% 
-% %% Test the fitter
-% [paramsFit,fVal,fitResponseStruct] = temporalFit.fitResponse(thePacket);
-% fprintf('Model parameter from fits:\n');
-% temporalFit.paramPrint(paramsFit);
-% temporalFit.plot(fitResponseStruct,'Color',[0 1 0],'NewWindow',false);
+%% Construct a packet
+thePacket.stimulus = stimulusStruct;
+thePacket.response = modelResponseStruct;
+thePacket.kernel = kernelStruct;
+thePacket.metaData = [];
+
+% Define a parameter lock matrix, which in this case is empty
+paramLockMatrix = [];
+
+% We will fit each average response as a single stimulus in a packet, so
+% each packet therefore contains a single stimulus instamce.
+defaultParamsInfo.nInstances = 1;
+
+%% Test the fitter
+[paramsFit,fVal,modelResponseStruct] = ...
+            temporalFit.fitResponse(thePacket,...
+            'defaultParamsInfo', defaultParamsInfo, ...
+            'paramLockMatrix',paramLockMatrix);
+        
+fprintf('Model parameter from fits:\n');
+temporalFit.paramPrint(paramsFit);
+temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
 
