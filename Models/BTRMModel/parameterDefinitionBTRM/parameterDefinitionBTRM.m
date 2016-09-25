@@ -16,7 +16,7 @@ function paramStruct = parameterDefinitionBTRM(nStimuli)
 %      tauNeuralIRF - time constant of the neural IRF (in seconds). A
 %        typical valye might be 0.005 secs (5 msecs)
 %      epsilonCompression - compressive non-linearity parameter. Reasonable
-%        bounds [0.1:1]
+%        bounds [0.1:1], where 1 is no compression.
 
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
@@ -31,18 +31,18 @@ paramStruct.paramMainMatrix = [];
 paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nStimuli 1]);
 paramStruct.paramMainMatrix(:,2) = 0.05.*ones([nStimuli 1]);
 paramStruct.paramMainMatrix(:,3) = 0.005.*ones([nStimuli 1]);
-paramStruct.paramMainMatrix(:,4) = 0.35.*ones([nStimuli 1]);
+paramStruct.paramMainMatrix(:,4) = 1.0.*ones([nStimuli 1]);
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-10,[nStimuli 1]);
 paramStruct.vlb(:,2) = repmat(0.0001,[nStimuli 1]);
 paramStruct.vlb(:,3) = repmat(0.005,[nStimuli 1]);
-paramStruct.vlb(:,4) = repmat(0.35,[nStimuli 1]);
+paramStruct.vlb(:,4) = repmat(1.0,[nStimuli 1]);
 
 % set upper bounds
 paramStruct.vub(:,1) = repmat(10,[nStimuli 1]);
 paramStruct.vub(:,2) = repmat(1,[nStimuli 1]);
 paramStruct.vub(:,3) = repmat(0.005,[nStimuli 1]);
-paramStruct.vub(:,4) = repmat(0.35,[nStimuli 1]);
+paramStruct.vub(:,4) = repmat(1.0,[nStimuli 1]);
 
 end
