@@ -7,12 +7,13 @@
 clear; close all;
 
 %% Construct the model object
-temporalFit = tfeBTRM('verbosity','high');
+temporalFit = tfeBTRM('verbosity','none');
 
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams;
 fprintf('Default model parameters:\n');
 temporalFit.paramPrint(params0);
+fprintf('\n');
 
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
@@ -46,8 +47,8 @@ hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in sec
 hrfParams.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
 
 hrfTimebaseSecs=stimulusStruct.timebase/1000; % in seconds
-hrf = gampdf(hrfTimebaseSecs+1, hrfParams.gamma1, 1) - ...
-    gampdf(hrfTimebaseSecs+1, hrfParams.gamma2, 1)/hrfParams.gammaScale;
+hrf = gampdf(hrfTimebaseSecs, hrfParams.gamma1, 1) - ...
+    gampdf(hrfTimebaseSecs, hrfParams.gamma2, 1)/hrfParams.gammaScale;
 
 % scale to unit sum to preserve amplitude of signal following convolution
 hrf=hrf/sum(hrf);
@@ -58,13 +59,15 @@ kernelStruct.timebase=stimulusStruct.timebase;
 params0.noiseSd = 0.05;
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
+fprintf('\n');
+
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
 temporalFit.plot(modelResponseStruct);
 hold on
 plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k');
 plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b');
 
-%% Construct a packet
+%% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;
 thePacket.response = modelResponseStruct;
 thePacket.kernel = kernelStruct;
@@ -83,7 +86,11 @@ defaultParamsInfo.nInstances = 1;
             'defaultParamsInfo', defaultParamsInfo, ...
             'paramLockMatrix',paramLockMatrix);
         
+%% Report the output
 fprintf('Model parameter from fits:\n');
 temporalFit.paramPrint(paramsFit);
+fprintf('\n');
+
 temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
+hold off
 

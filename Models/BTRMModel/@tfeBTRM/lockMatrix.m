@@ -1,4 +1,4 @@
-function paramLockMatrix = lockMatrix(obj,params,stimulus,varargin)
+function paramLockMatrix = lockMatrix(obj,params,stimulusStruct,varargin)
 % paramLockMatrix = lockMatrix(obj,params,stimulus,varargin)
 %
 % Return parameter locking matrix
@@ -17,8 +17,8 @@ p.parse(params,varargin{:});
 params = p.Results.params;
 
 % extract temp freq values from meta data field
-for i = 1:length(stimulus.metaData)
-   tempFreqValues(i) = stimulus.metaData(i).frequency; 
+for i = 1:length(stimulusStruct.metaData)
+   tempFreqValues(i) = stimulusStruct.metaData(i).frequency; 
 end
 
 %% Create the lock matrix

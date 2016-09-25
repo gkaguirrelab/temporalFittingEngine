@@ -1,4 +1,4 @@
-function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimValues,varargin)
+function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimulusStruct,varargin)
 % plotParams(obj,params,stimulus,varargin)
 %
 % Generates plots of parameters
@@ -18,29 +18,29 @@ function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimVa
 
 p = inputParser;
 p.addRequired('params',@isstruct);
-p.addRequired('stimValues',@isnumeric);
+p.addRequired('stimulusStruct',@isstruct);
 p.addParameter('bFitZero',false,@islogical);
-p.parse(params,stimValues,varargin{:});
+p.parse(params,stimulusStruct,varargin{:});
 
 % Optionally remove stimulus values of 0 (some analyses might want to leave them in)
 if ~p.Results.bFitZero
-    stimValues = stimValues(stimValues~=0);
+    stimulusStruct.values = stimulusStruct(stimulusStruct~=0);
 end
 
 % number of types of parameters, e.g. amp, tau2
 numParamTypes = length(params.paramNameCell);
 
 % get unique stimulus values
-[uniqueStimValues,~] = unique(stimValues);
+[uniqueStimValues,~] = unique(stimulusStruct);
 
 % for each parameter type and stimulus value
 for i = 1:numParamTypes
     for j = 1:length(uniqueStimValues)
        % go into the parameter matrix, find the appropriate column, and
        % pull out all positions with a given unique stim value
-       meanParamValues(i,j) = mean(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i));
-       stdErrorParamValues(i,j) = std(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i)) ...
-                                      ./length(params.paramMainMatrix(uniqueStimValues(j)==stimValues,i));
+       meanParamValues(i,j) = mean(params.paramMainMatrix(uniqueStimValues(j)==stimulusStruct,i));
+       stdErrorParamValues(i,j) = std(params.paramMainMatrix(uniqueStimValues(j)==stimulusStruct,i)) ...
+                                      ./length(params.paramMainMatrix(uniqueStimValues(j)==stimulusStruct,i));
     end    
 end
 

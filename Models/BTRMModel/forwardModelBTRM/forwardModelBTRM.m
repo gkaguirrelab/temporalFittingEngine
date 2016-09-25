@@ -29,28 +29,13 @@ function [modelResponseStruct] = forwardModelBTRM(params,stimulusStruct)
 %   stimuli in macaque primary visual cortex.
 %   The Journal of Neuroscience, 30(38), 12619-12631.
 %
-% This model implements a negative after-response. Based upon the findings
+% Not implemented here is negative after-response. Based upon the findings
 %   of McLelland et al., 2010, it seems that (for the most part) V1 neurons
 %   respond with an after-response that has an amplitude that is
 %   proportional to the main response, with a very similar time constant.
-%
-%   We adopt these properties in the model by treating the after-response
-%   as an inverted, shifted, and scaled version of the main-response.
-%
-% Input properties:
-%
-%   t - a vector of time points, in milliseconds
-%   yStimulus - a vector of stimulus amplitude. The length must be the same
-%               as t. The absolute amplitude is arbitraty.
-%   displayFitPlotIn - Boolean flag indicating if you want a plot. Optional.
-%   paramIn - a structure of parameters that define the model. These are
-%             described below. Optional.
-%
-% Output properties:
-%
-%   yBOLD - a vector of response amplitudes, of the same length as t.
-%   t - the temporal vector
-%   paramOut - the parameters passed back out
+%   These properties could be implemented in the model by treating the
+%   after-response as an inverted, shifted, and scaled version of the
+%   main-response.
 %
 
 
