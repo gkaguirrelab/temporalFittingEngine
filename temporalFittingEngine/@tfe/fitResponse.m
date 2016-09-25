@@ -41,7 +41,6 @@ else
 end
 
 %% Set initial values and reasonable bounds on parameters
-% Have a go at reasonable initial values
 [paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo);
 paramsFitVec0 = obj.paramsToVec(paramsFit0);
 vlbVec = obj.paramsToVec(vlb);
