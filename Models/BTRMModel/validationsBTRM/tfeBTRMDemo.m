@@ -70,16 +70,16 @@ figure;
 
 % First create and plot the response without noise and without convolution
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
-temporalFit.plot(modelResponseStruct,'NewWindow',false);
+temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response');
 hold on
 
 % Add the stimulus profile to the plot
-plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k');
+plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
 
 % Now plot the response with convolution and noise, as well as the kernel
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
-temporalFit.plot(modelResponseStruct,'NewWindow',false);
-plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b');
+temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','noisy BOLD response');
+plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b','DisplayName','kernel');
 
 %% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;
@@ -105,6 +105,7 @@ fprintf('Model parameter from fits:\n');
 temporalFit.paramPrint(paramsFit);
 fprintf('\n');
 
-temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
+temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
+legend('show');legend('boxoff');
 hold off
 
