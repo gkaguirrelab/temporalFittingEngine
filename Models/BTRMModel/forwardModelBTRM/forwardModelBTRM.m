@@ -138,7 +138,7 @@ for i=1:numInstances
     yNeural=yNeural.*decayingExponential;
     
     %% Place yNeural into the growing neuralMatrix
-    responseMatrix(s,:)=yNeural;
+    responseMatrix(i,:)=yNeural;
     
 end % loop over rows of the stimulus matrix
 

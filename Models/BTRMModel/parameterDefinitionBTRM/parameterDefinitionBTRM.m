@@ -28,8 +28,8 @@ paramStruct.paramNameCell = { ...
 
 % initial values
 paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 0.5.*ones([nStimuli 1]);
-paramStruct.paramMainMatrix(:,2) = 0.001.*ones([nStimuli 1]);
+paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nStimuli 1]);
+paramStruct.paramMainMatrix(:,2) = 0.05.*ones([nStimuli 1]);
 paramStruct.paramMainMatrix(:,3) = 0.005.*ones([nStimuli 1]);
 paramStruct.paramMainMatrix(:,4) = 0.35.*ones([nStimuli 1]);
 

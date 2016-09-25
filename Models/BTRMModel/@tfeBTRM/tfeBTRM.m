@@ -27,7 +27,7 @@ classdef tfeBTRM < tfe
     % function, but we put the class constructor here.  
     methods (Access=public)
         % Constructor
-        function obj = tfeTPUP(varargin)
+        function obj = tfeBTRM(varargin)
             
             % Base class constructor
             obj = obj@tfe(varargin{:});
