@@ -1,5 +1,5 @@
-function [neuralMatrix] = forwardModel(t, stimMatrix, ampVec)
-%% createNeuralResponseFromStimMatrix
+function [modelResponseStruct] = forwardModelIAMP(params,stimulusStruct)
+%% forwardModelIAMP
 %
 % This function creates a model of neural response given a vector of
 % stimulus input, a vector of time points, and a set of amplitudes.
@@ -7,30 +7,33 @@ function [neuralMatrix] = forwardModel(t, stimMatrix, ampVec)
 % This model is extremely simple, and simply scales the stimulus by the
 % amplitude.
 %
-%
-% Input properties:
-%
-%   t - a vector of time points, in milliseconds. It is unused in this
-%   model.
-%   stimMatrix - DESCRIBE THIS
-%   ampVec - a vector of amplitudes, one for each instance
-%
-% Output properties:
-%
-%   neuralMatrix
-%
-% 09-13-2016 -  gka wrote it
 
-% determine how many stimulus instances there are
-stimDimension=size(stimMatrix,1);
+%% Obtain the params
+amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
+
+%% Define basic model features
+
+% derive some basic properties of the stimulus values
+numInstances=size(stimulusStruct.values,1);
+modelLength = length(stimulusStruct.timebase);
+
+% pre-allocate the responseMatrix variable here for speed
+responseMatrix=zeros(numInstances,modelLength);
 
 % We loop through each column of the stimulus matrix
-for instance=1:stimDimension
-        
-    %% The neural response is the stimulus input
+for ii=1:numInstances
+
+    % grab the current stimulus
+    stimulus=stimulusStruct.values(ii,:)';
+    
+    % The neural response is the stimulus input
     % scaled by the amplitude parameter
-    neuralMatrix(instance,:) = stimMatrix(instance,:).*ampVec(instance);
+    responseMatrix(ii,:) = stimulus*amplitudeVec(ii);
         
 end % loop over columns of the stimulus matrix
 
-end
+%% Build the modelResponseStruct to return
+modelResponseStruct.timebase=stimulusStruct.timebase;
+modelResponseStruct.values=sum(responseMatrix,1);
+
+end % function

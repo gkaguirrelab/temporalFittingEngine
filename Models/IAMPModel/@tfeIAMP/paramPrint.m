@@ -1,4 +1,4 @@
-function print(obj,params,varargin)
+function paramPrint(obj,params,varargin)
 % print(obj,params,varargin)
 %
 % Print out the parameters to the command window
@@ -16,11 +16,11 @@ p.addParameter('PrintType','parameters',@ischar);
 p.parse(params,varargin{:});
 params = p.Results.params;
 
-% Quadratic parameters
+% print the parameters
 fprintf('Number of stimuli specified: %d\n',params.matrixRows);
 fprintf('Number of parameter cols: %d\n',params.matrixCols);
 for ii = 1:params.matrixCols
-    fprintf('\tParameter %d name: %s\n',ii,params.paramNameCell{ii});
+    fprintf('\tParameter %d: %s = %g\n',ii,params.paramNameCell{ii},params.paramMainMatrix(1,ii));
 end
 fprintf('Noise sd: %0.2f\n',params.noiseSd);
 

@@ -1,10 +1,11 @@
 classdef tfeIAMP < tfe
-% tfeIAMP
+% tfeTPUP
 %
-%   tfe =  tfeIAMP(varagin);
+%   tfe = tfeIAMP(varargin)
+%
+% Blocked temporal response model.
 %
 % Inherits optional key/value pairs from parent class tfe.
-
 
     % Public, read-only properties.
     properties (SetAccess = private, GetAccess = public)
@@ -22,8 +23,8 @@ classdef tfeIAMP < tfe
     properties (Dependent)
     end
     
-    % Methods.  Most public methods are implemented in a separate function,
-    % but we put the constructor here.
+    % Methods.  Most public methods are implemented in a separate
+    % function, but we put the class constructor here.  
     methods (Access=public)
         % Constructor
         function obj = tfeIAMP(varargin)
