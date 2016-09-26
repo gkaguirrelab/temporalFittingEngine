@@ -1,5 +1,5 @@
-function paramStruct = parameterDefinitionBTRM(nStimuli)
-% paramStruct = paramCreateBDCM(nStimuli)
+function paramStruct = parameterDefinitionBTRM(nInstances)
+% paramStruct = paramCreateBDCM(nInstances)
 %
 % Create a default parameters structure for the BTRM fMRI modeling.
 % This includes default parameters plus lower and upper bounds,
@@ -28,21 +28,21 @@ paramStruct.paramNameCell = { ...
 
 % initial values
 paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nStimuli 1]);
-paramStruct.paramMainMatrix(:,2) = 0.05.*ones([nStimuli 1]);
-paramStruct.paramMainMatrix(:,3) = 0.005.*ones([nStimuli 1]);
-paramStruct.paramMainMatrix(:,4) = 1.0.*ones([nStimuli 1]);
+paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,2) = 0.05.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,3) = 0.005.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,4) = 1.0.*ones([nInstances 1]);
 
 % set lower bounds
-paramStruct.vlb(:,1) = repmat(-10,[nStimuli 1]);
-paramStruct.vlb(:,2) = repmat(0.0001,[nStimuli 1]);
-paramStruct.vlb(:,3) = repmat(0.005,[nStimuli 1]);
-paramStruct.vlb(:,4) = repmat(1.0,[nStimuli 1]);
+paramStruct.vlb(:,1) = repmat(-10,[nInstances 1]);
+paramStruct.vlb(:,2) = repmat(0.0001,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(0.005,[nInstances 1]);
+paramStruct.vlb(:,4) = repmat(1.0,[nInstances 1]);
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(10,[nStimuli 1]);
-paramStruct.vub(:,2) = repmat(1,[nStimuli 1]);
-paramStruct.vub(:,3) = repmat(0.005,[nStimuli 1]);
-paramStruct.vub(:,4) = repmat(1.0,[nStimuli 1]);
+paramStruct.vub(:,1) = repmat(10,[nInstances 1]);
+paramStruct.vub(:,2) = repmat(1,[nInstances 1]);
+paramStruct.vub(:,3) = repmat(0.005,[nInstances 1]);
+paramStruct.vub(:,4) = repmat(1.0,[nInstances 1]);
 
 end
