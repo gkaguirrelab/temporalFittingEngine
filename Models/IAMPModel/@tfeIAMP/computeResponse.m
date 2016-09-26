@@ -1,45 +1,40 @@
-function response = computeResponse(obj,params,timebase,stimulus,varargin)
-% response = computeResponse(obj,params,timebase,stimulus,varargin)
-% 
-% Compute method for the instance amplitude model.
+function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
+% modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
 %
-% The respone is simply the sum of the stimulus vectors, after each
-% stimulus vector has been multiplied by an amplitude parameter for that
-% instance.
+% Compute method for the impulse amplitude model.
+%
+% Operates by calling forwardModelIAMP and then the applyKernel tfe method.
 %
 % Optional key/value pairs
 %   'AddNoise' - true/false (default false).  Add noise to computed
-%     response?  Useful for simulations.
-%  'HRF' - structure (default empty).  Structure describing HRF to be used
-%     to go from neural to BOLD response. If empty, no convolution is done
+%     response? Useful for simulations.
 
-%% Parse input.
-% At the moment this does type checking on the params input
+% Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
 p = inputParser;
 p.addRequired('params',@isstruct);
-p.addRequired('timebase',@isnumeric);
-p.addRequired('stimulus',@isstruct);
-p.addParameter('AddNoise',false,@islogical);
-p.addParameter('HRF',[]);
-p.parse(params,timebase,stimulus,varargin{:});
+p.addRequired('stimulusStruct',@isstruct);
+p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
+p.addParameter('addNoise',false,@islogical);
+p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
-timebase = p.Results.timebase;
-stimulus = p.Results.stimulus;
 
-%% First compute the neural response
-% *assume timebase is the same for all stimuli*
-individualResponses = forwardModelIAMP(timebase, stimulus.values,...
-    params.paramMainMatrix(:,strcmp(params.paramNameCell,'Amplitude')));
-summedResponse = sum(individualResponses,1);
+%% Compute the forward model
+modelResponseStruct = forwardModelIAMP(params,stimulusStruct);
 
-%% Optionally, convolve with a kernel
-response = obj.applyHRF(timebase,summedResponse,p.Results.HRF);
+% report an iteration has completed
+switch (obj.verbosity)
+    case 'high'
+        fprintf('.');
+end
+
+%% Optionally, convolve with a passed kernel
+modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
 %% Optional add noise
-if (p.Results.AddNoise)
-    response = response + normrnd(0,params.noiseSd,size(response));
+if (p.Results.addNoise)
+    modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
 end
 
-end
+end % function
