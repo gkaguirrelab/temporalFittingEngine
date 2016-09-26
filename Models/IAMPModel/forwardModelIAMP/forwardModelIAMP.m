@@ -14,14 +14,14 @@ amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
 %% Define basic model features
 
 % derive some basic properties of the stimulus values
-numInstances=size(stimulusStruct.values,1);
+nInstances=size(stimulusStruct.values,1);
 modelLength = length(stimulusStruct.timebase);
 
 % pre-allocate the responseMatrix variable here for speed
-responseMatrix=zeros(numInstances,modelLength);
+responseMatrix=zeros(nInstances,modelLength);
 
 % We loop through each column of the stimulus matrix
-for ii=1:numInstances
+for ii=1:nInstances
 
     % grab the current stimulus
     stimulus=stimulusStruct.values(ii,:)';

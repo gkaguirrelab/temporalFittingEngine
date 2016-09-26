@@ -87,7 +87,7 @@ paramLockMatrix = [];
 
 % We will fit each average response as a single stimulus in a packet, so
 % each packet therefore contains a single stimulus instamce.
-defaultParamsInfo.nInstances = 1;
+defaultParamsInfo.nInstances = nInstances;
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
