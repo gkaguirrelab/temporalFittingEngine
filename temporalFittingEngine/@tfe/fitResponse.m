@@ -66,6 +66,22 @@ switch (p.Results.searchMethod)
             'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
         gs = GlobalSearch;
         paramsFitVec = run(gs,problem);
+    case 'linearRegression'
+        % linear regression can be used only when the paramsFit0 has only
+        % a single parameter. Warn if it is not called "amplitude".
+        if ~length(paramsFit0.paramNameCell)==1
+            error('Linear regression can only be applied in the case of a single model parameter')
+        end
+        if ~(min(paramsFit0.paramNameCell{1}=='amplitude')==1)
+            warning('Your parameter is not called amplitude')
+        end
+        % Take the stimulus.values as the regression matrix
+        regressionMatrixStruct=thePacket.stimulus;
+        % Convolve the rows of stimulus values by the kernel
+        regressionMatrixStruct = obj.applyKernel(regressionMatrixStruct,thePacket.kernel,varargin{:});
+        % Downsample regressionMatrixStruct to the timebase of the response
+        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase,varargin{:});
+        
     otherwise
         error('Do not know how to fit that sucker with specified method');
 end
