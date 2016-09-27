@@ -22,11 +22,12 @@ nTimeSamples = size(stimulusStruct.timebase,2);
 eventTimes=linspace(1000,321000,21);
 nInstances=length(eventTimes);
 eventAmplitudes=rand(1,nInstances);
+eventDuration=30; % pulse duration in msecs
 defaultParamsInfo.nInstances = nInstances;
 
 for ii=1:nInstances
     stimulusStruct.values(ii,:)=zeros(1,nTimeSamples);
-    stimulusStruct.values(ii,eventTimes(ii)/deltaT)=eventAmplitudes(ii);
+    stimulusStruct.values(ii,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=eventAmplitudes(ii);
 end
 
 
@@ -55,7 +56,7 @@ fprintf('\n');
 %% Create and plot modeled responses
 
 % Set the noise level and report the params
-params0.noiseSd = 0.05;
+params0.noiseSd = 0.02;
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
