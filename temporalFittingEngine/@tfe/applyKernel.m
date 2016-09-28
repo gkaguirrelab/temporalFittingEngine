@@ -1,4 +1,4 @@
-function convModelResponseStruct = applyKernel(obj,modelResponseStruct,kernelStruct,varargin)
+function outputStruct = applyKernel(obj,inputStruct,kernelStruct,varargin)
 % convModelResponseStruct = applyKernel(obj,modelResponseStruct,kernelStruct,varargin)
 %
 % THIS NEEDS TO BE WRITTEN CAREFULLY AND HAVE A GOOD UNIT TEST
@@ -19,30 +19,43 @@ function convModelResponseStruct = applyKernel(obj,modelResponseStruct,kernelStr
 % along from a calling routine without an error here, if the key/value
 % pairs recognized by the calling routine are not needed here.
 p = inputParser; p.KeepUnmatched = true;
-p.addRequired('modelResponseStruct',@isstruct);
+p.addRequired('inputStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) | isstruct(x)));
-p.parse(modelResponseStruct,kernelStruct,varargin{:});
+p.parse(inputStruct,kernelStruct,varargin{:});
 
 %% Propagate all fields forward
-convModelResponseStruct = modelResponseStruct;
+outputStruct = inputStruct;
+
+% Check how many rows are in the the inputStruct values
+nRows=size(inputStruct.values,1);
+
+% Check how many timepoints are in the inputStruct timebase
+nTimepoints=size(inputStruct.timebase,2);
 
 %% Convolve
 %
-% But if empty matrix is passed for kernel, do nothing,
+% But if empty matrix is passed for kernel, return
 if (isempty(kernelStruct) || isempty(kernelStruct.values))
-else  
-    % Align kernel with 0, if not already done
+    return
+end
+
+
+
+% Align kernel with 0, if not already done
     zeroAlignedKernel = kernelStruct.values-kernelStruct.values(1);
     
     % The kernel and modelResponseStruct need to be same length: pad with 0's
-    convKernel = zeros(size(modelResponseStruct.values));
+    convKernel = zeros(1,nTimepoints);
     convKernel(1:length(zeroAlignedKernel)) = zeroAlignedKernel;
-    
-    % Convolve stimulus with HRF to get BOLD response from neural response.
-    convModelResponsePreCut = conv(modelResponseStruct.values,convKernel) ;
-    
-    % Cut off extra conv values. Need to double check that this is right
-    convModelResponseStruct.values = convModelResponsePreCut(1:length(modelResponseStruct.values));  
+ 
+    % loop over rows for the convolution
+for ii=1:nRows
+    % Convolve a row of inputStruct.values with the kernel
+    valuesRowConv = conv(inputStruct.values(ii,:),convKernel) ;
+        % Cut off extra conv values. Need to double check that this is right
+    outputStruct.values(ii,:) = valuesRowConv(1:nTimepoints);  
+end % loop over rows
+
 end
 
     

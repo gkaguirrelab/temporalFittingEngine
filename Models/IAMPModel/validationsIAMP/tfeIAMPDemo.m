@@ -1,4 +1,4 @@
-% tfeBlockTemporalResponseMRIModelDemo
+% tfeInstanceAmplitudeDemo
 %
 % Demonstrate function for the IAMP Model.
 %
@@ -21,13 +21,12 @@ nTimeSamples = size(stimulusStruct.timebase,2);
 % matrix. There will be an event every 
 eventTimes=linspace(1000,321000,21);
 nInstances=length(eventTimes);
-eventAmplitudes=rand(1,nInstances);
-eventDuration=30; % pulse duration in msecs
+eventDuration=50; % pulse duration in msecs
 defaultParamsInfo.nInstances = nInstances;
 
 for ii=1:nInstances
     stimulusStruct.values(ii,:)=zeros(1,nTimeSamples);
-    stimulusStruct.values(ii,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=eventAmplitudes(ii);
+    stimulusStruct.values(ii,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=1;
 end
 
 
@@ -49,9 +48,15 @@ kernelStruct.values=hrf;
 
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
+
+% Set the amplitude params to a random set of values to create the
+% simulated signal
+params0.paramMainMatrix=rand(nInstances,1);
+
 fprintf('Default model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
+
 
 %% Create and plot modeled responses
 
@@ -91,17 +96,25 @@ paramLockMatrix = [];
 defaultParamsInfo.nInstances = nInstances;
 
 %% Test the fitter
+
 [paramsFit,fVal,modelResponseStruct] = ...
             temporalFit.fitResponse(thePacket,...
             'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix);
+            'paramLockMatrix',paramLockMatrix, ...
+            'searchMethod','linearRegression');
         
 %% Report the output
 fprintf('Model parameter from fits:\n');
 temporalFit.paramPrint(paramsFit);
 fprintf('\n');
 
+% Plot of the temporal fit results
 temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
 legend('show');legend('boxoff');
 hold off
 
+% Plot of simulated vs. recovered parameter values
+figure
+plot(params0.paramMainMatrix,paramsFit.paramMainMatrix,'or')
+xlabel('simulated instance amplitudes') % x-axis label
+ylabel('estimated instance amplitudes') % y-axis label

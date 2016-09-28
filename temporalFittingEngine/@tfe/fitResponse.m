@@ -16,6 +16,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %  'searchMethod - string (default 'fmincon').  Specify search method
 %    'fmincon' - Use fmincon
 %    'global' - Use global search
+%    'linearRegression' - rapid estimation of simplified models with only
+%                         an amplitude parameter
 %
 % Outputs:
 %   paramsFit: fit parameters
@@ -66,6 +68,28 @@ switch (p.Results.searchMethod)
             'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
         gs = GlobalSearch;
         paramsFitVec = run(gs,problem);
+    case 'linearRegression'
+        % linear regression can be used only when the paramsFit0 has only
+        % a single parameter.
+        if ~length(paramsFit0.paramNameCell)==1
+            error('Linear regression can only be applied in the case of a single model parameter')
+        end
+        %  Warn if the parameter is not called "amplitude".
+        if ~(min(paramsFit0.paramNameCell{1}=='amplitude')==1)
+            warning('Only amplitude parameters are suitable for linear regression')
+        end
+        % Take the stimulus.values as the regression matrix
+        regressionMatrixStruct=thePacket.stimulus;
+        % Convolve the rows of stimulus values by the kernel
+        regressionMatrixStruct = obj.applyKernel(regressionMatrixStruct,thePacket.kernel,varargin{:});
+        % Downsample regressionMatrixStruct to the timebase of the response
+        % NEED TO FIX VARARGIN PASSING TO resampleTimebase. THIS IS
+        % CURRENTLY BROKEN
+        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase); %,varargin{:});
+        % Perform the regression
+        X=regressionMatrixStruct.values';
+        y=thePacket.response.values';
+        paramsFitVec=X\y;
     otherwise
         error('Do not know how to fit that sucker with specified method');
 end
