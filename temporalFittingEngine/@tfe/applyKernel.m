@@ -3,14 +3,14 @@ function outputStruct = applyKernel(obj,inputStruct,kernelStruct,varargin)
 %
 % THIS NEEDS TO BE WRITTEN CAREFULLY AND HAVE A GOOD UNIT TEST
 % MAKE SURE TO DEAL WITH INCONSISTENT TIMEBASES
-% 
+%
 % Apply a convolution kernel to a modeled response. In a typical
 % application, this will be a hemodynamic response function applied to
 % a model of neural activity to produce a BOLD fMRI response.
 %
 % Both modelResponseStruct and kernelStruct arguments are structures, containing
 % timebase and value fields.  The timebases do not need to be the same.
-% 
+%
 % Optional key/value pairs
 
 %% Parse vargin for options passed here
@@ -39,24 +39,26 @@ if (isempty(kernelStruct) || isempty(kernelStruct.values))
     return
 end
 
-
-
 % Align kernel with 0, if not already done
-    zeroAlignedKernel = kernelStruct.values-kernelStruct.values(1);
-    
-    % The kernel and modelResponseStruct need to be same length: pad with 0's
-    convKernel = zeros(1,nTimepoints);
-    convKernel(1:length(zeroAlignedKernel)) = zeroAlignedKernel;
- 
-    % loop over rows for the convolution
+% zeroAlignedKernel = kernelStruct.values-kernelStruct.values(1);
+zeroAlignedKernel = kernelStruct.values;
+
+% The kernel and modelResponseStruct need to be same length: pad with 0's
+%convKernel = zeros(1,nTimepoints);
+%convKernel(1:length(zeroAlignedKernel)) = zeroAlignedKernel;
+convKernel = zeroAlignedKernel;
+
+% Loop over rows for the convolution
 for ii=1:nRows
     % Convolve a row of inputStruct.values with the kernel
-    valuesRowConv = conv(inputStruct.values(ii,:),convKernel) ;
-        % Cut off extra conv values. Need to double check that this is right
-    outputStruct.values(ii,:) = valuesRowConv(1:nTimepoints);  
+    
+    valuesRowConv = conv(inputStruct.values(ii,:),convKernel,'same') ;
+    % Cut off extra conv values. Need to double check that this is right
+    %outputStruct.values(ii,:) = valuesRowConv(1:nTimepoints);
+    outputStruct.values = valuesRowConv;
+    
 end % loop over rows
 
 end
 
-    
-    
+
