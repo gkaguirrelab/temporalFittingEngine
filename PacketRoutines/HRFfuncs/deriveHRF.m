@@ -122,10 +122,10 @@ betaValues              = DesignMatrix\timeSeries;
 switch modelType
     case 'Fourier'
         HRF             = fSet * betaValues;
-        cleanData       = timeSeries - DesignMatrix*betaValues;
+        cleanData       = timeSeries - DesignMatrix(:,2:end)*betaValues(2:end);
     case 'FIR'
         tmp             = DesignMatrix(:,2:end);
         maxDelta        = max(tmp(:));
         HRF             = betaValues(2:end)*maxDelta - mean(betaValues(2:end)*maxDelta);
-        cleanData       = timeSeries - DesignMatrix*betaValues;
+        cleanData       = timeSeries - DesignMatrix(:,2:end)*betaValues(2:end);
 end
