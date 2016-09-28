@@ -19,7 +19,7 @@ function outputStruct = applyKernel(obj,inputStruct,kernelStruct,varargin)
 % along from a calling routine without an error here, if the key/value
 % pairs recognized by the calling routine are not needed here.
 p = inputParser; p.KeepUnmatched = true;
-p.addRequired('modelResponseStruct',@isstruct);
+p.addRequired('inputStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) | isstruct(x)));
 p.parse(inputStruct,kernelStruct,varargin{:});
 
@@ -45,7 +45,7 @@ end
     zeroAlignedKernel = kernelStruct.values-kernelStruct.values(1);
     
     % The kernel and modelResponseStruct need to be same length: pad with 0's
-    convKernel = zeros(size(inputStruct.values));
+    convKernel = zeros(1,nTimepoints);
     convKernel(1:length(zeroAlignedKernel)) = zeroAlignedKernel;
  
     % loop over rows for the convolution
