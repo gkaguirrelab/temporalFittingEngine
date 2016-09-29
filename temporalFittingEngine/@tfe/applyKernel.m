@@ -49,7 +49,7 @@ if (size(inputStruct.timebase,2) ~= nCols)
 end
 check = diff(inputStruct.timebase);
 responseDeltaT = check(1);
-if (any(check ~= check(1)))
+if (any(abs(check - check(1)) > 1e-6))
     error('Response structure timebase is not regularly sampled');
 end
 
@@ -57,26 +57,27 @@ end
 if (length(kernelStruct.timebase) ~= length(kernelStruct.values))
     error('Badly formed kernel structure, length of timebase and values not the same.');
 end
-check = diff(kernelStruct.timebase);
 kernelDeltaT = check(1);
-if (any(check ~= check(1)))
+if (any(abs(check - check(1)) > 1e-6))
     error('Kernel structure timebase is not regularly sampled');
 end
 
 %% Resample kernel to same delta time as response
 if (responseDeltaT ~= kernelDeltaT)
-    originalKernelArea = sum(kernelStruct.values)*kernelDeltaT;
+    %originalKernelArea = sum(kernelStruct.values)*kernelDeltaT;
     nSamples = ceil((kernelStruct.timebase(end)-kernelStruct.timebase(1))/responseDeltaT);
     newKernelTimebase = kernelStruct.timebase(1):responseDeltaT:(kernelStruct.timebase(1)+nSamples*responseDeltaT);
     kernelStruct = obj.resampleTimebase(kernelStruct,newKernelTimebase,varargin{:});
-    newKernelArea = sum(kernelStruct.values)*responseDeltaT;
-    kernelStruct.values = kernelStruct.values*originalKernelArea/newKernelArea;
+    %newKernelArea = sum(kernelStruct.values)*responseDeltaT;
+    %kernelStruct.values = kernelStruct.values*originalKernelArea/newKernelArea;
 end
 
 %% Loop over rows for the convolution
 for ii=1:nRows
-    % Convolve a row of inputStruct.values with the kernel
-    valuesRowConv = conv(inputStruct.values(ii,:),kernelStruct.values,'full');
+    % Convolve a row of inputStruct.values with the kernel.  The
+    % convolutoin is a discrete approximation to an intergral, so we
+    % explicitly include the factor of responseDeltaT.
+    valuesRowConv = conv(inputStruct.values(ii,:),kernelStruct.values,'full')*responseDeltaT;
     
     % Cut off extra conv values
     outputStruct.values = valuesRowConv(1:length(inputStruct.timebase));  
