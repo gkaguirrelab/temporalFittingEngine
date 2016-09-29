@@ -1,5 +1,5 @@
-function validationData = tfeConvolutionDemo(varargin)
-% validationData = tfeConvolutionDemo(varargin)
+function validationData = v_tfeApplyKernel(varargin)
+% validationData = v_tfeApplyKernel(varargin)
 %
 % Demonstrate and test the applyKernel method of the TFE object.  This is
 % set up so that it may be run as a standalone or incorporated into a
@@ -37,12 +37,6 @@ tfe = tfeQCM('verbosity','none');
 %
 % We start with something very simple, so it is easy
 % to check that the convolution is working right.
-%
-% For reasons I don't understand, with non-integer deltaT there
-% is an accumulated spacing error, which is why timebase is pushed
-% back to 8 significant places.  This prevents an error when applyKernel
-% checks that its inputs are on a regularly spaced timebase.
-placesKeep = 4;
 responseStruct.timebase = 0;
 while (responseStruct.timebase(end) < p.Results.responseDuration)
     responseStruct.timebase(end+1) = responseStruct.timebase(end)+p.Results.responseDeltaT;

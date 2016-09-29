@@ -1,38 +1,62 @@
-% resampleTimebaseValidate
+function validationData = v_tfeResampleTimebase(varargin)
+% validationData = v_tfeResampleTimebase(varargin)
 %
 % Assessments of the resampleTimebase method in the parent tfe class
+%
+% Optional key/value pairs
+%  'originalDeltaT' - value (default 1).  Response temporal sampling in msec.
+%  'originalDuration' - value (default 100).  Response duration in msec.
+%  'newDeltaT' - value (default 4).  New timebase temporal sampling in msec.
+%  'generatePlots' - true/fale (default true).  Make plots?
 
-%% Clear and close
-clear; close all;
+%% Parse vargin for options passed here
+p = inputParser;
+p.addParameter('originalDeltaT',1,@isnumeric);
+p.addParameter('originalDuration',100,@isnumeric);
+p.addParameter('newDeltaT',4,@isnumeric);
+p.addParameter('newDuration',100,@isnumeric);
+p.addParameter('generatePlots',true,@islogical);
+p.parse(varargin{:});
 
 %% Construct the model object
+%
 % We have to pick some subclass to define the model, although this
 % shouldn't matter for the validation tests here
-temporalFit = tfeIAMP('verbosity','high');
+tfe = tfeIAMP('verbosity','high');
 
-%% Perform some tests
+%% Create a original structure to change the timebase of
+originalStruct.timebase = 0;
+while (originalStruct.timebase(end) < p.Results.originalDuration)
+    originalStruct.timebase(end+1) = originalStruct.timebase(end)+p.Results.originalDeltaT;
+end
+originalStruct.values = zeros(size(originalStruct.timebase));
+originalNonZeroEntries = [1 round(p.Results.originalDuration/4) round(p.Results.originalDuration/4)+1 round(p.Results.originalDuration/4)+2 round(p.Results.originalDuration/2) p.Results.originalDuration+1];
+originalStruct.values(originalNonZeroEntries) = 1;
 
-% Test if brief events at high temporal sampling are represented after
-% down-sampling
-deltaT=10; % msecs
-totalTime=3000; % msecs
-impulseLocation=1500; % msecs
+%% Create a new timebase
+newTimebase = 0;
+while (newTimebase(end) < p.Results.newDuration)
+    newTimebase(end+1) = newTimebase(end)+p.Results.newDeltaT;
+end
 
-inputStruct.timebase=linspace(0,totalTime-deltaT,totalTime/deltaT);
-nTimeSamples = size(inputStruct.timebase,2);
-inputStruct.values=zeros(1,nTimeSamples);
-inputStruct.values(1,round(impulseLocation/deltaT))=1;
+%% Resample
+[resampledStruct] = tfe.resampleTimebase(originalStruct,newTimebase);
 
-temporalFit.plot(inputStruct,'Marker','x')
+%% Make a plot
+if (p.Results.generatePlots)
+    figure; clf;
+    subplot(2,1,1); hold on
+    plot(originalStruct.timebase,originalStruct.values,'ro','MarkerFaceColor','r','MarkerSize',8);
+    xlabel('Time (msec)'); ylabel('Response'); title('Original');
 
-% create the new timebase
-newDeltaT=100; % msecs
-newTimebase=linspace(1,totalTime,newDeltaT);
+    subplot(2,1,2); hold on
+    plot(resampledStruct.timebase,resampledStruct.values,'bo','MarkerFaceColor','b','MarkerSize',8);
+    xlabel('Time (msec)'); ylabel('Response');  title('Resampled');
+end
 
-% obtain the resampled testStruct
-outputStruct=temporalFit.resampleTimebase(inputStruct,newTimebase);
+%% Set validation data for return
+validationData.originalStruct = originalStruct;
+validationData.resampledKernelStruct = resampledStruct;
 
-temporalFit.plot(outputStruct,'Marker','x','Color',[0 1 0])
+end
 
-% Assess the resampled plot
-expectedMax=max(inputStruct.values)*(deltaT/newDeltaT);
