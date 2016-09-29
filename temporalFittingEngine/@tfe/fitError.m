@@ -10,10 +10,11 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 % Optional key/value pairs
 %  'errorType' - string (default 'rmse') Type of error to compute.
 %    'rmse' - Root mean squared error.
+%    '1-r2' - 1-R2
 %
 % Outputs: 
 %   fVal: mean value of fit error, mean taken over runs.
-%   modelResponsStruct: predicted response, standard structure form
+%   modelResponseStruct: predicted response, standard structure form
 
 %% Parse vargin for options passed here
 p = inputParser;
@@ -35,6 +36,8 @@ modelResponseStruct = obj.resampleTimebase(modelResponseStruct,thePacket.respons
 switch (p.Results.errorType)
     case 'rmse'
         fVal = sqrt(mean((modelResponseStruct.values-thePacket.response.values).^2));
+    case '1-r2'
+        fVal = sum((thePacket.response.values - modelResponseStruct.values).^2)/sum((thePacket.response.values - mean(thePacket.response.values)).^2);
     otherwise
         error('Unknown error type passed');
 end

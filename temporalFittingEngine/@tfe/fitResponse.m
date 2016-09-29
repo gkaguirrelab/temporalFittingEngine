@@ -30,6 +30,7 @@ p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('paramLockMatrix',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
+p.addParameter('errorType','rmse',@ischar);
 p.parse(thePacket,varargin{:});
 
 % Check packet validity
@@ -95,7 +96,7 @@ switch (p.Results.searchMethod)
 end
 
 % Get error and predicted response for final parameters
-[fVal,modelResponseStruct] = obj.fitError(paramsFitVec,thePacket);
+[fVal,modelResponseStruct] = obj.fitError(paramsFitVec,thePacket,'errorType',p.Results.errorType);
 
 switch (obj.verbosity)
     case 'high'
