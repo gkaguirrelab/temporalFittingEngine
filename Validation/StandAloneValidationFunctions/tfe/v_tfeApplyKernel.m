@@ -13,7 +13,7 @@ function validationData = tfeConvolutionDemo(varargin)
 %  'kernelNonZeroTime' - value (default 2). Time over which kernel is
 %    non-zero.
 %  'kernelValue' - value (default 2).  Non-zero value of kernel.
-%  'makePlots' - true/fale (default true).  Make plots?
+%  'generatePlots' - true/fale (default true).  Make plots?
 
 %% Parse vargin for options passed here
 p = inputParser;
@@ -23,7 +23,7 @@ p.addParameter('kernelDeltaT',1,@isnumeric);
 p.addParameter('kernelDuration',10,@isnumeric);
 p.addParameter('kernelNonZeroTime',2,@isnumeric);
 p.addParameter('kernelValue',2,@isnumeric);
-p.addParameter('makePlots',true,@islogical);
+p.addParameter('generatePlots',true,@islogical);
 p.parse(varargin{:});
 
 %% Construct a model object
@@ -66,7 +66,7 @@ kernelStruct.values(index) = p.Results.kernelValue;
 [convResponseStruct,resampledKernelStruct] = tfe.applyKernel(responseStruct,kernelStruct);
 
 %% Make a plot
-if (p.Results.makePlots)
+if (p.Results.generatePlots)
     figure; clf;
     subplot(4,1,1); hold on
     plot(responseStruct.timebase,responseStruct.values,'ro','MarkerFaceColor','r','MarkerSize',8);
@@ -80,12 +80,13 @@ if (p.Results.makePlots)
     subplot(4,1,4); hold on
     plot(convResponseStruct.timebase,convResponseStruct.values,'bo','MarkerFaceColor','b','MarkerSize',8);
     xlabel('Time (msec)'); ylabel('Response');  title('Output');
-    
-    validationData.responseStruct = responseStruct;
-    validationData.kernelStruct = kernelStruct;
-    validationData.convResponseStruct = convResponseStruct;
-    validationData.resampledKernelStruct = resampledKernelStruct;
 end
+
+%% Set validation data for return
+validationData.responseStruct = responseStruct;
+validationData.kernelStruct = kernelStruct;
+validationData.convResponseStruct = convResponseStruct;
+validationData.resampledKernelStruct = resampledKernelStruct;
 
 end
 

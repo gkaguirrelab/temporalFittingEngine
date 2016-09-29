@@ -15,18 +15,18 @@ function ValidationFunction(runTimeParams)
     
     %% Basic validation
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_tfeApplyKernel *****');
-    validationData1 = v_tfeApplyKernel('makePlots',runTimeParams.generatePlots);
+    validationData1 = v_tfeApplyKernel('generatePlots',runTimeParams.generatePlots);
     UnitTest.validationData('validationData1',validationData1);
     
     %% Change kernel timebase deltaT
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_tfeApplyKernel(''kernelDeltaT'',0.5) *****');
-    validationData2 = v_tfeApplyKernel('kernelDeltaT',0.5,'makePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData2',validationData2,'makePlots',runTimeParams.generatePlots);
+    validationData2 = v_tfeApplyKernel('kernelDeltaT',0.5,'generatePlots',runTimeParams.generatePlots);
+    UnitTest.validationData('validationData2',validationData2);
     
     %% Change kernel timebase deltaT to an odd value
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_tfeApplyKernel(''kernelDeltaT'',0.8) *****');
-    validationData2 = v_tfeApplyKernel('kernelDeltaT',0.8,'makePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData2',validationData2,'makePlots',runTimeParams.generatePlots);
+    validationData3 = v_tfeApplyKernel('kernelDeltaT',0.8,'generatePlots',runTimeParams.generatePlots);
+    UnitTest.validationData('validationData2',validationData3);
     
 end
 
