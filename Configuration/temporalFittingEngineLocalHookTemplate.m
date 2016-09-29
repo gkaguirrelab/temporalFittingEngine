@@ -27,7 +27,7 @@ p = struct(...
     'clonedWikiLocation',    '', ...                                                                                          % Local path to the directory where the wiki is cloned. Only relevant for publishing tutorials.
     'clonedGhPagesLocation', '', ...                                                                                          % Local path to the directory where the gh-pages repository is cloned. Only relevant for publishing tutorials.
     'githubRepoURL',         '', ...                                                                                          % Github URL for the project. This is only used for publishing tutorials.
-    'generateGroundTruthDataIfNotFound',false, ...                                                                            % Flag indicating whether to generate ground truth if one is not found
+    'generateGroundTruthDataIfNotFound',false,...                                                                            % Flag indicating whether to generate ground truth if one is not found
     'listingScript',         'tfeValidateListAllValidationDirs', ...                                                          % Script that lists dirs to find validation scripts in
     'coreListingScript',     '', ...                                                                                          % Not used in this project
     'numericTolerance',      1e-11 ...                                                                                        % Numeric tolerance for comparisons with validation data.
