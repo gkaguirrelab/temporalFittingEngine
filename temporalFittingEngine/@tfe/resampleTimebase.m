@@ -19,6 +19,7 @@ function resampledStruct= resampleTimebase(obj,inputStruct,newTimebase,varargin)
 p = inputParser;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('newTimebase',@isnumeric);
+p.addParameter('errorType', 'rmse', @ischar);
 p.addParameter('method','interp1_linear',@ischar);
 p.parse(inputStruct,newTimebase,varargin{:});
 
