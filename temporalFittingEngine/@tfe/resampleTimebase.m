@@ -13,10 +13,15 @@ function resampledStruct= resampleTimebase(obj,inputStruct,newTimebase,varargin)
 %
 % Optional key/value pairs:
 %   'method' - string (default 'interp1_linear').  How to resample.
-%     'interp1_linear' - Use Matlab's interp1, linear method.
+%     'interp1_linear' - Use Matlab's interp1, linear method and
+%     extrapolate with 0 outside of input domain.
 
 %% Parse input
-p = inputParser;
+%
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('newTimebase',@isnumeric);
 p.addParameter('errorType', 'rmse', @ischar);
@@ -35,7 +40,7 @@ resampledStruct.values = zeros(nRows,length(newTimebase));
 for ii = 1:nRows
     switch (p.Results.method)
         case 'interp1_linear'
-            resampledStruct.values(ii,:) = interp1(inputStruct.timebase,inputStruct.values(ii,:),newTimebase,'linear');
+            resampledStruct.values(ii,:) = interp1(inputStruct.timebase,inputStruct.values(ii,:),newTimebase,'linear',0);
         otherwise
             error('Unknown method specified');
     end

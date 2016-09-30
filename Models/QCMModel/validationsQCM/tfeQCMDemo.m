@@ -1,4 +1,4 @@
-% tmriQuadraticColorModelDemo
+function tfeQCMDemo
 %
 % Demonstrate function for the quadratic color model.
 %
@@ -58,4 +58,6 @@ thePacket.metaData = [];
 fprintf('Model parameter from fits:\n');
 tfe.paramPrint(paramsFit);
 tfe.plot(fitResponseStruct,'Color',[0 1 0],'NewWindow',false);
+
+end
 
