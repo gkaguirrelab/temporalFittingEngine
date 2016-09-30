@@ -8,9 +8,10 @@ function validationData = v_tfeResampleTimebase(varargin)
 %  'originalDuration' - value (default 100).  Response duration in msec.
 %  'newDeltaT' - value (default 4).  New timebase temporal sampling in msec.
 %  'generatePlots' - true/fale (default true).  Make plots?
+%  'method' - Resampling method that is passed on to resampleTimebase
 
 %% Parse vargin for options passed here
-p = inputParser;
+p = inputParser; p.KeepUnmatched = true;
 p.addParameter('originalDeltaT',1,@isnumeric);
 p.addParameter('originalDuration',100,@isnumeric);
 p.addParameter('newDeltaT',4,@isnumeric);
@@ -40,7 +41,7 @@ while (newTimebase(end) < p.Results.newDuration)
 end
 
 %% Resample
-[resampledStruct] = tfe.resampleTimebase(originalStruct,newTimebase);
+[resampledStruct] = tfe.resampleTimebase(originalStruct,newTimebase,varargin{:});
 
 %% Make a plot
 if (p.Results.generatePlots)
