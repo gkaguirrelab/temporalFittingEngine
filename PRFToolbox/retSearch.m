@@ -1,6 +1,6 @@
-% retSearch.m
-%
-%   Script to find pRFs
+%   This script provides example code to load data from an example TOME
+%   subject, calculate population receptive fields, and visualize the
+%   eccentricty and polar angle maps on the cortical surface.
 %
 %   Written by Michael Barnett and Andrew S Bock Sep 2016
 
