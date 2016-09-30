@@ -1,2 +1,2 @@
-# mriTemporalFitting
-Routines to fit temporal aspects of MRI data, including neural IRFs, delayed normalization, and the AB Watson TTF
+# temporalFittingEngine
+A core computational engine, and associated models, for non-linear fitting of parametric models to time-series data.
