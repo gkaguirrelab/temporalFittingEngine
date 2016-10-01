@@ -45,18 +45,17 @@ function packet = makePacket(params)
 %
 %   Otherwise, the fields in kernel are the empty matrix ([]).
 %
-%
 %   Written by Andrew S Bock Aug 2016
 
 %% Metadata
-[subjectStr,sessionDate]                    = fileparts(params.sessionDir);
-[projectStr,subjectName]                    = fileparts(subjectStr);
-[~,projectName]                             = fileparts(projectStr);
-metaData.projectName                        = projectName;
-metaData.subjectName                        = subjectName;
-metaData.sessionDate                        = sessionDate;
-metaData.stimulusFile                       = params.stimulusFile;
-metaData.responseFile                       = params.responseFile;
+[subjectStr,sessionDate]            = fileparts(params.sessionDir);
+[projectStr,subjectName]            = fileparts(subjectStr);
+[~,projectName]                     = fileparts(projectStr);
+metaData.projectName                = projectName;
+metaData.subjectName                = subjectName;
+metaData.sessionDate                = sessionDate;
+metaData.stimulusFile               = params.stimulusFile;
+metaData.responseFile               = params.responseFile;
 %% Stimulus
 stimulus.values                     = params.stimValues;
 stimulus.timebase                   = params.stimTimeBase;
@@ -70,14 +69,14 @@ response.metaData.filename          = params.responseFile;
 switch params.packetType
     case 'bold'
         % HRF (if applicable)
-        tmp                                 = load(params.hrfFile);
-        kernel.values                       = tmp.HRF.mean;
-        kernel.timebase                     = 0:length(kernel.values)-1;
-        kernel.metaData                     = tmp.HRF.metaData;
+        tmp                         = load(params.hrfFile);
+        kernel.values               = tmp.HRF.mean;
+        kernel.timebase             = 0:length(kernel.values)-1;
+        kernel.metaData             = tmp.HRF.metaData;
     otherwise
-        kernel.values                       = [];
-        kernel.timebase                     = [];
-        kernel.metaData                     = [];
+        kernel.values               = [];
+        kernel.timebase             = [];
+        kernel.metaData             = [];
 end
 %% Save the packets
 packet.stimulus                     = stimulus;
