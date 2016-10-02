@@ -16,7 +16,5 @@ kernelStructOut.values=kernelStructOut.values-kernelStructOut.values(1);
 % scale the kernel to preserve amplitude following convolution
 kernelStructOut.values=kernelStructOut.values/(sum(kernelStructOut.values)*kernelDeltaT);
 
-            
-
 end
 
