@@ -53,8 +53,10 @@ kernelStruct.timebase=stimulusStruct.timebase;
 hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
 
-% scale to unit sum to preserve amplitude of signal following convolution
-hrf=hrf/sum(hrf);
+% scale to unit sum and deltaT to preserve amplitude of signal following convolution
+hrf=hrf/(sum(hrf)*deltaT);
+
+
 kernelStruct.values=hrf;
 
 %% Create and plot modeled responses

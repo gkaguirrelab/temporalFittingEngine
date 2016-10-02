@@ -84,9 +84,7 @@ switch (p.Results.searchMethod)
         % Convolve the rows of stimulus values by the kernel
         regressionMatrixStruct = obj.applyKernel(regressionMatrixStruct,thePacket.kernel,varargin{:});
         % Downsample regressionMatrixStruct to the timebase of the response
-        % NEED TO FIX VARARGIN PASSING TO resampleTimebase. THIS IS
-        % CURRENTLY BROKEN
-        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase); %,varargin{:});
+        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase,varargin{:});
         % Perform the regression
         X=regressionMatrixStruct.values';
         y=thePacket.response.values';
