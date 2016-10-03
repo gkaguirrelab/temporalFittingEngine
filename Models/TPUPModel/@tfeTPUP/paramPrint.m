@@ -7,10 +7,12 @@ function paramPrint(obj,params,varargin)
 %   'PrintType'
 %     'parameters' (default)
  
-% Parse input. At the moment this does type checking on the params input
-% and has an optional key value pair that does nothing, but is here for us
-% as a template.
-p = inputParser;
+%% Parse vargin for options passed here
+%
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
 p.addRequired('params',@isstruct);
 p.addParameter('PrintType','parameters',@ischar);
 p.parse(params,varargin{:});
