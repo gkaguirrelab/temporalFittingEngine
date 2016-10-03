@@ -9,7 +9,6 @@ clear; close all;
 %% Construct the model object
 temporalFit = tfeIAMP('verbosity','none');
 
-
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
 totalTime = 330000; % in msecs. This is a 5:30 duration experiment
@@ -35,16 +34,16 @@ hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in sec
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
 
-kernelStruct.timebase=stimulusStruct.timebase;
+kernelStruct.timebase=linspace(0,15999,16000);
 
 % The timebase is converted to seconds within the function, as the gamma
 % parameters are defined in seconds.
 hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
-
-% scale to unit sum to preserve amplitude of signal following convolution
-hrf=hrf/sum(hrf);
 kernelStruct.values=hrf;
+
+% prepare this kernelStruct for use in convolution as a BOLD HRF
+kernelStruct=prepareHRFKernel(kernelStruct);
 
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
@@ -96,13 +95,12 @@ paramLockMatrix = [];
 defaultParamsInfo.nInstances = nInstances;
 
 %% Test the fitter
-
 [paramsFit,fVal,modelResponseStruct] = ...
             temporalFit.fitResponse(thePacket,...
             'defaultParamsInfo', defaultParamsInfo, ...
             'paramLockMatrix',paramLockMatrix, ...
             'searchMethod','linearRegression');
-        
+
 %% Report the output
 fprintf('Model parameter from fits:\n');
 temporalFit.paramPrint(paramsFit);

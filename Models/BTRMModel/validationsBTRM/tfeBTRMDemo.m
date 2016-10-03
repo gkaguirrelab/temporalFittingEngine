@@ -52,12 +52,10 @@ kernelStruct.timebase=stimulusStruct.timebase;
 % parameters are defined in seconds.
 hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
-
-% scale to unit sum and deltaT to preserve amplitude of signal following convolution
-hrf=hrf/(sum(hrf)*deltaT);
-
-
 kernelStruct.values=hrf;
+
+% prepare this kernelStruct for use in convolution as a BOLD HRF
+kernelStruct=prepareHRFKernel(kernelStruct);
 
 %% Create and plot modeled responses
 
@@ -73,7 +71,7 @@ figure;
 % First create and plot the response without noise and without convolution
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
 temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response');
-hold on
+hold on;
 
 % Add the stimulus profile to the plot
 plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
@@ -109,5 +107,5 @@ fprintf('\n');
 
 temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
 legend('show');legend('boxoff');
-hold off
+hold off;
 
