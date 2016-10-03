@@ -25,7 +25,11 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %   predictedResponse: big vector containing the fit response
 
 %% Parse vargin for options passed here
-p = inputParser;
+%
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
 p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('paramLockMatrix',[],@isnumeric);
@@ -84,9 +88,7 @@ switch (p.Results.searchMethod)
         % Convolve the rows of stimulus values by the kernel
         regressionMatrixStruct = obj.applyKernel(regressionMatrixStruct,thePacket.kernel,varargin{:});
         % Downsample regressionMatrixStruct to the timebase of the response
-        % NEED TO FIX VARARGIN PASSING TO resampleTimebase. THIS IS
-        % CURRENTLY BROKEN
-        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase); %,varargin{:});
+        regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase,varargin{:});
         % Perform the regression
         X=regressionMatrixStruct.values';
         y=thePacket.response.values';

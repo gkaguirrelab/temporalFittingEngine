@@ -11,7 +11,7 @@ packetValidity = isPacket@tfe(obj,thePacket);
 % the entire range of the values.
 packetValuesRange=max(thePacket.response.values)-min(thePacket.response.values);
 initialValueProportion=abs(thePacket.response.values(1) / packetValuesRange);
-if  initialValueProportion > 0.05
+if  initialValueProportion > 0.2
     warning('The first value of response.values is not approximately zero')
     packetValidity = false;
 end

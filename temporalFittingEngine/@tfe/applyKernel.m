@@ -78,7 +78,7 @@ for ii=1:nRows
     valuesRowConv = conv(inputStruct.values(ii,:),kernelStruct.values,'full')*responseDeltaT;
     
     % Cut off extra conv values
-    outputStruct.values = valuesRowConv(1:length(inputStruct.timebase));  
+    outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));  
 end 
 
 end
