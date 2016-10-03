@@ -24,7 +24,7 @@ p = inputParser; p.KeepUnmatched = true;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('newTimebase',@isnumeric);
 p.addParameter('errorType', 'rmse', @ischar);
-p.addParameter('method','interp1_linear',@ischar);
+p.addParameter('resampleMethod','interp1_linear',@ischar);
 p.parse(inputStruct,newTimebase,varargin{:});
 
 % Transer all fields from the inputStruct to the resampledStruct
@@ -39,7 +39,7 @@ resampledStruct.values = zeros(nRows,length(newTimebase));
 
 % Loop over each row of values, and downsample
 for ii = 1:nRows
-    switch (p.Results.method)
+    switch (p.Results.resampleMethod)
         case 'interp1_linear'
             resampledStruct.values(ii,:) = interp1(inputStruct.timebase,inputStruct.values(ii,:),newTimebase,'linear',0);
         case 'resample'
