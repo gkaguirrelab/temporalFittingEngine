@@ -26,7 +26,7 @@ function ValidationFunction(runTimeParams)
     %% Change kernel timebase deltaT to an odd value
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_tfeApplyKernel(''kernelDeltaT'',0.8) *****');
     validationData3 = v_tfeApplyKernel('kernelDeltaT',0.8,'generatePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData2',validationData3);
+    UnitTest.validationData('validationData3',validationData3);
     
 end
 
