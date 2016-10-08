@@ -4,7 +4,7 @@ function [ stimulusStructOut, fourierSetStructure ] = makeFourierStimStruct( sti
 % This function returns two components that are needed for performing a
 % Fourier basis set analysis of events. The resulting stimulusStructureOut
 % may be used as the stimulusStructure to model events using the IAMP model
-% and (with linear regression used to efficiently derive the amplitudes of
+% (with linear regression used to efficiently derive the amplitudes of
 % the Fourier components). The fourierSetStructure is combined with the
 % amplitudes estimted by the IAMP to produce an estimate of the response.
 %
