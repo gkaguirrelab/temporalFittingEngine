@@ -1,5 +1,5 @@
-function validationData = v_tfeApplyKernel(varargin)
-% validationData = v_tfeApplyKernel(varargin)
+function validationData = t_tfeApplyKernel(varargin)
+% validationData = t_tfeApplyKernel(varargin)
 %
 % Demonstrate and test the applyKernel method of the TFE object.  This is
 % set up so that it may be run as a standalone or incorporated into a
@@ -77,10 +77,12 @@ if (p.Results.generatePlots)
 end
 
 %% Set validation data for return
-validationData.responseStruct = responseStruct;
-validationData.kernelStruct = kernelStruct;
-validationData.convResponseStruct = convResponseStruct;
-validationData.resampledKernelStruct = resampledKernelStruct;
+if (nargout > 0)
+    validationData.responseStruct = responseStruct;
+    validationData.kernelStruct = kernelStruct;
+    validationData.convResponseStruct = convResponseStruct;
+    validationData.resampledKernelStruct = resampledKernelStruct;
+end
 
 end
 

@@ -1,5 +1,5 @@
-function validationData = v_tfeResampleTimebase(varargin)
-% validationData = v_tfeResampleTimebase(varargin)
+function validationData = t_tfeResampleTimebase(varargin)
+% validationData = t_tfeResampleTimebase(varargin)
 %
 % Assessments of the resampleTimebase method in the parent tfe class
 %
@@ -56,8 +56,10 @@ if (p.Results.generatePlots)
 end
 
 %% Set validation data for return
-validationData.originalStruct = originalStruct;
-validationData.resampledKernelStruct = resampledStruct;
+if (nargout > 0)
+    validationData.originalStruct = originalStruct;
+    validationData.resampledKernelStruct = resampledStruct;
+end
 
 end
 

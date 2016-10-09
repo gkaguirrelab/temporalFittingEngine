@@ -1,11 +1,15 @@
-function tfeQCMDemo
+function validationData = t_QCMBasic(varargin)
+% validationData = t_QCMBasic(varargin)
 %
-% Demonstrate function for the quadratic color model.
+% Demonstrate some basic functionalty for the quadratic color model.
 %
-% 6/26/16  dhb  Wrote it.
+% Optional key/value pairs
+%  'generatePlots' - true/fale (default true).  Make plots?
 
-%% Clear and close
-clear; close all;
+%% Parse vargin for options passed here
+p = inputParser;
+p.addParameter('generatePlots',true,@islogical);
+p.parse(varargin{:});
 
 %% Construct the model object
 tfe = tfeQCM('verbosity','none');
@@ -45,7 +49,9 @@ params1.noiseSd = 0.02;
 fprintf('Simulated model parameters:\n');
 tfe.paramPrint(params1);
 modelResponseStruct = tfe.computeResponse(params1,stimulusStruct,[],'AddNoise',true);
-tfe.plot(modelResponseStruct);
+if (p.Results.generatePlots)
+    tfe.plot(modelResponseStruct);
+end
 
 %% Construct a packet
 thePacket.stimulus = stimulusStruct;
@@ -57,7 +63,16 @@ thePacket.metaData = [];
 [paramsFit,fVal,fitResponseStruct] = tfe.fitResponse(thePacket);
 fprintf('Model parameter from fits:\n');
 tfe.paramPrint(paramsFit);
-tfe.plot(fitResponseStruct,'Color',[0 1 0],'NewWindow',false);
+if (p.Results.generatePlots)
+    tfe.plot(fitResponseStruct,'Color',[0 1 0],'NewWindow',false);
+end
+
+%% Set returned validationData structure
+if (nargout > 0)
+    validationData.params1 = params1;
+    validationData.modelResponseStruct = modelResponseStruct;
+    validationData.thePacket = thePacket;
+end
 
 end
 
