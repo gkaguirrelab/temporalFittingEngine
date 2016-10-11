@@ -1,14 +1,14 @@
-function paramStruct = parameterDefinitionIAMP(nInstances)
+function paramStruct = parameterDefinitionFCON(nInstances)
 % paramStruct = paramCreateBDCM(nInstances)
 %
-% Create a default parameters structure for the IAMP fMRI modeling.
+% Create a default parameters structure for the FCON fMRI modeling.
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
 
 %% Unpack the params
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
-    'amplitude',...
+    'effectiveContrast',...
     };
 
 % initial values

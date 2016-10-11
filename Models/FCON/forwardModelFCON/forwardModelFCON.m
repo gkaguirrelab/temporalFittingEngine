@@ -47,13 +47,13 @@ end
 
 % Obtain the default params for the passed model object
 defaultParamsInfo.nInstances = nInstances;
-params0 = fcon.modelObjHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
+params0 = stimulusStruct.fcon.modelObjHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
 
 % place the parameter values corresponding to the closest effective
 % contrast into the default parameter structure
 params0.paramMainMatrix = expandedParamMatrix;
 
 % Obtain the model response struct for the parameter matrix
-modelResponseStruct = fcon.modelObjHandle.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
+modelResponseStruct = stimulusStruct.fcon.modelObjHandle.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
 
 end % function
