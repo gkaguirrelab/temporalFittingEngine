@@ -11,10 +11,8 @@ function [ theInstancePacket ] = splitOffAnInstancePacket( thePacket, params )
 %   params.splitDurationMsecs -- the point to end the split
 %   params.normFlag -- integer index flag, with the following behaviors:
 %      1 (default) -- no normalization
-%      2 -- zero onset, original units
-%      3 -- zero onset, % change units
-%      4 -- mean center, original units
-%      5 -- mean center, % change units
+%      2 -- recenter, original units
+%      3 -- recenter, % change units
 %   params.normalizationWindowMsecs -- Duration in msecs for the
 %      normalization operations described in the prior two parameters. If
 %      undefined, the normalizationWindow will be the entire response.
@@ -96,7 +94,7 @@ end
 
 % set theInstancePacket to have the extracted response components
 theInstancePacket.response.timebase=thePacket.response.timebase(idxToExtract);
-theInstancePacket.response.values=thePacket.response.values(params.instanceIndex,idxToExtract);
+theInstancePacket.response.values=thePacket.response.values(idxToExtract);
 
 %% Normalize the response time-series if requested
 

@@ -13,7 +13,7 @@ paramStruct.paramNameCell = { ...
 
 % initial values
 paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,1) = 50.0.*ones([nInstances 1]);
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-realmax,[nInstances 1]);
