@@ -1,7 +1,7 @@
 function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
 % modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
 %
-% Compute method for the impulse amplitude model.
+% Compute method for the effecive contrast model.
 %
 % Operates by calling forwardModelFCON and then the applyKernel tfe method.
 %
@@ -12,7 +12,10 @@ function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelS
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
-p = inputParser;
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
 p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
