@@ -39,9 +39,9 @@ modelResponseStruct = obj.resampleTimebase(modelResponseStruct,thePacket.respons
 %% Get fit error measurement
 switch (p.Results.errorType)
     case 'rmse'
-        fVal = sqrt(mean((modelResponseStruct.values-thePacket.response.values).^2));
+        fVal = sqrt(nanmean((modelResponseStruct.values-thePacket.response.values).^2));
     case '1-r2'
-        fVal = sum((thePacket.response.values - modelResponseStruct.values).^2)/sum((thePacket.response.values - mean(thePacket.response.values)).^2);
+        fVal = nansum((thePacket.response.values - modelResponseStruct.values).^2)/sum((thePacket.response.values - mean(thePacket.response.values)).^2);
     otherwise
         error('Unknown error type passed');
 end
