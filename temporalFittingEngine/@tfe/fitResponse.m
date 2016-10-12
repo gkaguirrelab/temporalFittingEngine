@@ -18,6 +18,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %    'global' - Use global search
 %    'linearRegression' - rapid estimation of simplified models with only
 %                         an amplitude parameter
+%  'DiffMinChange' - Double. If set, changes the default value of this in
+%                    the fmincon optionset.
 %
 % Outputs:
 %   paramsFit: fit parameters
@@ -34,6 +36,7 @@ p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('paramLockMatrix',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
+p.addParameter('DiffMinChange',[],@isnumeric);
 p.addParameter('errorType','rmse',@ischar);
 p.parse(thePacket,varargin{:});
 
@@ -63,6 +66,9 @@ switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
         options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
+        if ~isempty(p.Results.DiffMinChange)
+            options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
+        end
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
             thePacket),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
     case 'global'
