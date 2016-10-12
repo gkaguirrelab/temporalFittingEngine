@@ -6,23 +6,21 @@ function [modelResponseStruct] = forwardModelFCON(params,stimulusStruct)
 %
 %    fcon.contrastbase - the n contrast levels at which an effective
 %       contrast value is available
-%    fcon.observedParamMatrix - a m x n matrix where m is the number of
+%    fcon.paramLookUpMatrix - a m x n matrix where m is the number of
 %       parameters in the expanded description of the data, and n is the
 %       number of effective contrast levels.
 %    fcon.modelObjHandle - an object handle that identifies the model
 %       subclass to be used to calculate the forward model using the
 %       expanded parameter set.
-%    fcon.logContrastFlag - if set to true, find the closest available
-%       contrast value in the effective contrast look-up table using log
-%       contrast as the distance measure.
+%    fcon.defaultParams - the default params for the model subclass
 %
-% The contrastbase and observedParamMatrix is effectively a look-up table
+% The contrastbase and paramLookUpMatrix is a look-up table
 %  for relating an effective contrast value to an expanded set of
 %  parameters.
 %
 
 %% Obtain the params
-effectiveContrastVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'effectiveContrast'));
+effectiveContrastVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'logEffectiveContrast'));
 
 %% Define basic model features
 
@@ -30,7 +28,7 @@ effectiveContrastVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'effec
 nInstances=size(stimulusStruct.values,1);
 
 % Set up the matrix to hold the expanded parameter set
-nExpandedParameters=size(stimulusStruct.fcon.observedParamMatrix,1);
+nExpandedParameters=size(stimulusStruct.fcon.paramLookUpMatrix,1);
 expandedParamMatrix=zeros(nInstances,nExpandedParameters);
 
 % We loop through each column of the stimulus matrix and find the closest
@@ -42,18 +40,16 @@ for ii=1:nInstances
     % for this instance
     [smallestDifference, closestIndex] = min(abs(stimulusStruct.fcon.contrastbase - effectiveContrastVec(ii)));
     
-    expandedParamMatrix(ii,:)=stimulusStruct.fcon.observedParamMatrix(:,closestIndex);
+    expandedParamMatrix(ii,:)=stimulusStruct.fcon.paramLookUpMatrix(:,closestIndex);
 end
 
-% Obtain the default params for the passed model object
-defaultParamsInfo.nInstances = nInstances;
-params0 = stimulusStruct.fcon.modelObjHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
 
 % place the parameter values corresponding to the closest effective
 % contrast into the default parameter structure
-params0.paramMainMatrix = expandedParamMatrix;
+subclassParams=stimulusStruct.fcon.defaultParams;
+subclassParams.paramMainMatrix = expandedParamMatrix;
 
 % Obtain the model response struct for the parameter matrix
-modelResponseStruct = stimulusStruct.fcon.modelObjHandle.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
+modelResponseStruct = stimulusStruct.fcon.modelObjHandle.computeResponse(subclassParams,stimulusStruct,[],'AddNoise',false);
 
 end % function

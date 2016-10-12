@@ -46,4 +46,9 @@ switch (p.Results.errorType)
         error('Unknown error type passed');
 end
 
+%% Check for inappropriate values in fVal. This is to aid debugging
+if isnan(fVal)
+    error('the model has returned an undefined error measurement');
+end
+
 end

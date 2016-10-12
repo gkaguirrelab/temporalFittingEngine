@@ -17,9 +17,8 @@ else
 end
 
 if isfield(thePacket.stimulus.fcon, 'contrastbase') && ...
-        isfield(thePacket.stimulus.fcon, 'observedParamMatrix') && ...
-        isfield(thePacket.stimulus.fcon, 'modelObjHandle') && ...
-        isfield(thePacket.stimulus.fcon, 'logContrastFlag')
+        isfield(thePacket.stimulus.fcon, 'paramLookUpMatrix') && ...
+        isfield(thePacket.stimulus.fcon, 'modelObjHandle')
     packetValidity = true;
 else
     warning('There are fields missing from packet.stimulus.fcon')
@@ -27,18 +26,11 @@ else
     return
 end
 
-% Test if the dimension of contrastbase matches that of observedParamMatrix
-if ~(length(thePacket.stimulus.fcon.contrastbase)==size(thePacket.stimulus.fcon.observedParamMatrix,2))
-    warning('the contrastbase must be the same length as the second dimension of the observedParamMatrix')
+% Test if the dimension of contrastbase matches that of paramLookUpMatrix
+if ~(length(thePacket.stimulus.fcon.contrastbase)==size(thePacket.stimulus.fcon.paramLookUpMatrix,2))
+    warning('the contrastbase must be the same length as the second dimension of the paramLookUpMatrix')
     packetValidity = false;
 end
-
-% Test if the logContrastFlag is boolean
-% Need to add test for matlab version 2016b)
-% if ~isboolean(thePacket.stimulus.fcon.logContrastFlag)
-%     warning('the logContrastFlag field does not contain a boolean value')
-%     packetValidity = false;
-% end
 
 % Test if the modelObjHandle is an object handle (Not sure how to implement
 % yet)

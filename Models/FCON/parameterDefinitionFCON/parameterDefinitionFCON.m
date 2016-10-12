@@ -8,17 +8,16 @@ function paramStruct = parameterDefinitionFCON(nInstances)
 %% Unpack the params
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
-    'effectiveContrast',...
+    'logEffectiveContrast',...
     };
 
 % initial values
-paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 50.0.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,1) = 0.*ones([nInstances 1]);
 
 % set lower bounds
-paramStruct.vlb(:,1) = repmat(-realmax,[nInstances 1]);
+paramStruct.vlb(:,1) = repmat(-1,[nInstances 1]);
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(realmax,[nInstances 1]);
+paramStruct.vub(:,1) = repmat(1,[nInstances 1]);
 
 end

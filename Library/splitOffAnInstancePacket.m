@@ -68,8 +68,10 @@ else
 end
 
 % set theInstancePacket to have the extracted stimulus components
-theInstancePacket.stimulus.timebase=thePacket.stimulus.timebase(idxToExtract);
-theInstancePacket.stimulus.values=thePacket.stimulus.values(params.instanceIndex,idxToExtract);
+theInstancePacket.stimulus.timebase = thePacket.stimulus.timebase(idxToExtract);
+theInstancePacket.stimulus.timebase = ...
+    theInstancePacket.stimulus.timebase-thePacket.stimulus.timebase(idxToExtract(1));
+theInstancePacket.stimulus.values = thePacket.stimulus.values(params.instanceIndex,idxToExtract);
 
 % Calculate the extraction indices for the response vectors. We will first
 % need the deltaT in the timebase of the stimulus
@@ -94,6 +96,8 @@ end
 
 % set theInstancePacket to have the extracted response components
 theInstancePacket.response.timebase=thePacket.response.timebase(idxToExtract);
+theInstancePacket.response.timebase = ...
+    theInstancePacket.response.timebase-thePacket.response.timebase(idxToExtract(1));
 theInstancePacket.response.values=thePacket.response.values(idxToExtract);
 
 %% Normalize the response time-series if requested
