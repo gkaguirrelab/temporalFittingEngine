@@ -64,6 +64,11 @@ for i=1:numInstances
     %% Convolve the stimulus vector with a gamma function
     gammaIRF = timebaseSecs .* exp(-timebaseSecs/gammaTauVec(i));
     
+    % Check the result for nans
+    if ~sum(isnan(gammaIRF))==0
+        warning('NaNs detected in gammaIRF');
+    end
+    
     % scale to preserve total area after convolution
     gammaIRF=gammaIRF/sum(gammaIRF);
     
@@ -75,6 +80,11 @@ for i=1:numInstances
     % Create the exponential low-pass function that defines the time-domain
     % properties of the sustain
     sustainedMultiplier=(exp(-1*sustainedTauVec(i)*timebaseSecs));
+    
+    % Check the result for nans
+    if ~sum(isnan(sustainedMultiplier))==0
+        warning('NaNs detected in sustainedMultiplier');
+    end
     
     % scale to preserve the max after multiplication
     sustainedMultiplier=sustainedMultiplier/max(sustainedMultiplier);
@@ -89,7 +99,12 @@ for i=1:numInstances
     %% Create the persistent component
     % Create the super-saturating function that defines the persistent phase
     persistentIRF = createSuperSaturatingFunction(timebaseSecs,[persistentT50Vec(i),persistentAlphaVec(i)]);
-    
+
+    % Check the result for nans
+    if ~sum(isnan(persistentIRF))==0
+        warning('NaNs detected in persistentIRF');
+    end
+
     % scale to preserve total area after convolution
     persistentIRF=persistentIRF/sum(persistentIRF);
     
@@ -120,6 +135,11 @@ for i=1:numInstances
     
 end % loop over stimulus instances
 
+% Check the result for nans
+if ~sum(sum(isnan(responseMatrix)))==0
+    error('NaNs detected in the responseMatrix');
+end
+    
 %% Build the modelResponseStruct to return
 modelResponseStruct.timebase=stimulusStruct.timebase;
 modelResponseStruct.values=sum(responseMatrix,1);
