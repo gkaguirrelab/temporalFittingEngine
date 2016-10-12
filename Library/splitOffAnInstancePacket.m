@@ -29,7 +29,14 @@ if ~isfield(params,'splitOnsetMsecs')
     tmp = diff(thePacket.stimulus.values(params.instanceIndex,:));
     tmp(tmp < 0) = 0;
     tmp(tmp > 0) = 1;
-    stimOnset = strfind(tmp, [0 1]);
+    
+    % Check if the very first value is 1, in which case the stim onset is
+    % at the initial value
+    if tmp(1)==1
+        stimOnset=1;
+    else
+        stimOnset = strfind(tmp, [0 1]);
+    end
     
     if ~length(stimOnset)==1
         error('Cannot find a unique stimulus onset for this instance')
@@ -114,11 +121,19 @@ if ~isfield(params,'normalizationWindowMsecs')
     params.normalizationWindowMsecs=max(theInstancePacket.response.timebase);
 end
 
-% Obtain the mean value over the normalization window
+% Set up the indices for normalization window
 check = diff(theInstancePacket.response.timebase);
 deltaT = check(1);
 nNormIndices=round(params.normalizationWindowMsecs/deltaT)-deltaT;
-normValue=nanmean(theInstancePacket.response.values(1:nNormIndices));
+
+% Shift the start of the norm window to the first, non-nan value in the
+% response.values vector
+nonNaNIndices=find(~isnan(theInstancePacket.response.values));
+normStartIndex=nonNaNIndices(1);
+
+% Get the normValue
+normValue = ...
+    nanmean(theInstancePacket.response.values(normStartIndex:normStartIndex+nNormIndices-1));
 
 % Perform the normalization
 switch params.normFlag
