@@ -34,7 +34,14 @@ p = struct(...
     );
 
 generatePreferenceGroup(p);
-UnitTest.usePreferencesForProject(p.projectName);
+
+%% Only do this if UnitTestToolbox is on the path.
+%
+% It might not be if we're working on a content analysis project that uses the
+% temporalFittingEngine.
+if exist('UnitTest','file')
+    UnitTest.usePreferencesForProject(p.projectName);
+end
 
 end
 
