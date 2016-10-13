@@ -20,7 +20,7 @@ function [modelResponseStruct] = forwardModelFCON(params,stimulusStruct)
 %
 
 %% Obtain the params
-effectiveContrastVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'logEffectiveContrast'));
+effectiveContrastVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'effectiveContrast'));
 
 %% Define basic model features
 
@@ -42,7 +42,6 @@ for ii=1:nInstances
     
     expandedParamMatrix(ii,:)=stimulusStruct.fcon.paramLookUpMatrix(:,closestIndex);
 end
-
 
 % place the parameter values corresponding to the closest effective
 % contrast into the default parameter structure
