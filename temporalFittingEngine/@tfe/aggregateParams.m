@@ -1,11 +1,11 @@
 function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
-% function [paramsFitCentralTendency] = combineParamsFit(obj,paramsFitCellArray,varargin)
+% function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
 %
-% Computes the central tendency of a set of passed paramsFit variabled
+% Computes the central tendency of a set of passed paramsFit variables
 % included in the cell array.
 %
 % Optional key/value pairs
-%   'combineMethod' - string (default 'mean'). How to combine the params.
+%   'aggregateMethod' - string (default 'mean'). How to combine the params.
 %       mean
 %       median
 %       euclidean
@@ -38,7 +38,7 @@ switch (p.Results.aggregateMethod)
     case 'euclidean'
         centralParamsMainMatrix = sqrt(sum(allParamMainMatrix.^2,1));
     otherwise
-        error('Unknown central tendency method passed');
+        error('Unknown aggregation method requested');
 end
 
 centralParams = paramsCellArray{1};
