@@ -75,6 +75,25 @@ for i=1:numInstances
     
     % grab the current stimulus
     stimulus=stimulusStruct.values(i,:)';
+
+    % Find the stimulus onsets so that we can adjust the model to it. We
+    % do that by finding a [0 1] edge from a difference operator.
+    tmp = diff(stimulus');
+    tmp(tmp < 0) = 0;
+    tmp(tmp > 0) = 1;
+    
+    % Check if the very first value is 1, in which case the stim onset is
+    % at the initial value
+    if tmp(1)==1
+        stimOnset=1;
+    else
+        stimOnset = strfind(tmp, [0 1]);
+    end
+    
+    % If we can't find a stim onset, return an error.
+    if ~length(stimOnset)==1
+        error('Cannot find a unique stimulus onset for this instance')
+    end
     
     %% The neural response begins as the stimulus input
     % scaled by the main response amplitude parameter
@@ -90,7 +109,7 @@ for i=1:numInstances
     % stimulus input into a profile of neural activity (e.g., LFP)
     gammaIRF = timebaseSecs .* exp(-timebaseSecs/tauNeuralIRFVec(i));
     
-    %scale the IRF to preserve area of response after convolution
+    % scale the IRF to preserve area of response after convolution
     gammaIRF=gammaIRF./sum(gammaIRF);
     
     % Obtain first stage, linear model, which is the scaled stimulus
@@ -113,11 +132,11 @@ for i=1:numInstances
     % properties of the normalization
     decayingExponential=(exp(-1*tauExponentialDecayVec(i)*timebaseSecs));
     
-    % Position the decaying exponential to have unit value at that time
-    % point of the initial peak.
-    decayingExponential=circshift(decayingExponential,[0,initialPeakPoint]);
+    % Position the decaying exponential to have unit value at and before
+    % the time of the stimulus onset
+    decayingExponential=circshift(decayingExponential,[0,stimOnset]);
     decayingExponential=decayingExponential/max(decayingExponential);
-    decayingExponential(1:initialPeakPoint)=1;
+    decayingExponential(1:stimOnset)=1;
     
     % Apply the exponential decay as a multiplicative scaling
     yNeural=yNeural.*decayingExponential;
