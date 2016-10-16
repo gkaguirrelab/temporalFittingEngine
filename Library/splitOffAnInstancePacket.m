@@ -33,7 +33,7 @@ if ~isfield(params,'splitOnsetMsecs')
     % Check if the very first value is 1, in which case the stim onset is
     % at the initial value
     if tmp(1)==1
-        stimOnset=1;
+        stimOnset = 1;
     else
         stimOnset = strfind(tmp, [0 1]);
     end
@@ -73,6 +73,9 @@ if (startIndex+nExtractionIndices) <= length(thePacket.stimulus.timebase)
 else
     idxToExtract = startIndex:length(thePacket.stimulus.timebase);
 end
+
+% Put the indices to extract back into the InstancePacket to be returned
+theInstancePacket.stimulus.metaData.idxToExtract=idxToExtract;
 
 % set theInstancePacket to have the extracted stimulus components
 theInstancePacket.stimulus.timebase = thePacket.stimulus.timebase(idxToExtract);
