@@ -24,7 +24,8 @@ function [modelResponseStruct] = forwardModelTPUP(params,stimulusStruct)
 
 %% Unpack the params
 %   Overall model timing
-%     startTime -  left or right tie shift for the entire model
+%     startTime -  left or right tie shift for the entire model, relative
+%     to the stimulus
 %   Parameters of the initial gamma convolution
 %     gammaTau - time constant of the transient gamma function
 %   Parameters of the sustained response
@@ -60,7 +61,26 @@ for i=1:numInstances
     
     % grab the current stimulus
     stimulus=stimulusStruct.values(i,:)';
-        
+
+    % Find the stimulus onsets so that we can adjust the model to it. We
+    % do that by finding a [0 1] edge from a difference operator.
+    tmp = diff(stimulus');
+    tmp(tmp < 0) = 0;
+    tmp(tmp > 0) = 1;
+    
+    % Check if the very first value is 1, in which case the stim onset is
+    % at the initial value
+    if tmp(1)==1
+        stimOnset=1;
+    else
+        stimOnset = strfind(tmp, [0 1]);
+    end
+    
+    % If we can't find a stim onset, return an error.
+    if ~length(stimOnset)==1
+        error('Cannot find a unique stimulus onset for this instance')
+    end
+    
     %% Convolve the stimulus vector with a gamma function
     gammaIRF = timebaseSecs .* exp(-timebaseSecs/gammaTauVec(i));
     
@@ -80,14 +100,17 @@ for i=1:numInstances
     % Create the exponential low-pass function that defines the time-domain
     % properties of the sustain
     sustainedMultiplier=(exp(-1*sustainedTauVec(i)*timebaseSecs));
-    
+        
+    % Position the decaying exponential to have unit value at and before
+    % the onset of the stimulus.
+    sustainedMultiplier=circshift(sustainedMultiplier,[0,stimOnset]);
+    sustainedMultiplier=sustainedMultiplier/max(sustainedMultiplier);
+    sustainedMultiplier(1:stimOnset)=1;
+
     % Check the result for nans
     if ~sum(isnan(sustainedMultiplier))==0
         warning('NaNs detected in sustainedMultiplier');
     end
-    
-    % scale to preserve the max after multiplication
-    sustainedMultiplier=sustainedMultiplier/max(sustainedMultiplier);
     
     % perform the multiplicative scaling
     ySustained = gammaStimulus.*sustainedMultiplier;
@@ -115,7 +138,7 @@ for i=1:numInstances
     % scale the persistent component and apply the Amplitude parameter
     yPersistent = (yPersistent/max(yPersistent))*persistentAmpVec(i);
     
-    %% Implement the temporal shift
+    %% Implement the start time temporal shift
     shiftAmount=find(timebaseSecs>=startTimeVec(i));
     shiftAmount=shiftAmount(1);
     gammaStimulus = circshift(gammaStimulus,[shiftAmount,0]);
