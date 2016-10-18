@@ -105,5 +105,8 @@ for pp=1:nPackets
 end % loop over number of packets to be created
 
 % Conduct the cross validation
-[ trainParamsFit, trainfVals, testfVals ] = crossValidateFits( packetCellArray, tfeHandle );
+[ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, ...
+    'partitionMethod', 'twentyPercent', ...
+    'maxPartitions' , 10, ...
+    'aggregateMethod', 'mean');
 

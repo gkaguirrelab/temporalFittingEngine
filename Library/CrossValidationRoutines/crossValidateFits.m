@@ -1,6 +1,36 @@
-function [ trainParamsFit, trainfVals, testfVals ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
+%function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
+%
+% This is a general cross validation function for the temporalFittingEngine.
+%
+% Inputs:
+%   packetCellArray - a cell array of packets. There must be more than one
+%     packet. Each packet must have the same stimLabels and the same
+%     unique set of stimTypes. The number and order of stimTypes may vary
+%     between the packets.
+%  tfeHandle - handle to the model fitting object.
+%
+% Optional arguments:
+%   partitionMethod - how to divide the packets into train and test sets
+%     'loo' - leave-one-out for test
+%     'split' - split-halves train and test
+%     'twentyPercent' - train on 80% of the packets, test on 20%
+%     'full' - train and test on all partitions of the packet set
+%   maxPartitions - numeric, specifies maximum number of partitions to
+%     evaluate (randomly selected from the available partition set).
+%   aggregateMethod - method to aggregate paramFits across instances
+%     within a packet fit, and to aggregate paramFits and fVals across
+%     packets within a partition.
+%
+% Outputs:
+%   xValFitStructure -
+%     paramNameCell - the names of the parameters
+%     paramMainMatrix - the central tendency of the fit params. The matrix
+%       has three dimensions: partition x uniqueStimLabels x param
+%     uniqueStimLabels - the names of the stimulus types
+%     trainfVals - the vector of fVals from the training partitions
+%     testfVals -  - the vector of fVals from the test partitions
+%
 
 %% Parse vargin for options passed here
 %
@@ -10,8 +40,10 @@ function [ trainParamsFit, trainfVals, testfVals ] = crossValidateFits( packetCe
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('packetCellArray',@iscell);
 p.addRequired('tfeHandle',@(x)(~isempty(x)));
-p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
+p.addParameter('partitionMethod','loo',@ischar);
+p.addParameter('maxPartitions',100,@isnumeric);
 p.addParameter('aggregateMethod','mean',@ischar);
+p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.parse(packetCellArray, tfeHandle, varargin{:});
 
 %% Check the input
@@ -42,19 +74,57 @@ end
 
 
 %% Calculate a partition matrix
-% Currently a dumb LOO
-nPartitions=nPackets;
-testSets=eye(nPackets);
+% find all k=2 member partitions of the set of packets
+splitPartitionsCellArray=partitions(1:1:nPackets,2);
+nPartitions=length(splitPartitionsCellArray);
 
+% build a partition matrix, where 1=train, 0=test
+partitionMatrix=zeros(nPartitions*2,nPackets);
+for ss=1:nPartitions
+    partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=1;
+    partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=1;
+end % loop over the partitions
+
+% restrict the partition Matrix following partitionMethod
+switch p.Results.partitionMethod
+    case 'loo'
+        nTargetTrain=nPackets-1;
+        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+        partitionMatrix=partitionMatrix(partitionsToUse,:);
+    case 'splitHalf'
+        nTargetTrain=floor(nPackets/2);
+        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+        partitionMatrix=partitionMatrix(partitionsToUse,:);
+    case 'twentyPercent'
+        nTargetTrain=ceil(nPackets*0.8);
+        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+        partitionMatrix=partitionMatrix(partitionsToUse,:);
+    case 'full'
+        partitionMatrix=partitionMatrix;
+    otherwise
+        error('Not a recognized partion Method');
+end % switch on partition method
+
+nPartitions=size(partitionMatrix,1);
+if nPartitions > p.Results.maxPartitions
+    % randomly re-assort the rows of the partition matrix, to avoid
+    % choosing the same sub-set of partitions every time we call the
+    % routine
+    ix=randperm(nPartitions);
+    partitionMatrix=partitionMatrix(ix,:);
+    partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+end % check for maximum desired number of partitions
+
+
+%% Loop through the partitions of the packetCellArray and fit
 % Empty the variables that aggregate across the partitions
 trainParamsFit=[];
 trainfVals=[];
 testfVals=[];
 
-%% Loop through the partitions of the packetCellArray and fit
 for pp=1:nPartitions
-    trainPackets = packetCellArray(testSets(pp,:)==0);
-    testPackets = packetCellArray(testSets(pp,:)==1);
+    trainPackets = packetCellArray(partitionMatrix(pp,:)==1);
+    testPackets = packetCellArray(partitionMatrix(pp,:)==0);
     
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
@@ -146,9 +216,15 @@ for pp=1:nPartitions
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
-
+    
 end % loop over partitions
 
+% Assemble the xValFitStructure for return
+xValFitStructure.paramNameCell=predictParams.paramNameCell;
+xValFitStructure.paramMainMatrix=trainParamsFit;
+xValFitStructure.uniqueStimLabels=uniqueStimLabels;
+xValFitStructure.trainfVals=trainfVals;
+xValFitStructure.testfVals=testfVals;
 
 end % function
 
