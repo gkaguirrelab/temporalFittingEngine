@@ -1,4 +1,4 @@
-function [ trainParamsFit, trainfVals ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
+function [ trainParamsFit, trainfVals, testfVals ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 

@@ -105,5 +105,5 @@ for pp=1:nPackets
 end % loop over number of packets to be created
 
 % Conduct the cross validation
-[ trainParamsFit, trainfVals ] = crossValidateFits( packetCellArray, tfeHandle );
+[ trainParamsFit, trainfVals, testfVals ] = crossValidateFits( packetCellArray, tfeHandle );
 
