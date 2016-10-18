@@ -106,6 +106,7 @@ switch p.Results.partitionMethod
 end % switch on partition method
 
 nPartitions=size(partitionMatrix,1);
+
 if nPartitions > p.Results.maxPartitions
     % randomly re-assort the rows of the partition matrix, to avoid
     % choosing the same sub-set of partitions every time we call the
@@ -113,6 +114,7 @@ if nPartitions > p.Results.maxPartitions
     ix=randperm(nPartitions);
     partitionMatrix=partitionMatrix(ix,:);
     partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+    nPartitions=size(partitionMatrix,1);
 end % check for maximum desired number of partitions
 
 
