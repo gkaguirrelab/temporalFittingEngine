@@ -1,4 +1,4 @@
-function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
+function [centralParams, centralfVal] = aggregateParams(obj,paramsCellArray, fValsArray, varargin)
 % function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
 %
 % Computes the central tendency of a set of passed paramsFit variables
@@ -8,7 +8,6 @@ function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
 %   'aggregateMethod' - string (default 'mean'). How to combine the params.
 %       mean
 %       median
-%       euclidean
 %
 
 %% Parse vargin for options passed here
@@ -18,8 +17,13 @@ function [centralParams] = aggregateParams(obj,paramsCellArray,varargin)
 % pairs recognized by the calling routine are not needed here.
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('paramsCellArray',@iscell);
+p.addRequired('fValsArray',@isnumeric);
 p.addParameter('aggregateMethod','mean',@ischar);
 p.parse(paramsCellArray,varargin{:});
+
+
+%% Check that the items in the param cell array have the same parameter
+% names in the same order
 
 % Setup
 nParamSets = length(paramsCellArray);
@@ -33,10 +37,10 @@ end
 switch (p.Results.aggregateMethod)
     case 'mean'
         centralParamsMainMatrix = mean(allParamMainMatrix,1);
+        centralfVal = mean(fValsArray);
     case 'median'
         centralParamsMainMatrix = median(allParamMainMatrix,1);
-    case 'euclidean'
-        centralParamsMainMatrix = sqrt(sum(allParamMainMatrix.^2,1));
+        centralfVal = median(fValsArray);
     otherwise
         error('Unknown aggregation method requested');
 end
