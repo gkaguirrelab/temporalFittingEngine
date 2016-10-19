@@ -9,7 +9,7 @@ function [ theConcatPacket ] = concatenatePackets(obj,packetCellArray, varargin)
 % different packets may have stimTypes that do not include instances of all
 % of the available stimLabels.
 %
-% All the packets must have identical kernel fields.
+% If defined, all the packets must have identical kernel fields.
 %
 %
 
@@ -63,12 +63,18 @@ end % the first packet has a stimLabel
 
 
 %% Build the concatenated packet
+
+% Initialize fields for theConcatPacket
 theConcatPacket.stimulus.timebase=[];
 theConcatPacket.stimulus.metaData.stimTypes=[];
-theConcatPacket.stimulus.metaData.stimLabels= ...
-    packetCellArray{1}.stimulus.metaData.stimLabels;
 theConcatPacket.response.timebase=[];
 theConcatPacket.response.values=[];
+
+% If defined, copy over the stimLabels
+if isfield(packetCellArray{1}.stimulus.metaData,'stimLabels')
+    theConcatPacket.stimulus.metaData.stimLabels= ...
+        packetCellArray{1}.stimulus.metaData.stimLabels;
+end
 
 % Loop throught the packets and assemble the concatenated timebase
 stimTimeMarker=0;
@@ -83,11 +89,12 @@ for pp=1:nPackets
     theConcatPacket.response.values = [theConcatPacket.response.values ...
         packetCellArray{pp}.response.values];
     
-    % Concatenate the stimTypes
-    
-    theConcatPacket.stimulus.metaData.stimTypes = ...
-        [theConcatPacket.stimulus.metaData.stimTypes; ...
-        packetCellArray{pp}.stimulus.metaData.stimTypes];
+    % If defined, concatenate the stimTypes
+    if isfield(packetCellArray{1}.stimulus.metaData,'stimTypes')
+        theConcatPacket.stimulus.metaData.stimTypes = ...
+            [theConcatPacket.stimulus.metaData.stimTypes; ...
+            packetCellArray{pp}.stimulus.metaData.stimTypes];
+    end
     
     % Concatenate the timebase, advancing time as we go. Assume that the
     % time elapsed between the end of one packet and the start of the next
