@@ -81,7 +81,7 @@ for pp=1:nPackets
     
     % start the packet assembly
     thePacket.stimulus = stimulusStruct;
-    thePacket.kernel = [];%kernelStruct;
+    thePacket.kernel = kernelStruct;
     thePacket.metaData = [];
     
     % Randomize the order of the stimTypes
