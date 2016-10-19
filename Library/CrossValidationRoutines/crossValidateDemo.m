@@ -71,6 +71,7 @@ params0.noiseSd = 0.05;
 stimLabels={'stimA','stimB'};
 stimTypes=[1 2 1 2 1 2 1 2 1 2]';
 stimMeansAmplitude=[1,0.5];
+stimMeansTau=[0.1,0.001];
 nPackets=10;
 
 for pp=1:nPackets
@@ -92,6 +93,7 @@ for pp=1:nPackets
     paramsLocal=params0;
     for ii=1:nInstances
         paramsLocal.paramMainMatrix(ii,1)=stimMeansAmplitude(thePacket.stimulus.metaData.stimTypes(ii));
+        paramsLocal.paramMainMatrix(ii,2)=stimMeansTau(thePacket.stimulus.metaData.stimTypes(ii));
     end
     
     % Generate the simulated response
@@ -108,5 +110,6 @@ end % loop over number of packets to be created
 [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, ...
     'partitionMethod', 'twentyPercent', ...
     'maxPartitions' , 4, ...
-    'aggregateMethod', 'mean');
+    'aggregateMethod', 'mean',...
+    'errorType','1-r2');
 
