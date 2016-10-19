@@ -1,83 +1,152 @@
-function packetsConc = concatenatePackets(obj,thePackets)
-
-% function packetsConc = concatenatePackets(packets)
+function [ theConcatPacket ] = concatenatePackets(obj,packetCellArray, varargin)
+% function theConcatPacket = concatenatePackets(obj,packetCellArray)
 %
-% takes in a list of packets, and concatenates their stimulus and response
-% timebases, as well as their stimulus and response values. returns a
-% struct.
+% Concatenates a cell array of packets.
+%
+% If stimLabels are defined in the first packet, then all packets are
+% required to have stimLabels and stimTypes. It is further then required
+% that all packets have the same set of stimLabels, in the same order. The
+% different packets may have stimTypes that do not include instances of all
+% of the available stimLabels.
+%
+% If defined, all the packets must have identical kernel fields.
+%
+%
 
-p = inputParser;
-p.addRequired('thePackets',@iscell);
-p.parse(thePackets);
+%% Parse vargin for options passed here
+% Setting 'KeepUmatched' to true means that we can pass the varargin{:})
+% along from a calling routine without an error here, if the key/value
+% pairs recognized by the calling routine are not needed here.
+p = inputParser; p.KeepUnmatched = true;
+p.addRequired('packetCellArray',@iscell);
+p.addParameter('stimValueExtender',0,@isnumeric);
+p.parse(packetCellArray, varargin{:});
 
-% initialize struct to return
-packetsConc = struct;
+%% Check the input
+% Determine the number of packets
+nPackets=length(packetCellArray);
 
-% vector for concatenating time series'
-responseValues = [];
-% vector for concatenating stimulus matrices
-stimulusValues = [];
-% response and stimulus time bases
-responseTB = [];
-stimulusTB = [];
-
-% determine the number of events in the packet with the most events
-numEventsStore = [];
-% determine the total length of the run
-lengthRun = 0;
-for i = 1:length(thePackets)
-   numEventsStore(i) = size(thePackets{i}.stimulus.values,1);
-   lengthRun = lengthRun + size(thePackets{i}.stimulus.values,2);
-end
-numEvents = max(numEventsStore);
-%%
-
-% mark the index of the stimulus values
-packetPositionMarker = 1;
-% mark the end of the current stimulus and response timebases
-stimulusTBmarker = 0;
-responseTBmarker = 0;
-
-for i = 1:length(thePackets)
-    % concatenate response values
-    responseValues = [responseValues thePackets{i}.response.values];
-    % get the current packet's stimulus values. start by creating a matrix
-    % of 0's that has the number of stimuli in the packet as the first
-    % dimension, and the total length of the concatenated stimulus as the
-    % second
-    stimulusValuesForOnePacket = zeros([size(thePackets{i}.stimulus.values,1) lengthRun]);
-    % stick the current packet's stimulus values in this matrix of zeroes
-    stimulusValuesForOnePacket(1:size(thePackets{i}.stimulus.values,1), ...
-                               packetPositionMarker:packetPositionMarker+ ...
-                               size(thePackets{i}.stimulus.values,2)-1) ...
-                               = thePackets{i}.stimulus.values;
-    % update the index marker of the packet stimulus values
-    packetPositionMarker = packetPositionMarker+size(thePackets{i}.stimulus.values,2);
-    % concatenate stimulus values
-    stimulusValues = [stimulusValues; stimulusValuesForOnePacket];
-    
-    % response timebase for one packet: time-shift by timebase marker
-    responseTBforOnePacket = thePackets{i}.response.timebase+responseTBmarker;
-    % concatenate
-    responseTB = [responseTB responseTBforOnePacket];
-    
-    % do the same for stimulus
-    stimulusTBforOnePacket = thePackets{i}.stimulus.timebase+stimulusTBmarker;
-    stimulusTB = [stimulusTB stimulusTBforOnePacket];
-    
-    % update timebase markers
-    stimulusTBmarker = stimulusTB(length(stimulusTB));
-    responseTBmarker = responseTB(length(responseTB));
-    
+% Error if there is only one packet
+if nPackets <= 1
+    error('Need more than one packet to concatenate');
 end
 
-stimulusTB = linspace(min(stimulusTB),max(stimulusTB),length(stimulusTB));
-responseTB = linspace(min(responseTB),max(responseTB),length(responseTB));
-
-% assign to struct
-packetsConc.stimulus.timebase = stimulusTB;
-packetsConc.stimulus.values = stimulusValues;
-packetsConc.response.timebase = responseTB;
-packetsConc.response.values = responseValues;
-
+% If the kernel field exists, make sure it is identical across the packets
+if isfield(packetCellArray{1},'kernel')
+    holdKernelStruct=packetCellArray{1}.kernel;
+    for pp=2:nPackets
+        if ~isequal(holdKernelStruct,packetCellArray{pp}.kernel)
+            error('All packets must contain the identical kernel struct');
+        end % check for identical kernel Structs
+    end % loop over packets
 end
+
+% if the first packet has the field stimLabels, then check that every
+% packet has the same stimulus labels, and that all packets have stimTypes
+if isfield(packetCellArray{1}.stimulus.metaData,'stimLabels')
+    if ~isfield(packetCellArray{1}.stimulus.metaData,'stimTypes')
+        error('If stimLabels are defined, all packets must have stimTypes');
+    end % check the first packet for stimTypes
+    uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
+    for pp=2:nPackets
+        if ~isfield(packetCellArray{pp}.stimulus.metaData,'stimTypes')
+            error('If stimLabels are defined, all packets must have stimTypes');
+        end % check the first packet for stimTypes
+        if  ~isfield(packetCellArray{pp}.stimulus.metaData,'stimLabels')
+            error('Not all of the packets have a stimLabels field');
+        end % test for the existence of stimLabels field
+        if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
+            error('The packets do not have identical stimLabels');
+        end % test for the same stimLabels
+    end
+end % the first packet has a stimLabel
+
+
+%% Build the concatenated packet
+
+% Initialize fields for theConcatPacket
+theConcatPacket.stimulus.timebase=[];
+theConcatPacket.stimulus.metaData.stimTypes=[];
+theConcatPacket.response.timebase=[];
+theConcatPacket.response.values=[];
+
+% If defined, copy over the stimLabels
+if isfield(packetCellArray{1}.stimulus.metaData,'stimLabels')
+    theConcatPacket.stimulus.metaData.stimLabels= ...
+        packetCellArray{1}.stimulus.metaData.stimLabels;
+end
+
+% Loop throught the packets and assemble the concatenated timebase
+stimTimeMarker=0;
+respTimeMarker=0;
+totalStimValuesRows=0;
+for pp=1:nPackets
+    
+    % Add up the total number of stim value rows. We'll need this later
+    totalStimValuesRows=totalStimValuesRows+size(packetCellArray{pp}.stimulus.values,1);
+    
+    % Concatenate the response vector
+    theConcatPacket.response.values = [theConcatPacket.response.values ...
+        packetCellArray{pp}.response.values];
+    
+    % If defined, concatenate the stimTypes
+    if isfield(packetCellArray{1}.stimulus.metaData,'stimTypes')
+        theConcatPacket.stimulus.metaData.stimTypes = ...
+            [theConcatPacket.stimulus.metaData.stimTypes; ...
+            packetCellArray{pp}.stimulus.metaData.stimTypes];
+    end
+    
+    % Concatenate the timebase, advancing time as we go. Assume that the
+    % time elapsed between the end of one packet and the start of the next
+    % is the same as the time between the last two timebase values
+    theConcatPacket.stimulus.timebase = ...
+        [theConcatPacket.stimulus.timebase ...
+        packetCellArray{pp}.stimulus.timebase+stimTimeMarker];
+    stimTimeMarker=theConcatPacket.stimulus.timebase(end) + ...
+        (theConcatPacket.stimulus.timebase(end) - theConcatPacket.stimulus.timebase(end-1));
+    theConcatPacket.response.timebase = ...
+        [theConcatPacket.response.timebase ...
+        packetCellArray{pp}.response.timebase+respTimeMarker];
+    respTimeMarker=theConcatPacket.response.timebase(end) + ...
+        (theConcatPacket.response.timebase(end) - theConcatPacket.response.timebase(end-1));
+    
+    % place all other metaData from response and stimulus fields into
+    % subfields
+    if isfield(packetCellArray{pp}.stimulus,'metaData')
+        theConcatPacket.stimulus.metaData.(['packet' strtrim(num2str(pp))]) = ...
+            packetCellArray{pp}.stimulus.metaData;
+    end
+    if isfield(packetCellArray{pp}.response,'metaData')
+        theConcatPacket.response.metaData.(['packet' strtrim(num2str(pp))]) = ...
+            packetCellArray{pp}.response.metaData;
+    end
+    if isfield(packetCellArray{pp},'metaData')
+        theConcatPacket.metaData.(['packet' strtrim(num2str(pp))]) = ...
+            packetCellArray{pp}.metaData;
+    end
+end % loop over packets
+
+% Initialize the stimulus.values field, filled with the stimValueExtender
+lengthStim=length(theConcatPacket.stimulus.timebase);
+theConcatPacket.stimulus.values=zeros(totalStimValuesRows,lengthStim) + ...
+    p.Results.stimValueExtender;
+
+% Loop over packets and build the stimulus.values
+stimRowCounter=1;
+stimColCounter=1;
+for pp=1:nPackets
+    valuesRows=size(packetCellArray{pp}.stimulus.values,1);
+    valuesCols=size(packetCellArray{pp}.stimulus.values,2);
+    theConcatPacket.stimulus.values( ...
+        stimRowCounter:stimRowCounter+valuesRows-1, ...
+        stimColCounter:stimColCounter+valuesCols-1) = packetCellArray{pp}.stimulus.values;
+    stimRowCounter=stimRowCounter+valuesRows;
+    stimColCounter=stimColCounter+valuesCols;
+end % loop over packets
+
+% If a kernel field is defined, place this in theConcatPacket
+if isfield(packetCellArray{1},'kernel')
+    theConcatPacket.kernel=packetCellArray{1}.kernel;
+end
+
+end % function
