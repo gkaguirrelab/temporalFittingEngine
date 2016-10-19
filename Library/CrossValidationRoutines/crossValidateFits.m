@@ -72,7 +72,6 @@ for pp=2:nPackets
     end % test for the same stimLabels
 end
 
-
 %% Calculate a partition matrix
 % find all k=2 member partitions of the set of packets
 splitPartitionsCellArray=partitions(1:1:nPackets,2);
@@ -105,18 +104,16 @@ switch p.Results.partitionMethod
         error('Not a recognized partion Method');
 end % switch on partition method
 
+% Reduce the number of partitions if requested
 nPartitions=size(partitionMatrix,1);
-
 if nPartitions > p.Results.maxPartitions
     % randomly re-assort the rows of the partition matrix, to avoid
-    % choosing the same sub-set of partitions every time we call the
-    % routine
+    % choosing the same sub-set of limited partitions
     ix=randperm(nPartitions);
     partitionMatrix=partitionMatrix(ix,:);
     partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
     nPartitions=size(partitionMatrix,1);
 end % check for maximum desired number of partitions
-
 
 %% Loop through the partitions of the packetCellArray and fit
 % Empty the variables that aggregate across the partitions
@@ -170,7 +167,6 @@ for pp=1:nPartitions
     end % loop over trainPackets
     
     % Aggregate across trainining packets
-    % trainParamsFit has the dimensions: partition x uniqueStimType x param
     switch p.Results.aggregateMethod
         case 'mean'
             trainParamsFit(pp,:,:)=mean(trainParamsFitLocal,1);
@@ -222,9 +218,9 @@ for pp=1:nPartitions
 end % loop over partitions
 
 % Assemble the xValFitStructure for return
+xValFitStructure.uniqueStimLabels=uniqueStimLabels;
 xValFitStructure.paramNameCell=predictParams.paramNameCell;
 xValFitStructure.paramMainMatrix=trainParamsFit;
-xValFitStructure.uniqueStimLabels=uniqueStimLabels;
 xValFitStructure.trainfVals=trainfVals;
 xValFitStructure.testfVals=testfVals;
 
