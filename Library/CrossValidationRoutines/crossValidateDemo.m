@@ -70,7 +70,7 @@ params0.noiseSd = 0.05;
 
 stimLabels={'stimA','stimB'};
 stimTypes=[1 2 1 2 1 2 1 2 1 2]';
-stimMeansAmplitude=[1,0.5];
+stimMeansAmplitude=[1,0.25];
 stimMeansTau=[0.1,0.001];
 nPackets=10;
 
@@ -97,7 +97,7 @@ for pp=1:nPackets
     end
     
     % Generate the simulated response
-    simulatedResponseStruct = tfeHandle.computeResponse(paramsLocal,thePacket.stimulus,[],'AddNoise',true);
+    simulatedResponseStruct = tfeHandle.computeResponse(paramsLocal,thePacket.stimulus,thePacket.kernel,'AddNoise',true);
     
     % Add the simulated response to this packet
     thePacket.response=simulatedResponseStruct;
