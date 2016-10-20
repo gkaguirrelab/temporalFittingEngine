@@ -1,7 +1,7 @@
 function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
 % modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelStruct,varargin)
 %
-% Compute method for the block temporal response model.
+% Compute method for the population receptive fied model.
 %
 % Operates by calling forwardModelPRF and then the applyKernel tfe method.
 %
@@ -16,6 +16,7 @@ p = inputParser;
 p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
+p.addParameter('errorType','rmse',@ischar);
 p.addParameter('addNoise',false,@islogical);
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
@@ -37,4 +38,4 @@ if (p.Results.addNoise)
     modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
 end
 
-end
+end % function

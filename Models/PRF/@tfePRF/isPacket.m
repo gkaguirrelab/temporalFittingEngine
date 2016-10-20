@@ -8,7 +8,7 @@ packetValidity = isPacket@tfe(obj,thePacket);
 
 % Basic structure of a test. Replace the test here with something
 % appropriate for this model.
-if ~numel((thePacket.stimulus.values)==3)
-    warning('The pRF model requires a movie stimulus (3 dimensions)')
+if ~packetValidity
+    warning('Yup. Still bad.')
     packetValidity = false;
 end
