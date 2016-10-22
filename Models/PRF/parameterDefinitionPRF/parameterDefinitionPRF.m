@@ -1,21 +1,11 @@
 function paramStruct = parameterDefinitionPRF(nInstances,paramStructIn)
 % paramStruct = paramCreateBDCM(nInstances)
 %
-% Create a default parameters structure for the PRF fMRI modeling.
+% Create a default parameters structure for the pRF fMRI modeling.
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
 
 %% Unpack the params
-% Here is where we would define default param values and their upper and
-% lower bounds for the pRF model.
-%
-% MB to do some work here to allow passing of what the default params and
-% their bounds should be, depending upon the stimulus properties (which
-% will be specified in stimulus.metaData). Do we want this in pixels or
-% degrees? Note as well that the bounds of the pRF position might need to
-% go off the edge of the screen to account for voxels with receptive fields
-% centered off the edge.
-
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
     'xPosition',...
