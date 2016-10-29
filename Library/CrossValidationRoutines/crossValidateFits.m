@@ -120,15 +120,15 @@ else % No paritionMatrix was passed, so create it
     switch p.Results.partitionMethod
         case 'loo'
             nTargetTrain=nPackets-1;
-            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
         case 'splitHalf'
             nTargetTrain=floor(nPackets/2);
-            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
         case 'twentyPercent'
             nTargetTrain=ceil(nPackets*0.8);
-            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
         case 'full'
             partitionMatrix=partitionMatrix;
