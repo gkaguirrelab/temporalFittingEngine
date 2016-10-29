@@ -89,7 +89,7 @@ end
 % and m is the number of packets in the packetCellArray.
 % In each row, positive numbers identify packets to be used to train, and
 % negative numbers used to test. Packets that are assigned the same value
-% in a row of the partition matrix will be concatenated.
+% in a row of the partition matrix will be concatenated prior to fitting.
 
 if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     % Check that the second dimension of the matrix is equal to nPackets
@@ -156,9 +156,26 @@ trainfVals=[];
 testfVals=[];
 
 for pp=1:nPartitions
-    trainPackets = packetCellArray(partitionMatrix(pp,:)>0);
-    testPackets = packetCellArray(partitionMatrix(pp,:)<0);
     
+    % Concatenate any train or test packets that are assigned the same
+    % value in the partition matrix
+    trainPackets=cell(1);
+    testPackets=cell(1);
+    trainIndex=1;
+    testIndex=1;
+    uniqueTags=unique(partitionMatrix(pp,:));
+    for uu=1:length(uniqueTags)
+        indexVals=find(partitionMatrix(pp,:)==uniqueTags(uu));
+        if uniqueTags(uu)>0
+            trainPackets(trainIndex)=tfeHandle.concatenatePackets(packetCellArray(indexVals));
+            trainIndex=trainIndex+1;
+        end
+        if uniqueTags(uu)<0
+            testPackets(testIndex)=tfeHandle.concatenatePackets(packetCellArray(indexVals));
+            testIndex=testIndex+1;
+        end
+    end % loop over unique tags
+        
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
     trainfValsLocal=[];
