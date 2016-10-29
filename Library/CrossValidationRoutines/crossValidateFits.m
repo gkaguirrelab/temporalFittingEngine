@@ -53,6 +53,8 @@ p.addParameter('verbosity','none',@ischar);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.parse(packetCellArray, tfeHandle, varargin{:});
 
+partitionMatrix=p.Results.partitionMatrix;
+
 %% Check the input
 
 % Determine the number of packets
@@ -60,7 +62,7 @@ nPackets=length(packetCellArray);
 
 % Error if there is only one packet
 if nPackets <= 1
-    error('cross validation requires more than one packet');
+    error('Cross validation requires more than one packet');
 end
 
 % check that every packet has the same stimulus labels and the same unique
@@ -79,48 +81,62 @@ for pp=2:nPackets
     end % test for the same stimLabels
 end
 
-%% Calculate a partition matrix
-% find all k=2 member partitions of the set of packets
-splitPartitionsCellArray=partitions(1:1:nPackets,2);
-nPartitions=length(splitPartitionsCellArray);
+%% Check or Calculate a partition matrix
+if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
+    % Check that the second dimension of the matrix is equal to nPackets
+    if size(partitionMatrix,2)~=nPackets
+        error('There must be one column in the partitionMatrix for each packet');
+    end
+    
+    % Check that every row of the partition matrix has at least one value
+    % each from the set [0,1]
 
-% build a partition matrix, where 1=train, 0=test
-partitionMatrix=zeros(nPartitions*2,nPackets);
-for ss=1:nPartitions
-    partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=1;
-    partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=1;
-end % loop over the partitions
-
-% restrict the partition Matrix following partitionMethod
-switch p.Results.partitionMethod
-    case 'loo'
-        nTargetTrain=nPackets-1;
-        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
-        partitionMatrix=partitionMatrix(partitionsToUse,:);
-    case 'splitHalf'
-        nTargetTrain=floor(nPackets/2);
-        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
-        partitionMatrix=partitionMatrix(partitionsToUse,:);
-    case 'twentyPercent'
-        nTargetTrain=ceil(nPackets*0.8);
-        partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
-        partitionMatrix=partitionMatrix(partitionsToUse,:);
-    case 'full'
-        partitionMatrix=partitionMatrix;
-    otherwise
-        error('Not a recognized partion Method');
-end % switch on partition method
-
-% Reduce the number of partitions if requested
-nPartitions=size(partitionMatrix,1);
-if nPartitions > p.Results.maxPartitions
-    % randomly re-assort the rows of the partition matrix, to avoid
-    % choosing the same sub-set of limited partitions
-    ix=randperm(nPartitions);
-    partitionMatrix=partitionMatrix(ix,:);
-    partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+    %% ADD THIS CHECK
+    
+else % No paritionMatrix was passed, so create it
+    % find all k=2 member partitions of the set of packets
+    splitPartitionsCellArray=partitions(1:1:nPackets,2);
+    nPartitions=length(splitPartitionsCellArray);
+    
+    % build a partition matrix, where 1=train, 0=test
+    partitionMatrix=zeros(nPartitions*2,nPackets);
+    for ss=1:nPartitions
+        partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=1;
+        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=1;
+    end % loop over the partitions
+    
+    % restrict the partition Matrix following partitionMethod
+    switch p.Results.partitionMethod
+        case 'loo'
+            nTargetTrain=nPackets-1;
+            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionMatrix=partitionMatrix(partitionsToUse,:);
+        case 'splitHalf'
+            nTargetTrain=floor(nPackets/2);
+            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionMatrix=partitionMatrix(partitionsToUse,:);
+        case 'twentyPercent'
+            nTargetTrain=ceil(nPackets*0.8);
+            partitionsToUse=find(sum(partitionMatrix,2)==nTargetTrain);
+            partitionMatrix=partitionMatrix(partitionsToUse,:);
+        case 'full'
+            partitionMatrix=partitionMatrix;
+        otherwise
+            error('Not a recognized partion Method');
+    end % switch on partition method
+    
+    % Reduce the number of partitions if requested
     nPartitions=size(partitionMatrix,1);
-end % check for maximum desired number of partitions
+    if nPartitions > p.Results.maxPartitions
+        % randomly re-assort the rows of the partition matrix, to avoid
+        % choosing the same sub-set of limited partitions
+        ix=randperm(nPartitions);
+        partitionMatrix=partitionMatrix(ix,:);
+        partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+        nPartitions=size(partitionMatrix,1);
+    end % check for maximum desired number of partitions
+    
+end % Check or create partitionMatrix
 
 %% Loop through the partitions of the packetCellArray and fit
 % Empty the variables that aggregate across the partitions
@@ -144,13 +160,20 @@ for pp=1:nPartitions
             fprintf('* Partition, packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
         end
         
-        % get the number of instances in this packet
-        if isempty(p.Results.defaultParamsInfo)
-            defaultParamsInfo.nInstances=size(trainPackets{tt}.stimulus.values,1);
-        else
+        % Get the number of instances in this packet. If the
+        % defaultParamsInfo is defined, use this. If not, check to see if
+        % the field stimulus.metaData.nInstances is defined. If not, take
+        % the number of rows in stimulus.values as the number of instances.
+        if ~isempty(p.Results.defaultParamsInfo)
             defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
-        end
-        
+        else
+            if isfield(trainPackets{tt}.stimulus.metaData,'nInstances')
+                defaultParamsInfo.nInstances=trainPackets{tt}.stimulus.metaData.nInstances;                
+            else
+                defaultParamsInfo.nInstances=size(trainPackets{tt}.stimulus.values,1);
+            end % check for stimulus.metaData.nInstances
+        end % check for defaultParamsInfo
+                    
         % do the fit
         [paramsFit,fVal,~] = ...
             tfeHandle.fitResponse(trainPackets{tt},...
