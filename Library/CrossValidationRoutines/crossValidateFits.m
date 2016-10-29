@@ -18,9 +18,14 @@ function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, v
 %     'full' - train and test on all partitions of the packet set
 %   maxPartitions - numeric, specifies maximum number of partitions to
 %     evaluate (randomly selected from the available partition set).
+%   partitionMatrix - numeric, allows the calling routine to define the
+%     partition matrix outside of the cross validation routine.
 %   aggregateMethod - method to aggregate paramFits across instances
 %     within a packet fit, and to aggregate paramFits and fVals across
 %     packets within a partition.
+%   verbosity -
+%     'none' - the defaut. Shh.
+%     'full'
 %
 % Outputs:
 %   xValFitStructure -
@@ -42,7 +47,9 @@ p.addRequired('packetCellArray',@iscell);
 p.addRequired('tfeHandle',@(x)(~isempty(x)));
 p.addParameter('partitionMethod','loo',@ischar);
 p.addParameter('maxPartitions',100,@isnumeric);
+p.addParameter('partitionMatrix',[],@isnumeric);
 p.addParameter('aggregateMethod','mean',@ischar);
+p.addParameter('verbosity','none',@ischar);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.parse(packetCellArray, tfeHandle, varargin{:});
 
@@ -133,7 +140,9 @@ for pp=1:nPartitions
     for tt=1:length(trainPackets)
         
         % report our progress
-        fprintf('* Partition, packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
+        if strcmp(p.Results.verbosity,'full')
+            fprintf('* Partition, packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
+        end
         
         % get the number of instances in this packet
         if isempty(p.Results.defaultParamsInfo)

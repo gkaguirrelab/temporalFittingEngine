@@ -74,7 +74,7 @@ params0.noiseSd = 0.05;
 
 %% Create the packetCellArray
 
-% We will now create a set of 10 packets. Each packet will have two
+% We will now create a set of nPackets. Each packet will have two
 % stimulus types, each with a different expected amplitude and tau.
 stimLabels={'stimA','stimB'};
 stimTypes=[1 2 1 2 1 2 1 2 1 2]';
@@ -117,8 +117,16 @@ end % loop over number of packets to be created
 %% Conduct the cross validation
 [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, ...
     'partitionMethod', 'twentyPercent', ...
-    'maxPartitions' , 4, ...
+    'maxPartitions' , 2, ...
     'aggregateMethod', 'mean',...
+    'verbosity', 'full',...
     'errorType','rmse');
+
+%% Report the results
+
+fprintf(['Modeled noise: ' strtrim(num2str(params0.noiseSd)) '\n']);
+fprintf(['Observed error (train): ' strtrim(num2str(mean(xValFitStructure.trainfVals))) '\n']);
+fprintf(['Observed error (test): ' strtrim(num2str(mean(xValFitStructure.testfVals))) '\n']);
+
 
 end % function
