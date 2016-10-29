@@ -82,14 +82,23 @@ for pp=2:nPackets
 end
 
 %% Check or Calculate a partition matrix
+
+% The partition matrix defines how packets are to be concatenated and
+% divided into train and test sets. It is an n x m matrix, where n is the
+% number of partitions over which the cross-validation is to be conducted,
+% and m is the number of packets in the packetCellArray.
+% In each row, positive numbers identify packets to be used to train, and
+% negative numbers used to test. Packets that are assigned the same value
+% in a row of the partition matrix will be concatenated.
+
 if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     % Check that the second dimension of the matrix is equal to nPackets
     if size(partitionMatrix,2)~=nPackets
         error('There must be one column in the partitionMatrix for each packet');
     end
     
-    % Check that every row of the partition matrix has at least one value
-    % each from the set [0,1]
+    % Check that every row of the partition matrix has at least one
+    % positive value, and one negative value
 
     %% ADD THIS CHECK
     
@@ -98,11 +107,13 @@ else % No paritionMatrix was passed, so create it
     splitPartitionsCellArray=partitions(1:1:nPackets,2);
     nPartitions=length(splitPartitionsCellArray);
     
-    % build a partition matrix, where 1=train, 0=test
+    % build a partition matrix, where +=train, -=test
     partitionMatrix=zeros(nPartitions*2,nPackets);
     for ss=1:nPartitions
-        partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=1;
-        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=1;
+        partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=splitPartitionsCellArray{ss}{1};
+        partitionMatrix(ss,splitPartitionsCellArray{ss}{2})=-1*splitPartitionsCellArray{ss}{2};
+        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=splitPartitionsCellArray{ss}{2};
+        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{1})=-1*splitPartitionsCellArray{ss}{1};
     end % loop over the partitions
     
     % restrict the partition Matrix following partitionMethod
@@ -145,8 +156,8 @@ trainfVals=[];
 testfVals=[];
 
 for pp=1:nPartitions
-    trainPackets = packetCellArray(partitionMatrix(pp,:)==1);
-    testPackets = packetCellArray(partitionMatrix(pp,:)==0);
+    trainPackets = packetCellArray(partitionMatrix(pp,:)>0);
+    testPackets = packetCellArray(partitionMatrix(pp,:)<0);
     
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
