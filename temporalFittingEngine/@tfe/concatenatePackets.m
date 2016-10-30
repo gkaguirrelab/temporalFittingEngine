@@ -26,9 +26,10 @@ p.parse(packetCellArray, varargin{:});
 % Determine the number of packets
 nPackets=length(packetCellArray);
 
-% Error if there is only one packet
-if nPackets <= 1
-    error('Need more than one packet to concatenate');
+% If there is only one packet, set theConcatPacket to this and return
+if nPackets == 1
+    theConcatPacket=packetCellArray;
+    return
 end
 
 % If the kernel field exists, make sure it is identical across the packets
