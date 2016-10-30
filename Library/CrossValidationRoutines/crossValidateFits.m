@@ -84,10 +84,17 @@ for pp=2:nPackets
     if ~isequal(uniqueStimTypes, unique(packetCellArray{pp}.stimulus.metaData.stimTypes))
         error('Not all of the packets have the same stimTypes');
     end % test for the same stimTypes
-    if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
-        error('Not all of the packets have the same stimLabels');
-    end % test for the same stimLabels
-end
+    if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+        if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
+            error('Not all of the packets have the same stimLabels');
+        end % test for the same stimLabels
+    end % we have string stim labels
+    if isnumeric(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+        if  ~isequal(uniqueStimLabels, unique(cell2mat(packetCellArray{pp}.stimulus.metaData.stimLabels)))
+            error('Not all of the packets have the same stimLabels');
+        end % test for the same stimLabels
+    end % we have numeric stimLabels    
+end % loop over the packets
 
 %% Check or Calculate a partition matrix
 
@@ -107,11 +114,11 @@ if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     
     % Check that every row of the partition matrix has at least one
     % positive value, and one negative value
-
+    
     %% ADD THIS CHECK
     
     nPartitions=size(partitionMatrix,1);
-
+    
 else % No paritionMatrix was passed, so create it
     % find all k=2 member partitions of the set of packets
     splitPartitionsCellArray=partitions(1:1:nPackets,2);
@@ -177,15 +184,15 @@ for pp=1:nPartitions
     for uu=1:length(uniqueTags)
         indexVals=find(partitionMatrix(pp,:)==uniqueTags(uu));
         if uniqueTags(uu)>0
-            trainPackets(trainIndex)=tfeHandle.concatenatePackets(packetCellArray(indexVals));
+            trainPackets{trainIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             trainIndex=trainIndex+1;
         end
         if uniqueTags(uu)<0
-            testPackets(testIndex)=tfeHandle.concatenatePackets(packetCellArray(indexVals));
+            testPackets{testIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             testIndex=testIndex+1;
         end
     end % loop over unique tags
-        
+    
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
     trainfValsLocal=[];
@@ -206,12 +213,12 @@ for pp=1:nPartitions
             defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
         else
             if isfield(trainPackets{tt}.stimulus.metaData,'nInstances')
-                defaultParamsInfo.nInstances=trainPackets{tt}.stimulus.metaData.nInstances;                
+                defaultParamsInfo.nInstances=trainPackets{tt}.stimulus.metaData.nInstances;
             else
                 defaultParamsInfo.nInstances=size(trainPackets{tt}.stimulus.values,1);
             end % check for stimulus.metaData.nInstances
         end % check for defaultParamsInfo
-                    
+        
         % do the fit
         [paramsFit,fVal,~] = ...
             tfeHandle.fitResponse(trainPackets{tt},...
