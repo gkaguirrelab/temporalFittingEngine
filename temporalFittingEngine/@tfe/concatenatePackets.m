@@ -28,7 +28,7 @@ nPackets=length(packetCellArray);
 
 % If there is only one packet, set theConcatPacket to this and return
 if nPackets == 1
-    theConcatPacket=packetCellArray;
+    theConcatPacket=packetCellArray{1};
     return
 end
 
@@ -48,7 +48,15 @@ if isfield(packetCellArray{1}.stimulus.metaData,'stimLabels')
     if ~isfield(packetCellArray{1}.stimulus.metaData,'stimTypes')
         error('If stimLabels are defined, all packets must have stimTypes');
     end % check the first packet for stimTypes
-    uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
+    
+    % handle the case of the stimLabels being strings or numbers
+    if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+        uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
+    end
+    if isnumeric(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+        uniqueStimLabels=unique(cell2mat(packetCellArray{1}.stimulus.metaData.stimLabels));
+    end
+    
     for pp=2:nPackets
         if ~isfield(packetCellArray{pp}.stimulus.metaData,'stimTypes')
             error('If stimLabels are defined, all packets must have stimTypes');
@@ -56,9 +64,16 @@ if isfield(packetCellArray{1}.stimulus.metaData,'stimLabels')
         if  ~isfield(packetCellArray{pp}.stimulus.metaData,'stimLabels')
             error('Not all of the packets have a stimLabels field');
         end % test for the existence of stimLabels field
-        if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
-            error('The packets do not have identical stimLabels');
-        end % test for the same stimLabels
+        if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+            if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
+                error('Not all of the packets have the same stimLabels');
+            end % test for the same stimLabels
+        end % we have string stim labels
+        if isnumeric(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+            if  ~isequal(uniqueStimLabels, unique(cell2mat(packetCellArray{pp}.stimulus.metaData.stimLabels)))
+                error('Not all of the packets have the same stimLabels');
+            end % test for the same stimLabels
+        end % we have numeric stimLabels
     end
 end % the first packet has a stimLabel
 
