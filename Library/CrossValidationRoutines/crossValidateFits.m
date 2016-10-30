@@ -68,7 +68,15 @@ end
 % check that every packet has the same stimulus labels and the same unique
 % set of stimulus types
 uniqueStimTypes=unique(packetCellArray{1}.stimulus.metaData.stimTypes);
-uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
+
+% handle the case of the stimLabels being strings or numbers
+if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+    uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
+end
+if isnumeric(packetCellArray{1}.stimulus.metaData.stimLabels{1})
+    uniqueStimLabels=unique(cell2mat(packetCellArray{1}.stimulus.metaData.stimLabels));
+end
+
 if ~(length(uniqueStimTypes)==length(uniqueStimLabels))
     error('There must be as many unique stimTypes as stimLabels');
 end
@@ -102,6 +110,8 @@ if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
 
     %% ADD THIS CHECK
     
+    nPartitions=size(partitionMatrix,1);
+
 else % No paritionMatrix was passed, so create it
     % find all k=2 member partitions of the set of packets
     splitPartitionsCellArray=partitions(1:1:nPackets,2);
