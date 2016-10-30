@@ -224,7 +224,7 @@ for pp=1:nPartitions
             tfeHandle.fitResponse(trainPackets{tt},...
             'defaultParamsInfo', defaultParamsInfo, ...
             varargin{:});
-        
+                
         % Aggregate parameters across instances by stimulus types
         for cc=1:length(uniqueStimTypes)
             thisStimTypeIndices=find(trainPackets{tt}.stimulus.metaData.stimTypes==uniqueStimTypes(cc));
@@ -246,11 +246,22 @@ for pp=1:nPartitions
     % Aggregate across trainining packets
     switch p.Results.aggregateMethod
         case 'mean'
-            trainParamsFit(pp,:,:)=mean(trainParamsFitLocal,1);
+            % detect the case of a single parameter type
+            if ndims(trainParamsFitLocal)==2
+                trainParamsFit(pp,:,1)=mean(trainParamsFitLocal,1);
+            end
+            if ndims(trainParamsFitLocal)==3
+                trainParamsFit(pp,:,:)=mean(trainParamsFitLocal,1);
+            end
             trainfVals(pp)=mean(trainfValsLocal);
         case 'median'
-            trainParamsFit(pp,:,:)=median(trainParamsFitLocal,1);
-            trainfVals(pp)=median(trainfValsLocal);
+            if ndims(trainParamsFitLocal)==2
+                trainParamsFit(pp,:,1)=median(trainParamsFitLocal,1);
+            end
+            if ndims(trainParamsFitLocal)==3
+                trainParamsFit(pp,:,:)=median(trainParamsFitLocal,1);
+            end
+           trainfVals(pp)=median(trainfValsLocal);
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
