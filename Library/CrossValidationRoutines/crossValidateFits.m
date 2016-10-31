@@ -65,10 +65,7 @@ if nPackets <= 1
     error('Cross validation requires more than one packet');
 end
 
-% check that every packet has the same stimulus labels and the same unique
-% set of stimulus types
-uniqueStimTypes=unique(packetCellArray{1}.stimulus.metaData.stimTypes);
-
+% check that every packet has the same stimulus labels, and
 % handle the case of the stimLabels being strings or numbers
 if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
     uniqueStimLabels=unique(packetCellArray{1}.stimulus.metaData.stimLabels);
@@ -76,14 +73,7 @@ end
 if isnumeric(packetCellArray{1}.stimulus.metaData.stimLabels{1})
     uniqueStimLabels=unique(cell2mat(packetCellArray{1}.stimulus.metaData.stimLabels));
 end
-
-if ~(length(uniqueStimTypes)==length(uniqueStimLabels))
-    error('There must be as many unique stimTypes as stimLabels');
-end
 for pp=2:nPackets
-    if ~isequal(uniqueStimTypes, unique(packetCellArray{pp}.stimulus.metaData.stimTypes))
-        error('Not all of the packets have the same stimTypes');
-    end % test for the same stimTypes
     if ischar(packetCellArray{1}.stimulus.metaData.stimLabels{1})
         if  ~isequal(uniqueStimLabels, unique(packetCellArray{pp}.stimulus.metaData.stimLabels))
             error('Not all of the packets have the same stimLabels');
@@ -193,6 +183,21 @@ for pp=1:nPartitions
         end
     end % loop over unique tags
     
+    % Check that every train and test packet have the same unique stimTypes
+    uniqueStimTypes=unique(trainPackets{1}.stimulus.metaData.stimTypes);
+    if length(trainPackets)>1
+        for qc=2:length(trainPackets)
+            if ~isequal(uniqueStimTypes, unique(trainPackets{qc}.stimulus.metaData.stimTypes))
+                error('The packets have different unique stimTypes.');
+            end % test for the same stimTypes
+        end % loop over trainPackets
+    end % more than one trainPacket
+    for qc=1:length(testPackets)
+        if ~isequal(uniqueStimTypes, unique(testPackets{qc}.stimulus.metaData.stimTypes))
+            error('The packets have different unique stimTypes.');
+        end % test for the same stimTypes
+    end % loop over testPackets
+
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
     trainfValsLocal=[];
