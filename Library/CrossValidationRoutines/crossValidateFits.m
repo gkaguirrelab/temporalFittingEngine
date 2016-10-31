@@ -1,4 +1,4 @@
-function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
+function [ xValFitStructure, averageResponseStruct, modelResponseStruct ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
 %function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
 %
 % This is a general cross validation function for the temporalFittingEngine.
@@ -83,7 +83,7 @@ for pp=2:nPackets
         if  ~isequal(uniqueStimLabels, unique(cell2mat(packetCellArray{pp}.stimulus.metaData.stimLabels)))
             error('Not all of the packets have the same stimLabels');
         end % test for the same stimLabels
-    end % we have numeric stimLabels    
+    end % we have numeric stimLabels
 end % loop over the packets
 
 %% Check or Calculate a partition matrix
@@ -197,7 +197,7 @@ for pp=1:nPartitions
             error('The packets have different unique stimTypes.');
         end % test for the same stimTypes
     end % loop over testPackets
-
+    
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
     trainfValsLocal=[];
@@ -229,7 +229,7 @@ for pp=1:nPartitions
             tfeHandle.fitResponse(trainPackets{tt},...
             'defaultParamsInfo', defaultParamsInfo, ...
             varargin{:});
-                
+        
         % Aggregate parameters across instances by stimulus types
         for cc=1:length(uniqueStimTypes)
             thisStimTypeIndices=find(trainPackets{tt}.stimulus.metaData.stimTypes==uniqueStimTypes(cc));
@@ -266,7 +266,7 @@ for pp=1:nPartitions
             if ndims(trainParamsFitLocal)==3
                 trainParamsFit(pp,:,:)=median(trainParamsFitLocal,1);
             end
-           trainfVals(pp)=median(trainfValsLocal);
+            trainfVals(pp)=median(trainfValsLocal);
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
@@ -281,7 +281,7 @@ for pp=1:nPartitions
             defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
         end
         
-        % Build a params structure that holds the prediction from the test set
+        % Build a params structure that holds the prediction from the train set
         predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
         for ii=1:defaultParamsInfo.nInstances
             predictParams.paramMainMatrix(ii,:)= trainParamsFit(pp, testPackets{tt}.stimulus.metaData.stimTypes(ii), :);
@@ -316,6 +316,74 @@ xValFitStructure.paramNameCell=predictParams.paramNameCell;
 xValFitStructure.paramMainMatrix=trainParamsFit;
 xValFitStructure.trainfVals=trainfVals;
 xValFitStructure.testfVals=testfVals;
+
+% Create an average signal and an average fit from the last partition,
+% using central tendency of the fits from the train packets, and the
+% response.values from both the train and response packets. This can be
+% performed only if the train and test packets have the equal stimTypes,
+% equal response timebases, and equal stimulus.values.
+averageResponseStruct=[];
+modelResponseStruct=[];
+comboPackets=[trainPackets testPackets];
+stimTypes=comboPackets{1}.stimulus.metaData.stimTypes;
+respTimebase=comboPackets{1}.response.timebase;
+stimValues=comboPackets{1}.stimulus.values;
+for pp=1:length(comboPackets)
+    checkStimTypes(pp)=isequal(stimTypes,comboPackets{pp}.stimulus.metaData.stimTypes);
+    checkStimValues(pp)=isequal(stimValues,comboPackets{pp}.stimulus.values);
+    checkResponseTimebase(pp)=isequal(respTimebase,comboPackets{pp}.response.timebase);
+end
+if sum(checkStimTypes)==length(comboPackets) && ...
+        sum(checkStimValues)==length(comboPackets) && ...
+        sum(checkResponseTimebase)==length(comboPackets)
+    
+    % Save the response timebase
+    averageResponseStruct.timebase=respTimebase;
+    
+    % Obtain the central tendency of the response.values
+    for pp=1:length(comboPackets)
+        responseMatrix(pp,:)=comboPackets{pp}.response.values;
+    end % loop over comboPackets
+    
+    switch p.Results.aggregateMethod
+        case 'mean'
+            averageResponseStruct.values=mean(responseMatrix);
+        case 'median'
+            averageResponseStruct.values=median(responseMatrix);
+        otherwise
+            error('This is an undefined aggregation method');
+    end % switch over aggregation methods
+    
+    % Obtain the model fit
+    
+    % get the number of instances in the first comboPacket
+    if isempty(p.Results.defaultParamsInfo)
+        defaultParamsInfo.nInstances=size(comboPackets{1}.stimulus.values,1);
+    else
+        defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
+    end
+    
+    % Obtain the central tendency of the parameters found in the
+    % training set
+    switch p.Results.aggregateMethod
+        case 'mean'
+            averageTrainParams=mean(trainParamsFit);
+        case 'median'
+            averageTrainParams=median(trainParamsFit);
+        otherwise
+            error('This is an undefined aggregation method');
+    end % switch over aggregation methods
+    
+    % Build a params structure that holds the prediction from the training set
+    predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
+    for ii=1:defaultParamsInfo.nInstances
+        predictParams.paramMainMatrix(ii,:)= averageTrainParams(stimTypes(ii), :);
+    end
+        
+    % get the error for the prediction of this test packet
+    modelResponseStruct = tfeHandle.computeResponse(predictParamsVec,comboPackets{1}.stimulus.values,comboPackets{1}.stimulus.kernel,'AddNoise',false);
+    
+end % all stimTypes are the same, so can build the responseStructs
 
 end % function
 
