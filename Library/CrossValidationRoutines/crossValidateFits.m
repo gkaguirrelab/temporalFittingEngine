@@ -93,8 +93,10 @@ end % loop over the packets
 % number of partitions over which the cross-validation is to be conducted,
 % and m is the number of packets in the packetCellArray.
 % In each row, positive numbers identify packets to be used to train, and
-% negative numbers used to test. Packets that are assigned the same value
-% in a row of the partition matrix will be concatenated prior to fitting.
+% negative numbers used to test. Packets that are assigned the same integer
+% value in a row of the partition matrix will be concatenated prior to
+% fitting. The decimal component of the value will be used to set the order
+% in which the packets are concatenated.
 
 if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     % Check that the second dimension of the matrix is equal to nPackets
@@ -165,19 +167,33 @@ testfVals=[];
 for pp=1:nPartitions
     
     % Concatenate any train or test packets that are assigned the same
-    % value in the partition matrix
+    % integer value in the partition matrix
     trainPackets=cell(1);
     testPackets=cell(1);
     trainIndex=1;
     testIndex=1;
-    uniqueTags=unique(partitionMatrix(pp,:));
+    
+    % Identify unique tags in the partitionMatrix. The matrix is first
+    % passed through a floor operation. This allows us to identify packets
+    % with the same integer index that should therefore be concatenated. We
+    % later check the floating poing component to determine the ordering of
+    % concatenation
+    uniqueTags=unique(floor(partitionMatrix(pp,:)));
     for uu=1:length(uniqueTags)
-        indexVals=find(partitionMatrix(pp,:)==uniqueTags(uu));
+        indexVals=find(floor(partitionMatrix(pp,:))==uniqueTags(uu));
         if uniqueTags(uu)>0
+            % resort the indexVals so that they respect the floating point
+            % ordering of the elements of the partitionMatrix
+            [~,floatingIndexOrder]=sort(partitionMatrix(pp,indexVals));
+            indexVals=indexVals(floatingIndexOrder);
             trainPackets{trainIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             trainIndex=trainIndex+1;
         end
         if uniqueTags(uu)<0
+            % resort the indexVals so that they respect the floating point
+            % ordering of the elements of the partitionMatrix
+            [~,floatingIndexOrder]=sort(abs(partitionMatrix(pp,indexVals)));
+            indexVals=indexVals(floatingIndexOrder);
             testPackets{testIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             testIndex=testIndex+1;
         end
