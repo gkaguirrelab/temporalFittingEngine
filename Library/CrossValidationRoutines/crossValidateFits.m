@@ -337,20 +337,17 @@ xValFitStructure.testfVals=testfVals;
 % using central tendency of the fits from the train packets, and the
 % response.values from both the train and response packets. This can be
 % performed only if the train and test packets have the equal stimTypes,
-% equal response timebases, and equal stimulus.values.
+% and equal response timebases.
 averageResponseStruct=[];
 modelResponseStruct=[];
 comboPackets=[trainPackets testPackets];
 stimTypes=comboPackets{1}.stimulus.metaData.stimTypes;
 respTimebase=comboPackets{1}.response.timebase;
-stimValues=comboPackets{1}.stimulus.values;
 for pp=1:length(comboPackets)
     checkStimTypes(pp)=isequal(stimTypes,comboPackets{pp}.stimulus.metaData.stimTypes);
-    checkStimValues(pp)=isequal(stimValues,comboPackets{pp}.stimulus.values);
     checkResponseTimebase(pp)=isequal(respTimebase,comboPackets{pp}.response.timebase);
 end
 if sum(checkStimTypes)==length(comboPackets) && ...
-        sum(checkStimValues)==length(comboPackets) && ...
         sum(checkResponseTimebase)==length(comboPackets)
     
     % Save the response timebase
@@ -364,6 +361,7 @@ if sum(checkStimTypes)==length(comboPackets) && ...
     switch p.Results.aggregateMethod
         case 'mean'
             averageResponseStruct.values=mean(responseMatrix);
+            averageResponseStruct.metaData.sem=std(responseMatrix)/sqrt(size(responseMatrix,1));
         case 'median'
             averageResponseStruct.values=median(responseMatrix);
         otherwise
@@ -383,9 +381,9 @@ if sum(checkStimTypes)==length(comboPackets) && ...
     % training set
     switch p.Results.aggregateMethod
         case 'mean'
-            averageTrainParams=mean(trainParamsFit);
+            averageTrainParams=mean(trainParamsFit,1);
         case 'median'
-            averageTrainParams=median(trainParamsFit);
+            averageTrainParams=median(trainParamsFit,1);
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
@@ -393,11 +391,11 @@ if sum(checkStimTypes)==length(comboPackets) && ...
     % Build a params structure that holds the prediction from the training set
     predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
     for ii=1:defaultParamsInfo.nInstances
-        predictParams.paramMainMatrix(ii,:)= averageTrainParams(stimTypes(ii), :);
+        predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
     end
         
     % get the error for the prediction of this test packet
-    modelResponseStruct = tfeHandle.computeResponse(predictParamsVec,comboPackets{1}.stimulus.values,comboPackets{1}.stimulus.kernel,'AddNoise',false);
+    modelResponseStruct = tfeHandle.computeResponse(predictParams,comboPackets{1}.stimulus,comboPackets{1}.kernel,'AddNoise',false);
     
 end % all stimTypes are the same, so can build the responseStructs
 
