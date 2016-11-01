@@ -88,6 +88,7 @@ for pp=2:nPackets
     end % we have numeric stimLabels
 end % loop over the packets
 
+
 %% Check or Calculate a partition matrix
 
 % The partition matrix defines how packets are to be concatenated and
@@ -106,6 +107,28 @@ if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
         error('There must be one column in the partitionMatrix for each packet');
     end
     nPartitions=size(partitionMatrix,1);
+    
+    % If there are no negative values in the partitionMatrix, set the
+    % partitionMetod to 'bootstrap', and warn the user that this was done
+    % if it was not already in this state
+    
+    if sum(partitionMatrix<0)==0
+        if ~strcmp(p.Results.partitionMethod,'bootstrap')
+            p.Results.partitionMethod='bootstrap';
+            warning('A bootstrap paritionMatrix was passed (no negative values), but the partitionMethod flag was not set to bootstrap. Proceeding anyway.');
+        end % check defined partitionMethod
+    end % check if there are no negative values in the partitionMatrix
+    
+    % Reduce the number of partitions if requested
+    nPartitions=size(partitionMatrix,1);
+    if nPartitions > p.Results.maxPartitions
+        % randomly re-assort the rows of the partition matrix, to avoid
+        % choosing the same sub-set of limited partitions
+        ix=randperm(nPartitions);
+        partitionMatrix=partitionMatrix(ix,:);
+        partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+        nPartitions=size(partitionMatrix,1);
+    end % check for maximum desired number of partitions
     
 else % No paritionMatrix was passed, so create it
     % find all k=2 member partitions of the set of packets
