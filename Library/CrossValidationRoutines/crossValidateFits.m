@@ -16,6 +16,8 @@ function [ xValFitStructure, averageResponseStruct, modelResponseStruct ] = cros
 %     'split' - split-halves train and test
 %     'twentyPercent' - train on 80% of the packets, test on 20%
 %     'full' - train and test on all partitions of the packet set
+%     'bootstrap' - study only training paritions that are bootstrap
+%         resamples of the trainPackets cell array
 %   maxPartitions - numeric, specifies maximum number of partitions to
 %     evaluate (randomly selected from the available partition set).
 %   partitionMatrix - numeric, allows the calling routine to define the
@@ -103,59 +105,58 @@ if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     if size(partitionMatrix,2)~=nPackets
         error('There must be one column in the partitionMatrix for each packet');
     end
-    
-    % Check that every row of the partition matrix has at least one
-    % positive value, and one negative value
-    
-    %% ADD THIS CHECK
-    
     nPartitions=size(partitionMatrix,1);
     
 else % No paritionMatrix was passed, so create it
     % find all k=2 member partitions of the set of packets
-    splitPartitionsCellArray=partitions(1:1:nPackets,2);
-    nPartitions=length(splitPartitionsCellArray);
-    
-    % build a partition matrix, where +=train, -=test
-    partitionMatrix=zeros(nPartitions*2,nPackets);
-    for ss=1:nPartitions
-        partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=splitPartitionsCellArray{ss}{1};
-        partitionMatrix(ss,splitPartitionsCellArray{ss}{2})=-1*splitPartitionsCellArray{ss}{2};
-        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=splitPartitionsCellArray{ss}{2};
-        partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{1})=-1*splitPartitionsCellArray{ss}{1};
-    end % loop over the partitions
-    
-    % restrict the partition Matrix following partitionMethod
-    switch p.Results.partitionMethod
-        case 'loo'
-            nTargetTrain=nPackets-1;
-            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
-            partitionMatrix=partitionMatrix(partitionsToUse,:);
-        case 'splitHalf'
-            nTargetTrain=floor(nPackets/2);
-            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
-            partitionMatrix=partitionMatrix(partitionsToUse,:);
-        case 'twentyPercent'
-            nTargetTrain=ceil(nPackets*0.8);
-            partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
-            partitionMatrix=partitionMatrix(partitionsToUse,:);
-        case 'full'
-            partitionMatrix=partitionMatrix;
-        otherwise
-            error('Not a recognized partion Method');
-    end % switch on partition method
-    
-    % Reduce the number of partitions if requested
-    nPartitions=size(partitionMatrix,1);
-    if nPartitions > p.Results.maxPartitions
-        % randomly re-assort the rows of the partition matrix, to avoid
-        % choosing the same sub-set of limited partitions
-        ix=randperm(nPartitions);
-        partitionMatrix=partitionMatrix(ix,:);
-        partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+    if strcmp(p.Results.partitionMethod,'bootstrap')
+        partitionRow=1:nPackets;
+        partitionMatrix=repmat(partitionRow,p.Results.maxPartitions,1);
+        nPartitions=p.Results.maxPartitions;
+    else
+        splitPartitionsCellArray=partitions(1:1:nPackets,2);
+        nPartitions=length(splitPartitionsCellArray);
+        
+        % build a partition matrix, where +=train, -=test
+        partitionMatrix=zeros(nPartitions*2,nPackets);
+        for ss=1:nPartitions
+            partitionMatrix(ss,splitPartitionsCellArray{ss}{1})=splitPartitionsCellArray{ss}{1};
+            partitionMatrix(ss,splitPartitionsCellArray{ss}{2})=-1*splitPartitionsCellArray{ss}{2};
+            partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{2})=splitPartitionsCellArray{ss}{2};
+            partitionMatrix(end+1-ss,splitPartitionsCellArray{ss}{1})=-1*splitPartitionsCellArray{ss}{1};
+        end % loop over the partitions
+        
+        % restrict the partition Matrix following partitionMethod
+        switch p.Results.partitionMethod
+            case 'loo'
+                nTargetTrain=nPackets-1;
+                partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
+                partitionMatrix=partitionMatrix(partitionsToUse,:);
+            case 'splitHalf'
+                nTargetTrain=floor(nPackets/2);
+                partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
+                partitionMatrix=partitionMatrix(partitionsToUse,:);
+            case 'twentyPercent'
+                nTargetTrain=ceil(nPackets*0.8);
+                partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
+                partitionMatrix=partitionMatrix(partitionsToUse,:);
+            case 'full'
+                partitionMatrix=partitionMatrix;
+            otherwise
+                error('Not a recognized partion Method');
+        end % switch on partition method
+        
+        % Reduce the number of partitions if requested
         nPartitions=size(partitionMatrix,1);
-    end % check for maximum desired number of partitions
-    
+        if nPartitions > p.Results.maxPartitions
+            % randomly re-assort the rows of the partition matrix, to avoid
+            % choosing the same sub-set of limited partitions
+            ix=randperm(nPartitions);
+            partitionMatrix=partitionMatrix(ix,:);
+            partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+            nPartitions=size(partitionMatrix,1);
+        end % check for maximum desired number of partitions
+    end % check for bootstrap partition case
 end % Check or create partitionMatrix
 
 %% Loop through the partitions of the packetCellArray and fit
@@ -208,11 +209,19 @@ for pp=1:nPartitions
             end % test for the same stimTypes
         end % loop over trainPackets
     end % more than one trainPacket
-    for qc=1:length(testPackets)
-        if ~isequal(uniqueStimTypes, unique(testPackets{qc}.stimulus.metaData.stimTypes))
-            error('The packets have different unique stimTypes.');
-        end % test for the same stimTypes
-    end % loop over testPackets
+    if ~isempty(testPackets{1})
+        for qc=1:length(testPackets)
+            if ~isequal(uniqueStimTypes, unique(testPackets{qc}.stimulus.metaData.stimTypes))
+                error('The packets have different unique stimTypes.');
+            end % test for the same stimTypes
+        end % loop over testPackets
+    end % check if there are any testPackets
+    
+    % Check for the bootstrap flag, and resample the train packets
+    if strcmp(p.Results.partitionMethod,'bootstrap')
+        idx=randsample(1:length(trainPackets),length(trainPackets),true);
+        trainPackets=trainPackets(idx);
+    end
     
     % Empty the variables that aggregate across the trainPackets
     trainParamsFitLocal=[];
@@ -287,48 +296,53 @@ for pp=1:nPartitions
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
     
-    % loop over the test set
-    for tt=1:length(testPackets)
+    % Check if there are testPackets to test
+    testfVals=[];
+    if ~isempty(testPackets{1})
         
-        % get the number of instances in this packet
-        if isempty(p.Results.defaultParamsInfo)
-            defaultParamsInfo.nInstances=size(testPackets{tt}.stimulus.values,1);
-        else
-            defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
-        end
+        % Loop over the test set
+        for tt=1:length(testPackets)
+            
+            % get the number of instances in this packet
+            if isempty(p.Results.defaultParamsInfo)
+                defaultParamsInfo.nInstances=size(testPackets{tt}.stimulus.values,1);
+            else
+                defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
+            end
+            
+            % Build a params structure that holds the prediction from the train set
+            predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
+            for ii=1:defaultParamsInfo.nInstances
+                predictParams.paramMainMatrix(ii,:)= trainParamsFit(pp, testPackets{tt}.stimulus.metaData.stimTypes(ii), :);
+            end
+            
+            % create a paramsVec to pass to the fitError method
+            predictParamsVec=tfeHandle.paramsToVec(predictParams);
+            
+            % get the error for the prediction of this test packet
+            [fVal,~] = tfeHandle.fitError(predictParamsVec,testPackets{tt},varargin{:});
+            
+            % save the fVal for this trainPacket fit
+            testfValsLocal(tt)=fVal;
+            
+        end % loop over instances in this test packet
         
-        % Build a params structure that holds the prediction from the train set
-        predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-        for ii=1:defaultParamsInfo.nInstances
-            predictParams.paramMainMatrix(ii,:)= trainParamsFit(pp, testPackets{tt}.stimulus.metaData.stimTypes(ii), :);
-        end
-        
-        % create a paramsVec to pass to the fitError method
-        predictParamsVec=tfeHandle.paramsToVec(predictParams);
-        
-        % get the error for the prediction of this test packet
-        [fVal,~] = tfeHandle.fitError(predictParamsVec,testPackets{tt},varargin{:});
-        
-        % save the fVal for this trainPacket fit
-        testfValsLocal(tt)=fVal;
-        
-    end % loop over instances in this test packet
-    
-    % Aggregate across test packets
-    switch p.Results.aggregateMethod
-        case 'mean'
-            testfVals(pp)=mean(testfValsLocal);
-        case 'median'
-            testfVals(pp)=median(testfValsLocal);
-        otherwise
-            error('This is an undefined aggregation method');
-    end % switch over aggregation methods
-    
+        % Aggregate across test packets
+        switch p.Results.aggregateMethod
+            case 'mean'
+                testfVals(pp)=mean(testfValsLocal);
+            case 'median'
+                testfVals(pp)=median(testfValsLocal);
+            otherwise
+                error('This is an undefined aggregation method');
+        end % switch over aggregation methods
+    end % check that there are testPackets
 end % loop over partitions
 
 % Assemble the xValFitStructure for return
+tmpParams = tfeHandle.defaultParams();
+xValFitStructure.paramNameCell=tmpParams.paramNameCell;
 xValFitStructure.uniqueStimLabels=uniqueStimLabels;
-xValFitStructure.paramNameCell=predictParams.paramNameCell;
 xValFitStructure.paramMainMatrix=trainParamsFit;
 xValFitStructure.trainfVals=trainfVals;
 xValFitStructure.testfVals=testfVals;
@@ -344,8 +358,10 @@ comboPackets=[trainPackets testPackets];
 stimTypes=comboPackets{1}.stimulus.metaData.stimTypes;
 respTimebase=comboPackets{1}.response.timebase;
 for pp=1:length(comboPackets)
-    checkStimTypes(pp)=isequal(stimTypes,comboPackets{pp}.stimulus.metaData.stimTypes);
-    checkResponseTimebase(pp)=isequal(respTimebase,comboPackets{pp}.response.timebase);
+    if ~isempty(comboPackets{pp})
+        checkStimTypes(pp)=isequal(stimTypes,comboPackets{pp}.stimulus.metaData.stimTypes);
+        checkResponseTimebase(pp)=isequal(respTimebase,comboPackets{pp}.response.timebase);
+    end
 end
 if sum(checkStimTypes)==length(comboPackets) && ...
         sum(checkResponseTimebase)==length(comboPackets)
@@ -368,35 +384,36 @@ if sum(checkStimTypes)==length(comboPackets) && ...
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
     
-    % Obtain the model fit
-    
-    % get the number of instances in the first comboPacket
-    if isempty(p.Results.defaultParamsInfo)
-        defaultParamsInfo.nInstances=size(comboPackets{1}.stimulus.values,1);
-    else
-        defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
-    end
-    
-    % Obtain the central tendency of the parameters found in the
-    % training set
-    switch p.Results.aggregateMethod
-        case 'mean'
-            averageTrainParams=mean(trainParamsFit,1);
-        case 'median'
-            averageTrainParams=median(trainParamsFit,1);
-        otherwise
-            error('This is an undefined aggregation method');
-    end % switch over aggregation methods
-    
-    % Build a params structure that holds the prediction from the training set
-    predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-    for ii=1:defaultParamsInfo.nInstances
-        predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
-    end
+    % Obtain the model fit testPackets were run
+    if ~isempty(testPackets{1})
         
-    % get the error for the prediction of this test packet
-    modelResponseStruct = tfeHandle.computeResponse(predictParams,comboPackets{1}.stimulus,comboPackets{1}.kernel,'AddNoise',false);
-    
+        % get the number of instances in the first comboPacket
+        if isempty(p.Results.defaultParamsInfo)
+            defaultParamsInfo.nInstances=size(comboPackets{1}.stimulus.values,1);
+        else
+            defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
+        end
+        
+        % Obtain the central tendency of the parameters found in the
+        % training set
+        switch p.Results.aggregateMethod
+            case 'mean'
+                averageTrainParams=mean(trainParamsFit,1);
+            case 'median'
+                averageTrainParams=median(trainParamsFit,1);
+            otherwise
+                error('This is an undefined aggregation method');
+        end % switch over aggregation methods
+        
+        % Build a params structure that holds the prediction from the training set
+        predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
+        for ii=1:defaultParamsInfo.nInstances
+            predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
+        end
+        
+        % get the error for the prediction of this test packet
+        modelResponseStruct = tfeHandle.computeResponse(predictParams,comboPackets{1}.stimulus,comboPackets{1}.kernel,'AddNoise',false);
+    end % Check if there are any testPackets
 end % all stimTypes are the same, so can build the responseStructs
 
 end % function
