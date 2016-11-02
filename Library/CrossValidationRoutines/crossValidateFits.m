@@ -1,5 +1,5 @@
 function [ xValFitStructure, averageResponseStruct, modelResponseStruct ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
-%function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
+% function [ xValFitStructure ] = crossValidateFits( packetCellArray, tfeHandle, varargin )
 %
 % This is a general cross validation function for the temporalFittingEngine.
 %
@@ -89,8 +89,6 @@ for pp=2:nPackets
 end % loop over the packets
 
 
-%% Check or Calculate a partition matrix
-
 % The partition matrix defines how packets are to be concatenated and
 % divided into train and test sets. It is an n x m matrix, where n is the
 % number of partitions over which the cross-validation is to be conducted,
@@ -100,41 +98,52 @@ end % loop over the packets
 % value in a row of the partition matrix will be concatenated prior to
 % fitting. The decimal component of the value will be used to set the order
 % in which the packets are concatenated.
+%
+% A single row of all positive numbers as a partitionMatrix indicates that
+% a bootstrap analysis is desired.
+
+%% Check a passed partitionMatrix
 
 if ~isempty(partitionMatrix) % A partitionMatrix was passed, so check it
     % Check that the second dimension of the matrix is equal to nPackets
     if size(partitionMatrix,2)~=nPackets
         error('There must be one column in the partitionMatrix for each packet');
     end
-    nPartitions=size(partitionMatrix,1);
     
-    % If there are no negative values in the partitionMatrix, set the
-    % partitionMetod to 'bootstrap', and warn the user that this was done
-    % if it was not already in this state
+    % If there are no negative values in the partitionMatrix, and there is
+    % single row, set the partitionMetod to 'bootstrap', and warn the user
+    % that this was done if it was not already in this state
     
     if sum(partitionMatrix<0)==0
-        if ~strcmp(p.Results.partitionMethod,'bootstrap')
-            p.Results.partitionMethod='bootstrap';
-            warning('A bootstrap paritionMatrix was passed (no negative values), but the partitionMethod flag was not set to bootstrap. Proceeding anyway.');
-        end % check defined partitionMethod
-    end % check if there are no negative values in the partitionMatrix
-    
-    % Reduce the number of partitions if requested
-    nPartitions=size(partitionMatrix,1);
-    if nPartitions > p.Results.maxPartitions
-        % randomly re-assort the rows of the partition matrix, to avoid
-        % choosing the same sub-set of limited partitions
-        ix=randperm(nPartitions);
-        partitionMatrix=partitionMatrix(ix,:);
-        partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+        nPartitions=p.Results.maxPartitions;
+        if size(partitionMatrix,1)~=1
+            error('The partitionMatrix has all positive values but multiple rows. If a bootstrap was desired, include a single row. If not, the matrix requires negative values to identify the test packets.');
+        else
+            if ~strcmp(p.Results.partitionMethod,'bootstrap')
+                p.Results.partitionMethod='bootstrap';
+                warning('A bootstrap paritionMatrix was passed (no negative values, single row), but the partitionMethod flag was not set to bootstrap. Proceeding anyway.');
+            end % check defined partitionMethod
+        end % check if how many rows are in the partitionMatrix
+    else % We have a partitionMatrix with train and test packets identified.
+        
+        % Reduce the number of partitions if requested
         nPartitions=size(partitionMatrix,1);
-    end % check for maximum desired number of partitions
+        if nPartitions > p.Results.maxPartitions
+            % randomly re-assort the rows of the partition matrix, to avoid
+            % choosing the same sub-set of limited partitions
+            ix=randperm(nPartitions);
+            partitionMatrix=partitionMatrix(ix,:);
+            partitionMatrix=partitionMatrix(1:p.Results.maxPartitions,:);
+            nPartitions=size(partitionMatrix,1);
+        end % check for maximum desired number of partitions
+    end % check for all positive values in the passed partitionMatrix
+
+%% Create a partitionMatrix
     
 else % No paritionMatrix was passed, so create it
     % find all k=2 member partitions of the set of packets
     if strcmp(p.Results.partitionMethod,'bootstrap')
-        partitionRow=1:nPackets;
-        partitionMatrix=repmat(partitionRow,p.Results.maxPartitions,1);
+        partitionMatrix=1:nPackets;
         nPartitions=p.Results.maxPartitions;
     else
         splitPartitionsCellArray=partitions(1:1:nPackets,2);
@@ -190,6 +199,12 @@ testfVals=[];
 
 for pp=1:nPartitions
     
+    if strcmp(p.Results.partitionMethod,'bootstrap')
+        partitionIndex=1;
+    else
+        partitionIndex=pp;
+    end
+    
     % Concatenate any train or test packets that are assigned the same
     % integer value in the partition matrix
     trainPackets=cell(1);
@@ -202,13 +217,13 @@ for pp=1:nPartitions
     % with the same integer index that should therefore be concatenated. We
     % later check the floating poing component to determine the ordering of
     % concatenation
-    uniqueTags=unique(floor(partitionMatrix(pp,:)));
+    uniqueTags=unique(floor(partitionMatrix(partitionIndex,:)));
     for uu=1:length(uniqueTags)
-        indexVals=find(floor(partitionMatrix(pp,:))==uniqueTags(uu));
+        indexVals=find(floor(partitionMatrix(partitionIndex,:))==uniqueTags(uu));
         if uniqueTags(uu)>0
             % resort the indexVals so that they respect the floating point
             % ordering of the elements of the partitionMatrix
-            [~,floatingIndexOrder]=sort(partitionMatrix(pp,indexVals));
+            [~,floatingIndexOrder]=sort(partitionMatrix(partitionIndex,indexVals));
             indexVals=indexVals(floatingIndexOrder);
             trainPackets{trainIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             trainIndex=trainIndex+1;
@@ -216,7 +231,7 @@ for pp=1:nPartitions
         if uniqueTags(uu)<0
             % resort the indexVals so that they respect the floating point
             % ordering of the elements of the partitionMatrix
-            [~,floatingIndexOrder]=sort(abs(partitionMatrix(pp,indexVals)));
+            [~,floatingIndexOrder]=sort(abs(partitionMatrix(partitionIndex,indexVals)));
             indexVals=indexVals(floatingIndexOrder);
             testPackets{testIndex}=tfeHandle.concatenatePackets(packetCellArray(indexVals));
             testIndex=testIndex+1;
@@ -255,7 +270,7 @@ for pp=1:nPartitions
         
         % report our progress
         if strcmp(p.Results.verbosity,'full')
-            fprintf('* Partition, packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
+            fprintf('* Partition, train packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
         end
         
         % Get the number of instances in this packet. If the
@@ -320,12 +335,17 @@ for pp=1:nPartitions
     end % switch over aggregation methods
     
     % Check if there are testPackets to test
-    testfVals=[];
     if ~isempty(testPackets{1})
-        
+        testfValsLocal=[];
+
         % Loop over the test set
         for tt=1:length(testPackets)
             
+            % report our progress
+            if strcmp(p.Results.verbosity,'full')
+                fprintf('* Partition, test packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
+            end
+
             % get the number of instances in this packet
             if isempty(p.Results.defaultParamsInfo)
                 defaultParamsInfo.nInstances=size(testPackets{tt}.stimulus.values,1);
