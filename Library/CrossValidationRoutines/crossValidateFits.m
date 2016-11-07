@@ -389,7 +389,7 @@ if sum(checkStimTypes)==nPackets && ...
         end
         
         % get the error for the prediction of this test packet
-        modelResponseStruct = tfeHandle.computeResponse(predictParams,comboPackets{1}.stimulus,comboPackets{1}.kernel,'AddNoise',false);
+        modelResponseStruct = tfeHandle.computeResponse(predictParams,packetCellArray{1}.stimulus,packetCellArray{1}.kernel,'AddNoise',false);
     end % Check if there are any testPackets
 end % all stimTypes are the same, so can build the responseStructs
 
