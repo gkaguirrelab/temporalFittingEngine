@@ -82,7 +82,7 @@ switch (p.Results.searchMethod)
     case 'linearRegression'
         % linear regression can be used only when the paramsFit0 has only
         % a single parameter.
-        if ~length(paramsFit0.paramNameCell)==1
+        if length(paramsFit0.paramNameCell)~=1
             error('Linear regression can only be applied in the case of a single model parameter')
         end
         %  Warn if the parameter is not called "amplitude".
