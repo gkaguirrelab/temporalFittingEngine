@@ -328,8 +328,8 @@ xValFitStructure.testfVals=testfVals;
 
 % Create an average signal and an average fit, using central tendency of
 % the fits from the train packets, and the response.values from all
-% packets. This can be performed only if the train and test packets have
-% the equal stimTypes, and equal response timebases.
+% packets. This can be performed only all packets have identical stimTypes
+% and response timebases.
 averageResponseStruct=[];
 modelResponseStruct=[];
 stimTypes=packetCellArray{1}.stimulus.metaData.stimTypes;
@@ -346,7 +346,7 @@ if sum(checkStimTypes)==nPackets && ...
     % Save the response timebase
     averageResponseStruct.timebase=respTimebase;
     
-    % Obtain the central tendency of the response.values
+    % Obtain the central tendency of the response.values across all packets
     for pp=1:nPackets
         responseMatrix(pp,:)=packetCellArray{pp}.response.values;
     end % loop over comboPackets
@@ -360,37 +360,38 @@ if sum(checkStimTypes)==nPackets && ...
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
+
+    % Now we will build a model response based upon the central tendency of
+    % the fits obtained across partitions
     
-    % Obtain the model fit testPackets were run
-    if ~isempty(testfVals)
+    % get the number of instances in the first packet
+    if isempty(p.Results.defaultParamsInfo)
+        defaultParamsInfo.nInstances=size(packetCellArray{1}.stimulus.values,1);
+    else
+        defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
+    end
+    
+    % Obtain the central tendency of the parameters found in the
+    % training set
+    switch p.Results.aggregateMethod
+        case 'mean'
+            averageTrainParams=mean(trainParamsFit,1);
+        case 'median'
+            averageTrainParams=median(trainParamsFit,1);
+        otherwise
+            error('This is an undefined aggregation method');
+    end % switch over aggregation methods
+    
+    % Build a params structure that holds the prediction from the training set
+    predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
+    for ii=1:defaultParamsInfo.nInstances
+        predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
+    end
+    
+    % create the response predicted by the central tendency of the
+    % training partitions
+    modelResponseStruct = tfeHandle.computeResponse(predictParams,packetCellArray{1}.stimulus,packetCellArray{1}.kernel,'AddNoise',false);
         
-        % get the number of instances in the first packet
-        if isempty(p.Results.defaultParamsInfo)
-            defaultParamsInfo.nInstances=size(packetCellArray{1}.stimulus.values,1);
-        else
-            defaultParamsInfo.nInstances=p.Results.defaultParamsInfo.nInstances;
-        end
-        
-        % Obtain the central tendency of the parameters found in the
-        % training set
-        switch p.Results.aggregateMethod
-            case 'mean'
-                averageTrainParams=mean(trainParamsFit,1);
-            case 'median'
-                averageTrainParams=median(trainParamsFit,1);
-            otherwise
-                error('This is an undefined aggregation method');
-        end % switch over aggregation methods
-        
-        % Build a params structure that holds the prediction from the training set
-        predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-        for ii=1:defaultParamsInfo.nInstances
-            predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
-        end
-        
-        % get the error for the prediction of this test packet
-        modelResponseStruct = tfeHandle.computeResponse(predictParams,packetCellArray{1}.stimulus,packetCellArray{1}.kernel,'AddNoise',false);
-    end % Check if there are any testPackets
 end % all stimTypes are the same, so can build the responseStructs
 
 end % function
