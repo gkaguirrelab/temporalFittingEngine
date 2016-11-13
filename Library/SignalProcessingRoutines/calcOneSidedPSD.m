@@ -74,7 +74,7 @@ for ii=1:nRows
 end
 
 % Produce the freq "timebase" in Hz
-psdStruct.timebase=deltaT*(0:dataLength/2-1)/(dataLength/1000);
+psdStruct.timebase=(0:dataLength/2-1)/(deltaT*dataLength/1000);
 
 % Make a plot if verbose is on
 if strcmp(p.Results.verbosity,'full')
