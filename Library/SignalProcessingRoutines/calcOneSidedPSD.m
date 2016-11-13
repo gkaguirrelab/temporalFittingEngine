@@ -30,8 +30,9 @@ function [ psdStruct ] = calcOneSidedPSD( dataStruct, varargin )
 % pairs recognized by the calling routine are not needed here.
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('dataStruct',@isstruct);
-p.addParameter('verbosity','none',@ischar);
 p.addParameter('meanCenter',false,@islogical);
+p.addParameter('verbosity','none',@ischar);
+p.addParameter('xlimFreq',[],@isnumeric);
 p.parse(dataStruct, varargin{:});
 
 dataStruct=p.Results.dataStruct;
@@ -60,10 +61,9 @@ check = diff(dataStruct.timebase);
 deltaT = check(1);
 
 % meanCenter if requested
-
 if p.Results.meanCenter
     dataStruct.values=dataStruct.values - ...
-      repmat(mean(dataStruct.values,2),1,dataLength);
+        repmat(mean(dataStruct.values,2),1,dataLength);
 end
 
 % Calculate the FFT for each row of the values field.
@@ -74,25 +74,28 @@ for ii=1:nRows
 end
 
 % Produce the freq "timebase" in Hz
-psdStruct.timebase=deltaT*(0:dataLength/2-1)/dataLength/1000;
+psdStruct.timebase=deltaT*(0:dataLength/2-1)/(dataLength/1000);
 
 % Make a plot if verbose is on
 if strcmp(p.Results.verbosity,'full')
     figure
-
+    
     % plot the time-domain signal
     subplot(2,1,1);
     plot(dataStruct.timebase/1000,dataStruct.values);
     title('Time domain signal');
     xlabel('Time (secs)')
     ylabel('Amplitude');
-
+    
     % plot the frequency domain signal
     subplot(2,1,2);
     plot(psdStruct.timebase,psdStruct.values,'b','LineWidth',1);
     hold on
     plot(psdStruct.timebase,psdStruct.values,'ro');
     hold off
+    if ~isempty(p.Results.xlimFreq)
+        xlim(p.Results.xlimFreq);
+    end
     title('One Sided Power Spectral Density');
     xlabel('Frequency (Hz)')
     ylabel('Power');
