@@ -15,9 +15,9 @@ paramStruct.paramNameCell = { ...
 paramStruct.paramMainMatrix(:,1) = 0.*ones([nInstances 1]);
 
 % set lower bounds
-paramStruct.vlb(:,1) = repmat(-1,[nInstances 1]);
+paramStruct.vlb(:,1) = repmat(-1.5051,[nInstances 1]);
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(1,[nInstances 1]);
+paramStruct.vub(:,1) = repmat(1.5051,[nInstances 1]);
 
 end
