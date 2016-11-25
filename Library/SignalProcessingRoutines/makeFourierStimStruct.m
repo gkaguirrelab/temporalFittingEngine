@@ -60,10 +60,18 @@ end
 % trim the set down to the requested number of frequencies
 fourierSetStructure.values=fourierSetStructure.values(1:numFourierComponents,:);
 
-% the stimulus values are built first as the vector of attention events
-stimulusStructOut.timebase=stimulusTimebase;
+% The stimulus values are built first as the vector of attention events
+% We find the points in the stimulusTimebase that are closest to the
+% specified event times
+
+EventTimesMatrix=repmat(eventTimesArray',1,length(stimulusTimebase));
+DiffFromEventTimes = abs(bsxfun(@minus,EventTimesMatrix,stimulusTimebase));
+[idxTimeBase idxTimeBase] = min(DiffFromEventTimes');
 impulseEvents=stimulusTimebase*0;
-impulseEvents(eventTimesArray)=1;
+impulseEvents(idxTimeBase)=1;
+clear EventTimesMatrix; clear DiffFromEventTimes;
+
+stimulusStructOut.timebase=stimulusTimebase;
 stimulusStructOut.values = ...
     repmat(impulseEvents,numFourierComponents,1);
 
