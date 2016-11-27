@@ -47,9 +47,16 @@ for i=1:numInstances
         stimOnsetIdx = strfind(tmp, [0 1]);
     end
     
+    % If the stimOnsetIdx is empty, check if the first value of the
+    % stimulus vector is different from the last. This tells us that the
+    % stimulus begins at the first timepoint
+    if (isempty(stimOnsetIdx) && ~(stimulus(1)==stimulus(end)))
+        stimOnsetIdx=1;
+    end
+    
     % If we can't find a stim onset, return an error.
     if ~length(stimOnsetIdx)==1
-        error('Cannot find a unique stimulus onset for this instance')
+        error('Cannot find a unique stimulus onset for this instance. Assuming start at first time point.')
     end
     
     % Determine the parameters of the step

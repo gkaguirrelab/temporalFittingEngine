@@ -3,6 +3,8 @@ function [  ] = t_DEDUBasic(varargin)
 %
 % Demonstrate the DElay and DUration model
 %
+% We will model a single event.
+%
 % Optional key/value pairs
 %  'generatePlots' - true/fale (default true).  Make plots?
 
@@ -18,41 +20,19 @@ rng('default');
 tfeHandle = tfeDEDU('verbosity','none');
 
 %% Temporal domain of the stimulus
-deltaT = 10; % in msecs
-totalTime = 200000; % in msecs
+deltaT = 1; % in msecs
+totalTime = 20000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-%% Specify the stimulus values.
-% We create here a step function of neural activity, with half-cosine ramps
-%  on and off. There will be ten instances.
-nInstances=10;
-stepDuration=3000; % msecs
-onsetDelay=100; % msecs
-rampDuration=250; % msecs
-spacing=16000;
-
+% The stimulus profile is just a delta function. The DEDU model discards
+% the stimulus profile and simply identifies the time of onset of the
+% stimulus and uses this.
+nInstances=1;
 defaultParamsInfo.nInstances=nInstances;
+stimulusStruct.values(1,:)=zeros(1,nTimeSamples);
+stimulusStruct.values(1,1)=1;
 
-for ii=1:nInstances
-
-    % calculate the time at which the stimulus begins
-    stepOnset=(ii-1)*spacing+100; % msecs
-    
-    % the square wave step
-    stimulusStruct.values(ii,:)=zeros(1,nTimeSamples);
-    stimulusStruct.values(ii,round(stepOnset/deltaT): ...
-        round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)=1;
-    % half cosine ramp on
-    stimulusStruct.values(ii,round(stepOnset/deltaT): ...
-        round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
-        fliplr(cos(linspace(0,pi,round(rampDuration/deltaT))/2));
-    % half cosine ramp off
-    stimulusStruct.values(ii,round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(rampDuration/deltaT): ...
-        round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
-        cos(linspace(0,pi,round(rampDuration/deltaT))/2);
-    
-end % loop over instances building the stimulus values
 
 %% Define a kernelStruct. In this case, a double gamma HRF
 hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
@@ -69,44 +49,36 @@ kernelStruct.values=hrf;
 % prepare this kernelStruct for use in convolution as a BOLD HRF
 kernelStruct=prepareHRFKernel(kernelStruct);
 
-%% Get the default forward model parameters
+% Get the default forward model parameters
 params0 = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-params0.noiseSd = 0.005;
+params0.noiseSd = 0.01;
 
-%% Create the packetCellArray
+% start the packet assembly
+thePacket.stimulus = stimulusStruct;
+thePacket.kernel = kernelStruct;
+thePacket.metaData = [];
 
-% We will now create a set of nPackets. Each packet will have two
-% stimulus types, each with a different expected amplitude and tau.
-stimLabels={'stimA','stimB'};
-stimTypes=[1 2 1 2 1 2 1 2 1 2]';
-stimMeansAmplitude=[1,0.9375];
-stimMeansDelay=[0,.3];
-stimMeansDuration=[3,3.5];
+% Randomize the order of the stimTypes
+thePacket.stimulus.metaData.stimTypes=[1];
+thePacket.stimulus.metaData.stimLabels=['demo'];
 
-    % start the packet assembly
-    thePacket.stimulus = stimulusStruct;
-    thePacket.kernel = kernelStruct;
-    thePacket.metaData = [];
-    
-    % Randomize the order of the stimTypes
-    ix = randperm(nInstances);
-    thePacket.stimulus.metaData.stimTypes=stimTypes(ix);
-    thePacket.stimulus.metaData.stimLabels=stimLabels;
-    
-    % Create some params to define the simulated data for this packet
-    paramsLocal=params0;
-    for ii=1:nInstances
-        paramsLocal.paramMainMatrix(ii,1)=stimMeansAmplitude(thePacket.stimulus.metaData.stimTypes(ii));
-        paramsLocal.paramMainMatrix(ii,2)=stimMeansDelay(thePacket.stimulus.metaData.stimTypes(ii));
-        paramsLocal.paramMainMatrix(ii,3)=stimMeansDuration(thePacket.stimulus.metaData.stimTypes(ii));
-    end
-    
-    % Generate the simulated response
-    simulatedResponseStruct = tfeHandle.computeResponse(paramsLocal,thePacket.stimulus,thePacket.kernel,'AddNoise',true);
-    
-    % Add the simulated response to this packet
-    thePacket.response=simulatedResponseStruct;
-    
+% Create some params to define the simulated data for this packet
+paramsLocal=params0;
+paramsLocal.paramMainMatrix(1,1)=1;
+paramsLocal.paramMainMatrix(1,2)=0.2; % delay of onset of response in seconds
+paramsLocal.paramMainMatrix(1,3)=3.5; % duration of response in seconds
+
+%% Report the modeled params
+fprintf('Simulated model parameters:\n');
+tfeHandle.paramPrint(paramsLocal);
+fprintf('\n');
+
+% Generate the simulated response
+simulatedResponseStruct = tfeHandle.computeResponse(paramsLocal,thePacket.stimulus,thePacket.kernel,'AddNoise',true);
+
+% Add the simulated response to this packet
+thePacket.response=simulatedResponseStruct;
+
 tfeHandle.plot(simulatedResponseStruct,'DisplayName','Simulated');
 
 % Define a parameter lock matrix, which in this case is empty
@@ -114,11 +86,11 @@ paramLockMatrix = [];
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
-            tfeHandle.fitResponse(thePacket,...
-            'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix, ...
-            'DiffMinChange',0.01);
-        
+    tfeHandle.fitResponse(thePacket,...
+    'defaultParamsInfo', defaultParamsInfo, ...
+    'paramLockMatrix',paramLockMatrix, ...
+    'DiffMinChange',0.001);
+
 %% Report the output
 fprintf('Model parameter from fits:\n');
 tfeHandle.paramPrint(paramsFit);
