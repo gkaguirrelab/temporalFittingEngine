@@ -5,7 +5,7 @@ function [modelResponseStruct] = forwardModelDEDU(params,stimulusStruct)
 % stimulus input, a vector of time points, and a set of parameters.
 %
 % The model of neural activity is a step function, controlled by three
-% parameters: amplitude, delay (msecs), duration (msecs)
+% parameters: amplitude, delay (secs), duration (secs)
 %
 
 amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
@@ -17,7 +17,12 @@ durationVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'duration'));
 
 % derive some basic properties of the stimulus values
 numInstances=size(stimulusStruct.values,1);
-modelLength = length(timebaseSecs);
+modelLength = length(stimulusStruct.timebase);
+
+% the model has parameters that are tuned for units of seconds, so
+% we convert our timebase
+timebaseMsecs=stimulusStruct.timebase;
+timebaseSecs=timebaseMsecs/1000;
 
 % pre-allocate the responseMatrix variable here for speed
 responseMatrix=zeros(numInstances,modelLength);
@@ -48,18 +53,18 @@ for i=1:numInstances
     end
     
     % Determine the parameters of the step
-    stepOnsetTime=stimulusStruct.timebase(stimOnsetIdx)+delayVec(i);
-    tempTimeDiff=abs(stimulusStruct.timebase-stepOnsetTime);
+    stepOnsetTime=timebaseSecs(stimOnsetIdx)+delayVec(i);
+    tempTimeDiff=abs(timebaseSecs-stepOnsetTime);
     stepOnsetIdx=find(tempTimeDiff==min(tempTimeDiff));
     stepOnsetIdx=stepOnsetIdx(1);
     
-    stepOffsetTime=stimulusStruct.timebase(stimOnsetIdx)+delayVec(i)+durationVec(i);
-    tempTimeDiff=abs(stimulusStruct.timebase-stepOffsetTime);
+    stepOffsetTime=timebaseSecs(stimOnsetIdx)+delayVec(i)+durationVec(i);
+    tempTimeDiff=abs(timebaseSecs-stepOffsetTime);
     stepOffsetIdx=find(tempTimeDiff==min(tempTimeDiff));
     stepOffsetIdx=stepOffsetIdx(1);
     
     % Make the step
-    yNeural=stimulusStruct.values*0;
+    yNeural=timebaseSecs*0;
     yNeural(stepOnsetIdx:stepOffsetIdx)=amplitudeVec(i);
     
     %% Place yNeural into the growing neuralMatrix
