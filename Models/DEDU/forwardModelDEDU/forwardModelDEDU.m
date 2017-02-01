@@ -5,7 +5,7 @@ function [modelResponseStruct] = forwardModelDEDU(params,stimulusStruct)
 % stimulus input, a vector of time points, and a set of parameters.
 %
 % The model of neural activity is a step function, controlled by three
-% parameters: amplitude, delay (secs), duration (secs)
+% parameters: amplitude, delay, and duration (secs)
 %
 
 amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
