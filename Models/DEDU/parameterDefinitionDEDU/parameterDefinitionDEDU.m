@@ -28,7 +28,7 @@ paramStruct.paramMainMatrix(:,3) = 3.*ones([nInstances 1]);
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-100,[nInstances 1]);
 paramStruct.vlb(:,2) = repmat(0,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(.1,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(0.1,[nInstances 1]);
 
 % set upper bounds
 paramStruct.vub(:,1) = repmat(100,[nInstances 1]);
