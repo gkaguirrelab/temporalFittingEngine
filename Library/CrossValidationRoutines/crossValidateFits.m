@@ -48,6 +48,7 @@ p = inputParser; p.KeepUnmatched = true;
 p.addRequired('packetCellArray',@iscell);
 p.addRequired('tfeHandle',@(x)(~isempty(x)));
 p.addParameter('partitionMethod','loo',@ischar);
+p.addParameter('bootstrapMethod','none',@ischar);
 p.addParameter('maxPartitions',100,@isnumeric);
 p.addParameter('partitionMatrix',[],@isnumeric);
 p.addParameter('aggregateMethod','mean',@ischar);
@@ -65,6 +66,13 @@ nPackets=length(packetCellArray);
 % Error if there is only one packet
 if nPackets <= 1
     error('Cross validation requires more than one packet');
+end
+
+% Check that a bootstrap method is given, if bootstrap is the partition
+% method
+if strcmp(p.Results.partitionMethod,'bootstrap') && ...
+        stcmp(p.Results.bootstrapMethod,'none')
+    error('Must specify a bootstrap method if bootstrap calculation is requested');
 end
 
 % check that every packet has the same stimulus labels, and
@@ -91,7 +99,7 @@ end % loop over the packets
 
 % The partition matrix defines how packets are to be divided into train and
 % test sets. It is an n x m matrix, where n is the number of partitions
-% over which the cross-validation is to be conducted, and m is the number 
+% over which the cross-validation is to be conducted, and m is the number
 % of packets in the packetCellArray.
 % In each row, positive numbers identify packets to be used to train, and
 % negative numbers used to test. Packets identified by zeros or NaNs will
@@ -101,7 +109,7 @@ end % loop over the packets
 
 %% Check a passed partitionMatrix
 if ~isempty(partitionMatrix)
-
+    
     % Check that the second dimension of the matrix is equal to nPackets
     if size(partitionMatrix,2)~=nPackets
         error('There must be one column in the partitionMatrix for each packet');
@@ -123,8 +131,8 @@ if ~isempty(partitionMatrix)
         nPartitions=size(partitionMatrix,1);
     end
     
-     %% No paritionMatrix was passed, so create it
-
+    %% No paritionMatrix was passed, so create it
+    
 else
     
     % find all k=2 member partitions of the set of packets
@@ -146,24 +154,28 @@ else
             nTargetTrain=nPackets-1;
             partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
+            nPartitions=size(partitionMatrix,1);
         case 'splitHalf'
             nTargetTrain=floor(nPackets/2);
             partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
+            nPartitions=size(partitionMatrix,1);
         case 'twentyPercent'
             nTargetTrain=ceil(nPackets*0.8);
             partitionsToUse=find(sum(partitionMatrix>0,2)==nTargetTrain);
             partitionMatrix=partitionMatrix(partitionsToUse,:);
+            nPartitions=size(partitionMatrix,1);
         case 'full'
             partitionMatrix=partitionMatrix;
+            nPartitions=size(partitionMatrix,1);
         case 'bootstrap'
             partitionMatrix=[];
+            nPartitions=min(100,p.Results.maxPartitions);
         otherwise
             error('Not a recognized partion Method');
     end % switch on partition method
     
     % Reduce the number of partitions if requested
-    nPartitions=size(partitionMatrix,1);
     if nPartitions > p.Results.maxPartitions
         % randomly re-assort the rows of the partition matrix, to avoid
         % choosing the same sub-set of limited partitions
@@ -244,7 +256,7 @@ for pp=1:nPartitions
         trainIdx=find(partitionRow>0);
         testIdx=find(partitionRow<0);
     end
-        
+    
     % Empty the variables that aggregate across the trainPackets
     
     % Aggregate across trainining packets
@@ -273,7 +285,7 @@ for pp=1:nPartitions
     % Check if there are testPackets to test
     if ~isempty(testIdx)
         testfValsLocal=[];
-
+        
         % Loop over the test set
         for tt=1:length(testIdx)
             
@@ -281,7 +293,7 @@ for pp=1:nPartitions
             if strcmp(p.Results.verbosity,'full')
                 fprintf('* Partition, test packet <strong>%g</strong> , <strong>%g</strong>\n', pp, tt);
             end
-
+            
             % get the number of instances in this packet
             if isempty(p.Results.defaultParamsInfo)
                 defaultParamsInfo.nInstances=size(packetCellArray{testIdx(tt)}.stimulus.values,1);
@@ -328,8 +340,8 @@ xValFitStructure.testfVals=testfVals;
 
 % Create an average signal and an average fit, using central tendency of
 % the fits from the train packets, and the response.values from all
-% packets. This can be performed only all packets have identical stimTypes
-% and response timebases.
+% packets. This can be performed only if all packets have identical
+% stimTypes and response timebases.
 averageResponseStruct=[];
 modelResponseStruct=[];
 stimTypes=packetCellArray{1}.stimulus.metaData.stimTypes;
@@ -360,7 +372,7 @@ if sum(checkStimTypes)==nPackets && ...
         otherwise
             error('This is an undefined aggregation method');
     end % switch over aggregation methods
-
+    
     % Now we will build a model response based upon the central tendency of
     % the fits obtained across partitions
     
@@ -384,14 +396,17 @@ if sum(checkStimTypes)==nPackets && ...
     
     % Build a params structure that holds the prediction from the training set
     predictParams = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-    for ii=1:defaultParamsInfo.nInstances
-        predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
+    if defaultParamsInfo.nInstances==1
+        predictParams.paramMainMatrix(1,:)= averageTrainParams;
+    else
+        for ii=1:defaultParamsInfo.nInstances
+            predictParams.paramMainMatrix(ii,:)= averageTrainParams(1, stimTypes(ii), :);
+        end
     end
-    
     % create the response predicted by the central tendency of the
     % training partitions
     modelResponseStruct = tfeHandle.computeResponse(predictParams,packetCellArray{1}.stimulus,packetCellArray{1}.kernel,'AddNoise',false);
-        
+    
 end % all stimTypes are the same, so can build the responseStructs
 
 end % function
