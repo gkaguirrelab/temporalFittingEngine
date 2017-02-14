@@ -15,24 +15,20 @@ function paramStruct = parameterDefinitionDEDU(nInstances)
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
     'amplitude',...
-    'delay',...
     'duration',...
     };
 
 % initial values
 paramStruct.paramMainMatrix = [];
 paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,2) = 0.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,3) = 3.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,2) = 1.0.*ones([nInstances 1]);
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-10000,[nInstances 1]);
-paramStruct.vlb(:,2) = repmat(0,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(0.1,[nInstances 1]);
+paramStruct.vlb(:,2) = repmat(0.01,[nInstances 1]);
 
 % set upper bounds
 paramStruct.vub(:,1) = repmat(10000,[nInstances 1]);
-paramStruct.vub(:,2) = repmat(0,[nInstances 1]);
-paramStruct.vub(:,3) = repmat(8,[nInstances 1]);
+paramStruct.vub(:,2) = repmat(8,[nInstances 1]);
 
 end

@@ -11,7 +11,7 @@ function [modelResponseStruct] = forwardModelDEDU(obj,params,stimulusStruct)
 %
 
 amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
-delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
+%delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
 durationVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'duration'));
 
 %% Define basic model features
