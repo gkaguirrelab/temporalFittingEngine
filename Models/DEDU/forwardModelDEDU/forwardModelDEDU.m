@@ -1,4 +1,4 @@
-function [modelResponseStruct] = forwardModelDEDU(obj,params,stimulusStruct)
+function [modelResponseStruct] = forwardModelDEDU(obj,params,stimulusStruct, hrfKernelStruct)
 %% forwardModelDEDU
 %
 % This function creates a model of neural response given a vector of
@@ -39,12 +39,21 @@ for i=1:numInstances
     subStimulusStruct.values=subStimulusStruct.values(i,:);
 
     % Build the kernel
-    kernelStruct.timebase=0:deltaT:durationVec(i)*1000-deltaT;
-    kernelStruct.values=kernelStruct.timebase*0+amplitudeVec(i);
+    stepKernelStruct.timebase=0:deltaT:durationVec(i)*1000-deltaT;
+    stepKernelStruct.values=stepKernelStruct.timebase*0+1;
     
-    % Convolve the stimulus by the kernel
-    yNeuralStruct=obj.applyKernel(subStimulusStruct,kernelStruct);
-        
+    % Convolve the stimulus by the step kernel
+    yNeuralStruct=obj.applyKernel(subStimulusStruct,stepKernelStruct);
+
+    % Convolve the stimulus by the hrf kernel
+    yNeuralStruct=obj.applyKernel(yNeuralStruct,hrfKernelStruct);
+
+    % make the response have unit amplitude
+    yNeuralStruct.values=yNeuralStruct.values./max(yNeuralStruct.values);
+
+    % Scale by the amplitude parameter
+    yNeuralStruct.values=yNeuralStruct.values.*amplitudeVec(i);
+    
     %% Place yNeural into the growing neuralMatrix
     responseMatrix(i,:)=yNeuralStruct.values';
     

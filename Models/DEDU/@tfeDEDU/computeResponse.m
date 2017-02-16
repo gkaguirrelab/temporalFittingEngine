@@ -22,16 +22,13 @@ p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
 %% Compute the forward model
-modelResponseStruct = forwardModelDEDU(obj,params,stimulusStruct);
+modelResponseStruct = forwardModelDEDU(obj,params,stimulusStruct,kernelStruct);
 
 % report an iteration has completed
 switch (obj.verbosity)
     case 'high'
         fprintf('.');
 end
-
-%% Optionally, convolve with a passed kernel
-modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
 %% Optional add noise
 if (p.Results.addNoise)
