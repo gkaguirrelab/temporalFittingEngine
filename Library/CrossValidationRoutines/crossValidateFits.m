@@ -48,7 +48,6 @@ p = inputParser; p.KeepUnmatched = true;
 p.addRequired('packetCellArray',@iscell);
 p.addRequired('tfeHandle',@(x)(~isempty(x)));
 p.addParameter('partitionMethod','loo',@ischar);
-p.addParameter('bootstrapMethod','none',@ischar);
 p.addParameter('maxPartitions',100,@isnumeric);
 p.addParameter('partitionMatrix',[],@isnumeric);
 p.addParameter('aggregateMethod','mean',@ischar);
@@ -68,12 +67,6 @@ if nPackets <= 1
     error('Cross validation requires more than one packet');
 end
 
-% Check that a bootstrap method is given, if bootstrap is the partition
-% method
-if strcmp(p.Results.partitionMethod,'bootstrap') && ...
-        stcmp(p.Results.bootstrapMethod,'none')
-    error('Must specify a bootstrap method if bootstrap calculation is requested');
-end
 
 % check that every packet has the same stimulus labels, and
 % handle the case of the stimLabels being strings or numbers
@@ -241,7 +234,7 @@ for pp=1:nPackets
     
     % save the fVal for this trainPacket fit
     eachPacketfVals(pp)=fVal;
-end
+end % loop through packetCellArray performing fits to individual packets
 
 
 %% Loop through the partitions
