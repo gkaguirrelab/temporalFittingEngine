@@ -41,7 +41,9 @@ switch (p.Results.errorType)
     case 'rmse'
         fVal = sqrt(nanmean((modelResponseStruct.values-thePacket.response.values).^2));
     case '1-r2'
-        fVal = nansum((thePacket.response.values - modelResponseStruct.values).^2)/sum((thePacket.response.values - mean(thePacket.response.values)).^2);
+        residuals=thePacket.response.values - modelResponseStruct.values;
+        residuals=residuals-nanmean(residuals);
+        fVal = nansum(residuals.^2)/nansum((thePacket.response.values - mean(thePacket.response.values)).^2);
     otherwise
         error('Unknown error type passed');
 end
