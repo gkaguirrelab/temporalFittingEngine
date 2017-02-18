@@ -16,5 +16,10 @@ kernelStructOut.values=kernelStructOut.values-kernelStructOut.values(1);
 % scale the kernel to preserve amplitude following convolution
 kernelStructOut.values=kernelStructOut.values/abs((sum(kernelStructOut.values)*kernelDeltaT));
 
+% Issue a warning that this function is deprecated, and should be replaced
+% by setting the initial value of the kernel manually in the calling code,
+% and then using normalizeKernelAmplitude() to scale the kernel.
+warning('** prepareHRFKernel is deprecated. Replace with call to normalizeKernelAmplitude, and manual setting of initial kernel value');
+
 end
 
