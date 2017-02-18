@@ -8,7 +8,7 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 % The outputStruct's values field has the result of the convolution, and
 % its timebase matches that of the input struct.
 %
-% The returend kernelStruct is the input, but if necessary its timebase has
+% The returned kernelStruct is the input, but if necessary its timebase has
 % and values have been resampled to have the same delta time as the
 % inputStruct's timebase.  The duration of the resampled kernel is at least
 % as long as the original, and can be a little longer if the resampling
