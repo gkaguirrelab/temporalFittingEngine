@@ -13,7 +13,7 @@ function [ xValFitStructure, averageResponseStruct, modelResponseStruct ] = cros
 % Optional arguments:
 %   partitionMethod - how to divide the packets into train and test sets
 %     'loo' - leave-one-out for test
-%     'split' - split-halves train and test
+%     'splitHalf' - split-halves train and test
 %     'twentyPercent' - train on 80% of the packets, test on 20%
 %     'full' - train and test on all partitions of the packet set
 %     'bootstrap' - study only training paritions that are bootstrap
