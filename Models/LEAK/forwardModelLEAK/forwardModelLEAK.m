@@ -9,20 +9,22 @@ function [modelResponseStruct] = forwardModelLEAK(obj, params, stimulusStruct)
 %
 
 %% Hardcoded features
-
 vExponent = 3; % Observed by Zaidi et al. to provide the best fit to the RGC response data
-expFilter.timebase = 0:1:30000; % The temporal support of the leaky integrator
 
 %% Unpack the params
 %    These parameters are active for modeling of fMRI time series data:
 %      amplitude - multiplicative scaling of the stimulus.
-%      tau - time constant of leaky exponential integrator that implements
-%        the adaptation effect. Reasonable bounds [0.0001:0.1]
+%      halfLife - half-life (in msecs) of the leaky exponential integrator that implements
+%        the adaptation effect. Reasonable bounds [1 , 15000]
 %      kappa - multiplicative scaling of the adaptation effect
 
 ampVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
-tauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tau'));
+timeConstantVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'timeConstant'));
 kappaVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'kappa'));
+
+% Convert the time constant vec to tau (converting from seconds to msecs)
+tauVec=1/(timeConstantVec*1000);
+
 
 %% Define basic model features
 
@@ -46,11 +48,12 @@ for ii=1:numInstances
         
     %% Generate the exponential filter
     % This will implement the model of a leaky integrator
+    expFilter.timebase=yNeural.timebase;
     expFilter.values=exp(-1*tauVec(ii)*expFilter.timebase);
     expFilter=normalizeKernelAmplitude(expFilter);
     
     leakyIntegration=obj.applyKernel(yNeural,expFilter);
-    yNeural.values=yNeural.values - kappaVec(ii).* (leakyIntegration.values.^3);
+    yNeural.values=yNeural.values - kappaVec(ii).* (leakyIntegration.values.^vExponent);
     
     %% Place yNeural into the growing neuralMatrix
     responseMatrix(ii,:)=yNeural.values;
@@ -60,5 +63,6 @@ end % loop over rows of the stimulus matrix
 %% Build the modelResponseStruct to return
 modelResponseStruct.timebase=stimulusStruct.timebase;
 modelResponseStruct.values=sum(responseMatrix,1);
+modelResponseStruct.values=modelResponseStruct.values-mean(modelResponseStruct.values);
 
 end

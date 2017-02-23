@@ -20,24 +20,35 @@ rng('default');
 tfeHandle = tfeLEAK('verbosity','none');
 
 %% Temporal domain of the stimulus
-deltaT = 1; % in msecs
+deltaT = 100; % in msecs
 totalTime = 120000; % two minutes, in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-% Create the profile of a single event
+% Create the profile of a single event [cosine windowed step]
 eventDur=3000;
 rampDur=500;
-event.timebase=0:1:eventDur-deltaT;
-event.values(1,1:eventDur)=1;
-event.values(1,1:rampDur/deltaT) = (cos(pi+linspace(0,deltaT,rampDur)*pi)+1)/2;
-event.values(1,end-rampDur/deltaT+1:end) = fliplr((cos(pi+linspace(0,deltaT,rampDur)*pi)+1)/2);
+event.timebase=0:deltaT:eventDur-deltaT;
+event.values=event.timebase*0+1;
+event.values(1,1:rampDur/deltaT) = (cos(pi+linspace(0,rampDur,rampDur/deltaT)/rampDur*pi)+1)/2;
+event.values(1,end-rampDur/deltaT+1:end) = fliplr((cos(pi+linspace(0,rampDur,rampDur/deltaT)/rampDur*pi)+1)/2);
+
+% Create the profile of a single event [half-cycle sine]
+% eventDur=34000;
+% event.timebase=0:deltaT:eventDur-deltaT;
+% event.values=event.timebase*0;
+% event.values(1,:) = sin(linspace(0,eventDur,eventDur/deltaT)/eventDur*2*pi);
+% event.values=max([event.values; event.timebase*0]);
 
 % Create a binary sequence of events
 x = randi([0 1],totalTime/eventDur,1);
 for ii=1:length(x)
-    stimulusStruct.values(1,(ii-1)*eventDur+1:ii*eventDur)=event.values.*x(ii);
+    stimulusStruct.values(1,(ii-1)*(eventDur/deltaT)+1:ii*eventDur/deltaT)=event.values.*x(ii);
 end
+
+
+% Mean center the stimulus
+%stimulusStruct.values(1,:)=stimulusStruct.values(1,:)-mean(stimulusStruct.values(1,:));
 
 nInstances=1;
 defaultParamsInfo.nInstances=nInstances;
@@ -60,7 +71,7 @@ kernelStruct=normalizeKernelAmplitude(kernelStruct);
 
 % Get the default forward model parameters
 params0 = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-params0.noiseSd = 2;
+params0.noiseSd = 1;
 params0.noiseTau = 0.0005;
 
 % start the packet assembly
@@ -80,10 +91,13 @@ fprintf('\n');
 % Generate the simulated response
 simulatedResponseStruct = tfeHandle.computeResponse(params0,thePacket.stimulus,thePacket.kernel,'AddNoise','red');
 
+simulatedResponseStruct.values=simulatedResponseStruct.values/max(simulatedResponseStruct.values);
+
 % Add the simulated response to this packet
 thePacket.response=simulatedResponseStruct;
 
-tfeHandle.plot(simulatedResponseStruct,'DisplayName','Simulated');
+tfeHandle.plot(stimulusStruct,'Color',[0 0 1],'DisplayName','Stimulus');
+tfeHandle.plot(simulatedResponseStruct,'Color',[1 0 0],'NewWindow',false,'DisplayName','Simulated');
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
