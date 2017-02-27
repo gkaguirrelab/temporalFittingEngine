@@ -22,7 +22,7 @@ p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
 %% Compute the forward model
-modelResponseStruct = forwardModelBTRM(params,stimulusStruct);
+modelResponseStruct = forwardModelBTRM(obj,params,stimulusStruct);
 
 % report an iteration has completed
 switch (obj.verbosity)

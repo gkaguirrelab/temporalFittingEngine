@@ -17,7 +17,7 @@ p.parse(varargin{:});
 rng('default');
 
 %% Construct the model object
-tfeHandle = tfeLEAK('verbosity','none');
+tfeHandle = tfeBTRM('verbosity','none');
 
 %% Temporal domain of the stimulus
 deltaT = 100; % in msecs
@@ -71,12 +71,12 @@ kernelStruct=normalizeKernelAmplitude(kernelStruct);
 
 % Get the default forward model parameters
 params0 = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-params0.noiseSd = 1;
-params0.noiseTau = 0.0005;
+params0.noiseSd = .0001;
+%params0.noiseTau = 0.0005;
 
 % start the packet assembly
 thePacket.stimulus = stimulusStruct;
-thePacket.kernel = kernelStruct;
+thePacket.kernel = [];%kernelStruct;
 thePacket.metaData = [];
 
 % Create some dummy metaAData
@@ -89,7 +89,7 @@ tfeHandle.paramPrint(params0);
 fprintf('\n');
 
 % Generate the simulated response
-simulatedResponseStruct = tfeHandle.computeResponse(params0,thePacket.stimulus,thePacket.kernel,'AddNoise','red');
+simulatedResponseStruct = tfeHandle.computeResponse(params0,thePacket.stimulus,thePacket.kernel,'AddNoise',false);
 
 simulatedResponseStruct.values=simulatedResponseStruct.values/max(simulatedResponseStruct.values);
 
