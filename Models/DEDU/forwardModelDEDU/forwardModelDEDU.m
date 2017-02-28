@@ -39,7 +39,7 @@ for i=1:numInstances
     subStimulusStruct.values=subStimulusStruct.values(i,:);
 
     % Build the kernel
-    stepKernelStruct.timebase=0:deltaT:ceil(durationVec(i)*1000-deltaT);
+    stepKernelStruct.timebase=0:deltaT:max([ceil(durationVec(i)*1000-deltaT) deltaT]);
     stepKernelStruct.values=stepKernelStruct.timebase*0+1;
     
     % Convolve the stimulus by the step kernel
