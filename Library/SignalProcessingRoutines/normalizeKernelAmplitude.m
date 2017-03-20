@@ -9,8 +9,10 @@ kernelStructOut = kernelStructIn;
 check = diff(kernelStructIn.timebase);
 kernelDeltaT = check(1);
 
-% scale the kernel to preserve amplitude following convolution
+% scale the kernel to preserve area following convolution
 kernelStructOut.values=kernelStructOut.values/abs((sum(kernelStructOut.values)*kernelDeltaT));
+
+warning('This function is normalizing kernel area, which is usually what is desired. Switch to using the normalizeKernelArea function');
 
 end
 

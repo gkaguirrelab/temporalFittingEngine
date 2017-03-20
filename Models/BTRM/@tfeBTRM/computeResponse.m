@@ -18,6 +18,7 @@ p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('addNoise',false,@islogical);
+
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
@@ -33,9 +34,28 @@ end
 %% Optionally, convolve with a passed kernel
 modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
-%% Optional add noise
-if (p.Results.addNoise)
-    modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
+%% Optional add 1/f^2 noise
+if p.Results.addNoise
+    if ~isfield(params, 'noiseType')
+        params.noiseType='white';
+        
+    end
+switch params.noiseType
+    case 'white'
+        modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
+    case 'red' % aka 'brown'ian noise or auto-regressive noise
+        noise.timebase=modelResponseStruct.timebase;
+        noise.values=normrnd(0,1,size(modelResponseStruct.values));
+        noiseFilter.timebase=modelResponseStruct.timebase;
+        noiseFilter.values=exp(-1/params.noiseTimeConstant*noiseFilter.timebase);
+        noiseFilter=normalizeKernelArea(noiseFilter);
+        noise=obj.applyKernel(noise,noiseFilter);
+        noise.values=noise.values/std(noise.values)*params.noiseSd;
+        modelResponseStruct.values = modelResponseStruct.values + noise.values;
+    case 'none'
+    otherwise
+        error('That is not a noise type that I know');
+end
 end
 
 end

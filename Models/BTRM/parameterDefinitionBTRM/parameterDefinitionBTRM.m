@@ -8,41 +8,55 @@ function paramStruct = parameterDefinitionBTRM(nInstances)
 %% Unpack the params
 %    These parameters are active for modeling of fMRI time series data:
 %      amplitude - multiplicative scaling of the stimulus.
-%      tauExponentialDecay - time constant of the low-pass (exponential
-%        decay) component. Reasonable bounds [0.0001:0.1]
-%
-%    These parameters operate at neural timescales, so may be held fixed in
-%    the modeling of fMRI data:
-%      tauNeuralIRF - time constant of the neural IRF (in seconds). A
-%        typical valye might be 0.005 secs (5 msecs)
-%      epsilonCompression - compressive non-linearity parameter. Reasonable
-%        bounds [0.1:1], where 1 is no compression.
+%      tauGammaIRF - time constant of the neural gamma IRF in msecs.
+%      tauExpTimeConstant - time constant of the low-pass (exponential
+%        decay) component (in mecs). Reasonable bounds [100:100000]
+%      divisiveSigma - Adjustment factor to the divisive temporal
+%        normalization. Found to be ~0.1 in V1. Set to unity to remove its effect. 
+%      nCompression - compressive non-linearity parameter. Reasonable
+%        bounds [1:3], where 1 is no compression.
+%      tauInhibitoryTimeConstant - time constant of the leaky (exponential)
+%        integration of neural signals that produces delayed adaptation.
+%      kappaInhibitionAmplitude - multiplicative scaling of the inhibitory
+%        effect.
 
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
     'amplitude',...
-    'tauExponentialDecay',...
-    'tauNeuralIRF',...
-    'epsilonCompression'...
+    'tauGammaIRF',...
+    'tauExpTimeConstant',...
+    'divisiveSigma',...
+    'nCompression'...,...
+    'tauInhibitoryTimeConstant',...
+    'kappaInhibitionAmplitude',...
     };
 
 % initial values
 paramStruct.paramMainMatrix = [];
 paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,2) = 0.01.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,3) = 100.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,4) = 2.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,2) = 1.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,3) = 100000.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,4) = 1.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,5) = 1.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,6) = 8000.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,7) = 0.25.*ones([nInstances 1]);
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-10,[nInstances 1]);
-paramStruct.vlb(:,2) = repmat(0.001,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(100,[nInstances 1]);
+paramStruct.vlb(:,2) = repmat(100,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(1,[nInstances 1]);
 paramStruct.vlb(:,4) = repmat(1,[nInstances 1]);
+paramStruct.vlb(:,5) = repmat(1,[nInstances 1]);
+paramStruct.vlb(:,6) = repmat(1,[nInstances 1]);
+paramStruct.vlb(:,7) = repmat(0,[nInstances 1]);
 
 % set upper bounds
 paramStruct.vub(:,1) = repmat(10,[nInstances 1]);
-paramStruct.vub(:,2) = repmat(0.1,[nInstances 1]);
-paramStruct.vub(:,3) = repmat(100,[nInstances 1]);
-paramStruct.vub(:,4) = repmat(3,[nInstances 1]);
+paramStruct.vub(:,2) = repmat(5000,[nInstances 1]);
+paramStruct.vub(:,3) = repmat(100000,[nInstances 1]);
+paramStruct.vlb(:,4) = repmat(1,[nInstances 1]);
+paramStruct.vub(:,5) = repmat(1,[nInstances 1]);
+paramStruct.vub(:,6) = repmat(100000,[nInstances 1]);
+paramStruct.vub(:,7) = repmat(1,[nInstances 1]);
 
 end
