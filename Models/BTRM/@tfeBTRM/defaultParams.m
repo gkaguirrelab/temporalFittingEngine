@@ -49,10 +49,9 @@ paramsUb.matrixRows = size(paramsUb.paramMainMatrix,1);
 paramsUb.matrixCols = size(paramsUb.paramMainMatrix,2);
 
 % Noise parameter for simulation
-params.noiseSd = 0;
+params.noiseSd = 0.05;
 paramsLb.noiseSd = 0;
 paramsUb.noiseSd = 0;
-
 params.noiseInverseFrequencyPower = 1;
 
 end

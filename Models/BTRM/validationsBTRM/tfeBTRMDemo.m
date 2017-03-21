@@ -17,7 +17,7 @@ fprintf('\n');
 
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
-totalTime = 34000; % in msecs
+totalTime = 50000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
@@ -25,7 +25,7 @@ nTimeSamples = size(stimulusStruct.timebase,2);
 % We create here a step function of neural activity, with half-cosine ramps
 %  on and off
 stepOnset=1000; % msecs
-stepDuration=3000; % msecs
+stepDuration=12000; % msecs
 rampDuration=500; % msecs
 
 % the square wave step
@@ -46,7 +46,25 @@ stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(r
 % stimulusStruct.values = sin(2*pi*stimulusStruct.timebase / totalTime);
 % stimulusStruct.values(stimulusStruct.values<0)=0;
 
-                  
+
+%% Temporal domain of the stimulus 
+deltaT = 100; % in msecs
+totalTime = 330000; % in msecs. This is a 5:30 duration experiment
+stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
+nTimeSamples = size(stimulusStruct.timebase,2);
+stimulusStruct.values = zeros(1,nTimeSamples);
+
+%% Specify the stimulus struct. 
+% We will create a set of impulses of various amplitudes in a stimulus
+% matrix. There will be an event every 
+eventTimes=linspace(1000,321000,21);
+nEvents=length(eventTimes);
+eventDuration=50; % pulse duration in msecs
+
+for ii=1:nEvents
+    stimulusStruct.values(1,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=1;
+end
+
 %% Define a kernelStruct. In this case, a double gamma HRF
 hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
@@ -67,7 +85,7 @@ kernelStruct=normalizeKernelArea(kernelStruct);
 %% Create and plot modeled responses
 
 % Set the noise level and report the params
-params0.noiseSd = 0.05;
+params0.noiseSd = 0.001;
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
@@ -98,14 +116,13 @@ thePacket.metaData = [];
 paramLockMatrix = [];
 
 % We will fit each average response as a single stimulus in a packet, so
-% each packet therefore contains a single stimulus instamce.
+% each packet therefore contains a single stimulus instance.
 defaultParamsInfo.nInstances = 1;
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
             temporalFit.fitResponse(thePacket,...
-            'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix);
+            'defaultParamsInfo', defaultParamsInfo);
         
 %% Report the output
 fprintf('Model parameter from fits:\n');
