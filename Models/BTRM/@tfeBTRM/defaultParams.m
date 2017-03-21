@@ -53,5 +53,6 @@ params.noiseSd = 0;
 paramsLb.noiseSd = 0;
 paramsUb.noiseSd = 0;
 
+params.noiseInverseFrequencyPower = 1;
 
 end

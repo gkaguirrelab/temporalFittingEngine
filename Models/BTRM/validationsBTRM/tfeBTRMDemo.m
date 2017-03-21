@@ -17,16 +17,16 @@ fprintf('\n');
 
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
-totalTime = 50000; % in msecs
+totalTime = 34000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-%% Specify the stimulus values. 
+%% Specify a stimulus. 
 % We create here a step function of neural activity, with half-cosine ramps
 %  on and off
 stepOnset=1000; % msecs
-stepDuration=12000; % msecs
-rampDuration=3000; % msecs
+stepDuration=3000; % msecs
+rampDuration=500; % msecs
 
 % the square wave step
 stimulusStruct.values=zeros(1,nTimeSamples);
@@ -35,12 +35,18 @@ stimulusStruct.values(round(stepOnset/deltaT): ...
 % half cosine ramp on
 stimulusStruct.values(round(stepOnset/deltaT): ...
                       round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
-                      fliplr(cos(linspace(0,pi,round(rampDuration/deltaT))/2));
+                      (fliplr(cos(linspace(0,2*pi,round(rampDuration/deltaT))/2))+1)/2;
 % half cosine ramp off
 stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(rampDuration/deltaT): ...
                       round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
-                      cos(linspace(0,pi,round(rampDuration/deltaT))/2);
+                      (cos(linspace(0,2*pi,round(rampDuration/deltaT))/2)+1)/2;
 
+% This stimulus is just the positive portion of a sinusoid with a cycle
+% time equal to totalTime.
+% stimulusStruct.values = sin(2*pi*stimulusStruct.timebase / totalTime);
+% stimulusStruct.values(stimulusStruct.values<0)=0;
+
+                  
 %% Define a kernelStruct. In this case, a double gamma HRF
 hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
@@ -55,7 +61,8 @@ hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
 kernelStruct.values=hrf;
 
 % prepare this kernelStruct for use in convolution as a BOLD HRF
-kernelStruct=prepareHRFKernel(kernelStruct);
+kernelStruct.values=kernelStruct.values-kernelStruct.values(1);
+kernelStruct=normalizeKernelArea(kernelStruct);
 
 %% Create and plot modeled responses
 
@@ -74,12 +81,12 @@ temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural res
 hold on;
 
 % Add the stimulus profile to the plot
-plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
+plot(stimulusStruct.timebase/1000,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
 
 % Now plot the response with convolution and noise, as well as the kernel
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
 temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','noisy BOLD response');
-plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b','DisplayName','kernel');
+plot(kernelStruct.timebase/1000,kernelStruct.values/max(kernelStruct.values),'-b','DisplayName','kernel');
 
 %% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;

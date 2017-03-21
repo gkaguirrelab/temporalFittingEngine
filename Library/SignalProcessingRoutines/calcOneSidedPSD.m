@@ -17,7 +17,7 @@ function [ psdStruct ] = calcOneSidedPSD( dataStruct, varargin )
 % Outputs:
 %   psdStruct - the one-sided power spectrum of the dataStruct. The time-
 %     base is set to the one-sided frequency range (in Hz). The length
-%     is one-half the input lenght. The values are in units of power, with
+%     is one-half the input length. The values are in units of power, with
 %     each row of the values field corresponding to each row of the values
 %     field in the input dataStruct. The sum of the values in the one-sided
 %     spectrum is equal to the variance of the input signal.

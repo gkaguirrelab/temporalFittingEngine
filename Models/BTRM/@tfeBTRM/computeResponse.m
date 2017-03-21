@@ -9,7 +9,7 @@ function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelS
 %   'AddNoise' - true/false (default false).  Add noise to computed
 %     response? Useful for simulations.
 
-%% Parse input. 
+%% Parse input.
 % Setting 'KeepUmatched' to true means that we can pass the varargin{:})
 % along from a calling routine without an error here, if the key/value
 % pairs recognized by the calling routine are not needed here.
@@ -18,11 +18,12 @@ p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('addNoise',false,@islogical);
+
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
 %% Compute the forward model
-modelResponseStruct = forwardModelBTRM(params,stimulusStruct);
+modelResponseStruct = forwardModelBTRM(obj,params,stimulusStruct);
 
 % report an iteration has completed
 switch (obj.verbosity)
@@ -34,8 +35,14 @@ end
 modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
 %% Optional add noise
-if (p.Results.addNoise)
-    modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
+if p.Results.addNoise
+    if ~isfield(params, 'noiseInverseFrequencyPower')
+        params.noiseInverseFrequencyPower=0;
+    end
+    cn = dsp.ColoredNoise(params.noiseInverseFrequencyPower,length(modelResponseStruct.timebase),1);
+    noise = cn()';
+    noise = noise/std(noise)*params.noiseSd;
+    modelResponseStruct.values = modelResponseStruct.values + noise;
 end
 
 end
