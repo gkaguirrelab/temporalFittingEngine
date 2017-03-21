@@ -120,7 +120,7 @@ for ii=1:numInstances
         
     %% Implement the subtractive effect of a leaky integrator
     % Create an exponential integrator, normalize the area, and convolve
-    inhibitoryKernelStruct.values=exp(-1/tauInhibitoryTimeConstant_LEAKVec(ii)*inhibitoryKernelStruct.timebase);
+    inhibitoryKernelStruct.values=exp(-1/(tauInhibitoryTimeConstant_LEAKVec(ii)*1000)*inhibitoryKernelStruct.timebase);
     inhibitoryKernelStruct=normalizeKernelArea(inhibitoryKernelStruct);
     inhibitionStruct=obj.applyKernel(yNeural,inhibitoryKernelStruct);
     % raise the inhition temporal profile to vExponent, but preserve area

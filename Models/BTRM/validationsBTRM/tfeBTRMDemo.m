@@ -4,7 +4,11 @@
 %
 
 %% Clear and close
-clear; close all;
+clearvars;
+%close all;
+
+% Reset the random number generator for consistent results
+%rng default
 
 %% Construct the model object
 temporalFit = tfeBTRM('verbosity','none');
@@ -24,21 +28,21 @@ nTimeSamples = size(stimulusStruct.timebase,2);
 %% Specify a stimulus. 
 % We create here a step function of neural activity, with half-cosine ramps
 %  on and off
-stepOnset=1000; % msecs
-stepDuration=12000; % msecs
+eventOnset=0;
+eventDuration=3000; % msecs
 rampDuration=500; % msecs
 
 % the square wave step
-stimulusStruct.values=zeros(1,nTimeSamples);
-stimulusStruct.values(round(stepOnset/deltaT): ...
-                      round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)=1;
+eventStruct.values=zeros(1,eventDuration/deltaT);
+eventStruct.values(round(eventOnset/deltaT)+1: ...
+                      round(eventOnset/deltaT)+round(eventDuration/deltaT))=1;
 % half cosine ramp on
-stimulusStruct.values(round(stepOnset/deltaT): ...
-                      round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
+eventStruct.values(round(eventOnset/deltaT)+1: ...
+                      round(eventOnset/deltaT)+round(rampDuration/deltaT))= ...
                       (fliplr(cos(linspace(0,2*pi,round(rampDuration/deltaT))/2))+1)/2;
 % half cosine ramp off
-stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(rampDuration/deltaT): ...
-                      round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
+eventStruct.values(round(eventOnset/deltaT)+1+round(eventDuration/deltaT)-round(rampDuration/deltaT): ...
+                      round(eventOnset/deltaT)+round(eventDuration/deltaT))= ...
                       (cos(linspace(0,2*pi,round(rampDuration/deltaT))/2)+1)/2;
 
 % This stimulus is just the positive portion of a sinusoid with a cycle
@@ -49,20 +53,16 @@ stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(r
 
 %% Temporal domain of the stimulus 
 deltaT = 100; % in msecs
-totalTime = 330000; % in msecs. This is a 5:30 duration experiment
+totalTime = 600000; % in msecs. This is a 10 minute experiment
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 stimulusStruct.values = zeros(1,nTimeSamples);
 
-%% Specify the stimulus struct. 
-% We will create a set of impulses of various amplitudes in a stimulus
-% matrix. There will be an event every 
-eventTimes=linspace(1000,321000,21);
-nEvents=length(eventTimes);
-eventDuration=50; % pulse duration in msecs
-
+nEvents=totalTime/eventDuration;
 for ii=1:nEvents
-    stimulusStruct.values(1,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=1;
+    if rand()>0.5
+    stimulusStruct.values(1,eventDuration*(ii-1)/deltaT+1:(eventDuration*(ii)/deltaT))=eventStruct.values;
+    end
 end
 
 %% Define a kernelStruct. In this case, a double gamma HRF
@@ -85,7 +85,7 @@ kernelStruct=normalizeKernelArea(kernelStruct);
 %% Create and plot modeled responses
 
 % Set the noise level and report the params
-params0.noiseSd = 0.001;
+params0.noiseSd = 0.2;
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
@@ -95,7 +95,7 @@ figure;
 
 % First create and plot the response without noise and without convolution
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
-temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response');
+temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response','Color',[.5 .5 1]);
 hold on;
 
 % Add the stimulus profile to the plot
