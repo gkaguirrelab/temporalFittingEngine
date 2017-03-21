@@ -12,7 +12,7 @@ kernelDeltaT = check(1);
 % scale the kernel to preserve area following convolution
 kernelStructOut.values=kernelStructOut.values/abs((sum(kernelStructOut.values)*kernelDeltaT));
 
-warning('This function is normalizing kernel area, which is usually what is desired. Switch to using the normalizeKernelArea function');
+warning('This function is actually normalizes kernel area, not amplitdude. It is deprecated. It also has a bug in the area calculation. Switch to using the normalizeKernelArea function');
 
 end
 
