@@ -33,19 +33,19 @@ paramStruct.paramNameCell = { ...
 
 % initial values
 paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,2) = 1.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,3) = 100000.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,4) = 1.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,5) = 1.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,6) = 8000.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,7) = 0.25.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,1) = 1.0.*ones([nInstances 1]);  % amplitude
+paramStruct.paramMainMatrix(:,2) = 1.*ones([nInstances 1]);    % tauGammaIRF
+paramStruct.paramMainMatrix(:,3) = 0.001.*ones([nInstances 1]);  % tauExpTimeConstant
+paramStruct.paramMainMatrix(:,4) = 0.001.*ones([nInstances 1]);    % divisiveSigma
+paramStruct.paramMainMatrix(:,5) = 1.*ones([nInstances 1]);    % nCompression
+paramStruct.paramMainMatrix(:,6) = 1.*ones([nInstances 1]); % tauInhibitoryTimeConstant
+paramStruct.paramMainMatrix(:,7) = 0.*ones([nInstances 1]); % kappaInhibitionAmplitude
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(-10,[nInstances 1]);
 paramStruct.vlb(:,2) = repmat(100,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(1,[nInstances 1]);
-paramStruct.vlb(:,4) = repmat(1,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(0.001,[nInstances 1]);
+paramStruct.vlb(:,4) = repmat(0.001,[nInstances 1]);
 paramStruct.vlb(:,5) = repmat(1,[nInstances 1]);
 paramStruct.vlb(:,6) = repmat(1,[nInstances 1]);
 paramStruct.vlb(:,7) = repmat(0,[nInstances 1]);
