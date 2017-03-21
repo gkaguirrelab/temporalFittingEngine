@@ -70,7 +70,7 @@ for ii=1:numInstances
     %% grab the current stimulus
     numeratorStruct=stimulusStruct;
     numeratorStruct.values=numeratorStruct.values(ii,:);
-            
+    
     %% Apply gamma convolution
     % Define a gamma function that transforms the
     % stimulus input into a profile of neural activity (e.g., LFP)
@@ -83,7 +83,7 @@ for ii=1:numInstances
     %% Apply amplitude gain
     % scaled by the main response amplitude parameter
     numeratorStruct.values = numeratorStruct.values.*amplitudeVec(ii);
-
+    
     %% Implement the compressive non-linearity stage
     % Create the exponential low-pass kernel that defines the time-domain
     % properties of the normalization
@@ -94,7 +94,7 @@ for ii=1:numInstances
     denominatorStruct=obj.applyKernel(numeratorStruct,exponentialKernelStruct);
     % Apply the compresion and add the semi-saturation constant
     denominatorStruct.values=(divisiveSigmaVec(ii)^nCompressionVec(ii)) + ...
-    denominatorStruct.values.^nCompressionVec(ii);
+        denominatorStruct.values.^nCompressionVec(ii);
     % Apply the compresion to the numerator
     numeratorStruct.values=numeratorStruct.values.^nCompressionVec(ii);
     % Compute the final dCTS values
@@ -110,9 +110,9 @@ for ii=1:numInstances
     % raise the inhition temporal profile to vExponent, but preserve area
     inhibitionArea=sum(abs(inhibitionStruct.values));
     inhibitionStruct.values=inhibitionStruct.values.^vExponent;
-    inhibitionStruct.values=inhibitionStruct.values/sum(abs(inhibitionStruct.values))*inhibitionArea;    
+    inhibitionStruct.values=inhibitionStruct.values/sum(abs(inhibitionStruct.values))*inhibitionArea;
     yNeural.values=yNeural.values-inhibitionStruct.values*kappaInhibitionAmplitudeVec(ii);
-
+    
     %% Place yNeural into the growing neuralMatrix
     responseMatrix(ii,:)=yNeural.values;
     
