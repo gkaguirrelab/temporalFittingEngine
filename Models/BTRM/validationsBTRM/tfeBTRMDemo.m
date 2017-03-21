@@ -26,7 +26,7 @@ nTimeSamples = size(stimulusStruct.timebase,2);
 %  on and off
 stepOnset=1000; % msecs
 stepDuration=3000; % msecs
-rampDuration=1000; % msecs
+rampDuration=500; % msecs
 
 % the square wave step
 stimulusStruct.values=zeros(1,nTimeSamples);
@@ -43,8 +43,8 @@ stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(r
 
 % This stimulus is just the positive portion of a sinusoid with a cycle
 % time equal to totalTime.
-stimulusStruct.values = sin(2*pi*stimulusStruct.timebase / totalTime);
-stimulusStruct.values(stimulusStruct.values<0)=0;
+% stimulusStruct.values = sin(2*pi*stimulusStruct.timebase / totalTime);
+% stimulusStruct.values(stimulusStruct.values<0)=0;
 
                   
 %% Define a kernelStruct. In this case, a double gamma HRF
