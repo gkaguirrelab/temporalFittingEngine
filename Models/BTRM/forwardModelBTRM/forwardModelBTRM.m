@@ -26,34 +26,40 @@ function [modelResponseStruct] = forwardModelBTRM(obj,params,stimulusStruct)
 
 %% Unpack the params
 %      amplitude - multiplicative scaling of the stimulus.
-%      tauGammaIRF - time constant of the neural gamma IRF in msecs. A
+%      tauGammaIRF_CTS - time constant of the neural gamma IRF in msecs. A
 %        value of 50 - 100 msecs was found in early visual areas.
-%      epsilonCompression - compressive non-linearity of response.
-%        Reasonable bouds are [0.1:1]. Not used if dCTS model evoked.
-%      tauExpTimeConstant - time constant of the low-pass (exponential
-%        decay) component (in mecs). Reasonable bounds [100:100000]
-%      nCompression - compressive non-linearity parameter. Reasonable
-%        bounds [1:3], where 1 is no compression.
-%      divisiveSigma - Adjustment factor to the divisive temporal
-%        normalization. Found to be ~0.1 in V1. Set to unity to remove its effect. 
-%      tauInhibitoryTimeConstant - time constant of the leaky (exponential)
+%      epsilonCompression_CTS - compressive non-linearity of response.
+%        Reasonable bouds are [0.1:1]. Not used if dCTS model evoked. 
+%      tauInhibitoryTimeConstant_LEAK - time constant of the leaky (exponential)
 %        integration of neural signals that produces delayed adaptation.
-%      kappaInhibitionAmplitude - multiplicative scaling of the inhibitory
+%      kappaInhibitionAmplitude_LEAK - multiplicative scaling of the inhibitory
 %        effect.
+%      tauExpTimeConstant_dCTS - time constant of the low-pass (exponential
+%        decay) component (in secs). Reasonable bounds [0.1:1]
+%      nCompression_dCTS - compressive non-linearity parameter. Reasonable
+%        bounds [1:3], where 1 is no compression.
+%      divisiveSigma_dCTS - Adjustment factor to the divisive temporal
+%        normalization. Found to be ~0.1 in V1.
 
 % Hard coded params
 vExponent = 3; % Observed by Zaidi et al. to provide the best fit to the RGC response data
-dCTS_flag = false;
 
 amplitude_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude_CTS'));
 tauGammaIRF_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauGammaIRF_CTS'));
-epsilonCompression_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'epsilonCompression_CTS'));
 tauInhibitoryTimeConstant_LEAKVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauInhibitoryTimeConstant_LEAK'));
 kappaInhibitionAmplitude_LEAKVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'kappaInhibitionAmplitude_LEAK'));
-if dCTS_flag
+
+% Detect if the elements of the dCTS model are defined
+if sum(strcmp(params.paramNameCell,'tauExpTimeConstant_dCTS'))>0 && ...
+        sum(strcmp(params.paramNameCell,'nCompression_dCTS'))>0 && ...
+        sum(strcmp(params.paramNameCell,'divisiveSigma_dCTS'))>0
     tauExpTimeConstant_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauExpTimeConstant_dCTS'));
     nCompression_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'nCompression_dCTS'));
     divisiveSigma_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'divisiveSigma_dCTS'));
+    dCTS_flag = true;
+else
+    epsilonCompression_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'epsilonCompression_CTS'));
+    dCTS_flag = false;
 end
 
 
@@ -97,7 +103,7 @@ for ii=1:numInstances
     if dCTS_flag
         % Create the exponential low-pass kernel that defines the time-domain
         % properties of the normalization
-        exponentialKernelStruct.values=exp(-1/tauExpTimeConstant_dCTSVec(ii)*exponentialKernelStruct.timebase);
+        exponentialKernelStruct.values=exp(-1/(tauExpTimeConstant_dCTSVec(ii)*1000)*exponentialKernelStruct.timebase);
         % scale the kernel to preserve area of response after convolution
         exponentialKernelStruct=normalizeKernelArea(exponentialKernelStruct);
         % Convolve the linear response by the exponential decay
