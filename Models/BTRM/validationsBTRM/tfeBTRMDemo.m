@@ -85,7 +85,10 @@ kernelStruct=normalizeKernelArea(kernelStruct);
 %% Create and plot modeled responses
 
 % Set the noise level and report the params
-params0.noiseSd = 0.2;
+params0.noiseSd = 0.1;
+params0.paramMainMatrix(4)=24;
+params0.paramMainMatrix(5)=0.15;
+
 fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');

@@ -112,7 +112,7 @@ for ii=1:numInstances
     else
         % If we are not implementing the dCTS model, apply compressive
         % non-linearity
-        yNeural.values=yNeural.values.^epsilonCompression_CTSVec;
+        yNeural.values=yNeural.values.^epsilonCompression_CTSVec(ii);
     end
     
     %% Apply amplitude gain
