@@ -15,7 +15,7 @@ p.parse(varargin{:});
 rng('default');
 
 %% Construct the model object
-tfeHandle = tfeBTRM('verbosity','none');
+tfeHandle = tfeIAMP('verbosity','none');
 
 %% Temporal domain of the stimulus
 deltaT = 100; % in msecs
@@ -24,37 +24,21 @@ stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
 %% Specify the stimulus values.
-% We create here a step function of neural activity, with half-cosine ramps
-%  on and off. There will be ten instances.
-nInstances=10;
-stepDuration=12000; % msecs
-onsetDelay=100; % msecs
-rampDuration=3000; % msecs
+% We create here an impulse of stimulation. There will be ten instances.
+nInstances=9;
+eventDuration=100;
+ISIduration=12000; % msecs
 
 defaultParamsInfo.nInstances=nInstances;
 
 for ii=1:nInstances
-
-    % calculate the time at which the stimulus begins
-    stepOnset=(ii-1)*stepDuration+onsetDelay; % msecs
-    
-    % the square wave step
     stimulusStruct.values(ii,:)=zeros(1,nTimeSamples);
-    stimulusStruct.values(ii,round(stepOnset/deltaT): ...
-        round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)=1;
-    % half cosine ramp on
-    stimulusStruct.values(ii,round(stepOnset/deltaT): ...
-        round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
-        fliplr(cos(linspace(0,pi,round(rampDuration/deltaT))/2));
-    % half cosine ramp off
-    stimulusStruct.values(ii,round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(rampDuration/deltaT): ...
-        round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
-        cos(linspace(0,pi,round(rampDuration/deltaT))/2);
+    stimulusStruct.values(ii,(ii*ISIduration)/deltaT+1:(ii*ISIduration)/deltaT+eventDuration)=1;
     
 end % loop over instances building the stimulus values
 
 %% Define a kernelStruct. In this case, a double gamma HRF
-hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
+hrfParams.gamma1 = 4;   % positive gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
 kernelStruct.timebase=stimulusStruct.timebase;
@@ -66,11 +50,12 @@ hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
 kernelStruct.values=hrf;
 
 % prepare this kernelStruct for use in convolution as a BOLD HRF
-kernelStruct=prepareHRFKernel(kernelStruct);
+kernelStruct.values=kernelStruct.values-kernelStruct.values(1);
+kernelStruct=normalizeKernelArea(kernelStruct);
 
 %% Get the default forward model parameters
 params0 = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
-params0.noiseSd = 0.05;
+params0.noiseSd = 0.1;
 
 %% Create the packetCellArray
 
@@ -78,8 +63,7 @@ params0.noiseSd = 0.05;
 % stimulus types, each with a different expected amplitude and tau.
 stimLabels={'stimA','stimB'};
 stimTypes=[1 2 1 2 1 2 1 2 1 2]';
-stimMeansAmplitude=[1,0.25];
-stimMeansTau=[0.1,0.001];
+stimMeansAmplitude=[1,0.5];
 nPackets=6;
 
 for pp=1:nPackets
@@ -101,7 +85,6 @@ for pp=1:nPackets
     paramsLocal=params0;
     for ii=1:nInstances
         paramsLocal.paramMainMatrix(ii,1)=stimMeansAmplitude(thePacket.stimulus.metaData.stimTypes(ii));
-        paramsLocal.paramMainMatrix(ii,2)=stimMeansTau(thePacket.stimulus.metaData.stimTypes(ii));
     end
     
     % Generate the simulated response
