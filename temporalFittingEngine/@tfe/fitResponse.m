@@ -51,7 +51,7 @@ else
 end
 
 %% Set initial values and reasonable bounds on parameters
-[paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo);
+[paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo,varargin{:});
 paramsFitVec0 = obj.paramsToVec(paramsFit0);
 vlbVec = obj.paramsToVec(vlb);
 vubVec = obj.paramsToVec(vub);
