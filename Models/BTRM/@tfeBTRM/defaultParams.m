@@ -13,7 +13,7 @@ function [params,paramsLb,paramsUb] = defaultParams(obj,varargin)
 %  routine.  If this struct is not passed, nStimuli is set to 1.
 
 %% Parse vargin for options passed here
-p = inputParser;
+p = inputParser; p.KeepUnmatched = true;
 p.addParameter('defaultParamsInfo',[],@isstruct);
 p.parse(varargin{:});
 
@@ -30,7 +30,7 @@ end
 %  needed for the fitting engine.
 
 % Call out to the parameter definition routine for this method
-paramStruct = parameterDefinitionBTRM(nInstances);
+paramStruct = parameterDefinitionBTRM(nInstances,varargin{:});
 
 % Assemble the fields of params
 params.paramNameCell = paramStruct.paramNameCell;
@@ -49,10 +49,9 @@ paramsUb.matrixRows = size(paramsUb.paramMainMatrix,1);
 paramsUb.matrixCols = size(paramsUb.paramMainMatrix,2);
 
 % Noise parameter for simulation
-params.noiseSd = 0;
+params.noiseSd = 0.05;
 paramsLb.noiseSd = 0;
 paramsUb.noiseSd = 0;
-
 params.noiseInverseFrequencyPower = 1;
 
 end

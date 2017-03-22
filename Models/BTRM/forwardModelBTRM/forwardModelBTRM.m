@@ -25,24 +25,42 @@ function [modelResponseStruct] = forwardModelBTRM(obj,params,stimulusStruct)
 
 
 %% Unpack the params
-%    These parameters are active for modeling of fMRI time series data:
 %      amplitude - multiplicative scaling of the stimulus.
-%      tauGammaIRF - time constant of the neural gamma IRF in msecs.
-%      tauExpTimeConstant - time constant of the low-pass (exponential
-%        decay) component (in mecs). Reasonable bounds [100:1000]
-%      nCompression - compressive non-linearity parameter. Reasonable
+%      tauGammaIRF_CTS - time constant of the neural gamma IRF in msecs. A
+%        value of 50 - 100 msecs was found in early visual areas.
+%      epsilonCompression_CTS - compressive non-linearity of response.
+%        Reasonable bouds are [0.1:1]. Not used if dCTS model evoked. 
+%      tauInhibitoryTimeConstant_LEAK - time constant of the leaky (exponential)
+%        integration of neural signals that produces delayed adaptation.
+%      kappaInhibitionAmplitude_LEAK - multiplicative scaling of the inhibitory
+%        effect.
+%      tauExpTimeConstant_dCTS - time constant of the low-pass (exponential
+%        decay) component (in secs). Reasonable bounds [0.1:1]
+%      nCompression_dCTS - compressive non-linearity parameter. Reasonable
 %        bounds [1:3], where 1 is no compression.
-
-amplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude'));
-tauGammaIRFVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauGammaIRF'));
-tauExpTimeConstantVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauExpTimeConstant'));
-divisiveSigmaVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'divisiveSigma'));
-nCompressionVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'nCompression'));
-tauInhibitoryTimeConstantVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauInhibitoryTimeConstant'));
-kappaInhibitionAmplitudeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'kappaInhibitionAmplitude'));
+%      divisiveSigma_dCTS - Adjustment factor to the divisive temporal
+%        normalization. Found to be ~0.1 in V1.
 
 % Hard coded params
 vExponent = 3; % Observed by Zaidi et al. to provide the best fit to the RGC response data
+
+amplitude_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitude_CTS'));
+tauGammaIRF_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauGammaIRF_CTS'));
+tauInhibitoryTimeConstant_LEAKVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauInhibitoryTimeConstant_LEAK'));
+kappaInhibitionAmplitude_LEAKVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'kappaInhibitionAmplitude_LEAK'));
+
+% Detect if the elements of the dCTS model are defined
+if sum(strcmp(params.paramNameCell,'tauExpTimeConstant_dCTS'))>0 && ...
+        sum(strcmp(params.paramNameCell,'nCompression_dCTS'))>0 && ...
+        sum(strcmp(params.paramNameCell,'divisiveSigma_dCTS'))>0
+    tauExpTimeConstant_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'tauExpTimeConstant_dCTS'));
+    nCompression_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'nCompression_dCTS'));
+    divisiveSigma_dCTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'divisiveSigma_dCTS'));
+    dCTS_flag = true;
+else
+    epsilonCompression_CTSVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'epsilonCompression_CTS'));
+    dCTS_flag = false;
+end
 
 
 %% Define basic model features
@@ -54,64 +72,69 @@ modelLength = length(stimulusStruct.timebase);
 % pre-allocate the responseMatrix variable here for speed
 responseMatrix=zeros(numInstances,modelLength);
 
-% pre-allocate the convoluation kernels for speed
+% pre-allocate the convolution kernels for speed
 gammaKernelStruct.timebase=stimulusStruct.timebase;
 gammaKernelStruct.values=stimulusStruct.timebase*0;
-
-exponentialKernelStruct.timebase=stimulusStruct.timebase;
-exponentialKernelStruct.values=stimulusStruct.timebase*0;
-
 inhibitoryKernelStruct.timebase=stimulusStruct.timebase;
 inhibitoryKernelStruct.values=stimulusStruct.timebase*0;
+
+if dCTS_flag
+    exponentialKernelStruct.timebase=stimulusStruct.timebase;
+    exponentialKernelStruct.values=stimulusStruct.timebase*0;
+end
 
 %% We loop through each column of the stimulus matrix
 for ii=1:numInstances
     
     %% grab the current stimulus
-    numeratorStruct=stimulusStruct;
-    numeratorStruct.values=numeratorStruct.values(ii,:);
+    signalStruct=stimulusStruct;
+    signalStruct.values=signalStruct.values(ii,:);
     
     %% Apply gamma convolution
     % Define a gamma function that transforms the
     % stimulus input into a profile of neural activity (e.g., LFP)
-    gammaKernelStruct.values = gammaKernelStruct.timebase .* exp(-gammaKernelStruct.timebase/tauGammaIRFVec(ii));
+    gammaKernelStruct.values = gammaKernelStruct.timebase .* exp(-gammaKernelStruct.timebase/tauGammaIRF_CTSVec(ii));
     % scale the kernel to preserve area of response after convolution
     gammaKernelStruct=normalizeKernelArea(gammaKernelStruct);
     % Convolve the stimulus struct by the gammaKernel
-    numeratorStruct=obj.applyKernel(numeratorStruct,gammaKernelStruct);
+    yNeural=obj.applyKernel(signalStruct,gammaKernelStruct);
+    
+    %% Implement the dCTS model.
+    if dCTS_flag
+        % Create the exponential low-pass kernel that defines the time-domain
+        % properties of the normalization
+        exponentialKernelStruct.values=exp(-1/(tauExpTimeConstant_dCTSVec(ii)*1000)*exponentialKernelStruct.timebase);
+        % scale the kernel to preserve area of response after convolution
+        exponentialKernelStruct=normalizeKernelArea(exponentialKernelStruct);
+        % Convolve the linear response by the exponential decay
+        denominatorStruct=obj.applyKernel(yNeural,exponentialKernelStruct);
+        % Apply the compresion and add the semi-saturation constant
+        denominatorStruct.values=(divisiveSigma_dCTSVec(ii)^nCompression_dCTSVec(ii)) + ...
+            denominatorStruct.values.^nCompression_dCTSVec(ii);
+        % Apply the compresion to the numerator
+        numeratorStruct.values=yNeural.values.^nCompression_dCTSVec(ii);
+        % Compute the final dCTS values
+        yNeural.values=numeratorStruct.values./denominatorStruct.values;
+    else
+        % If we are not implementing the dCTS model, apply compressive
+        % non-linearity
+        yNeural.values=yNeural.values.^epsilonCompression_CTSVec(ii);
+    end
     
     %% Apply amplitude gain
-    % scaled by the main response amplitude parameter
-    numeratorStruct.values = numeratorStruct.values.*amplitudeVec(ii);
-    
-    %% Implement the compressive non-linearity stage
-    % Create the exponential low-pass kernel that defines the time-domain
-    % properties of the normalization
-    exponentialKernelStruct.values=exp(-1/tauExpTimeConstantVec(ii)*exponentialKernelStruct.timebase);
-    % scale the kernel to preserve area of response after convolution
-    exponentialKernelStruct=normalizeKernelArea(exponentialKernelStruct);
-    % Convolve the linear response by the exponential decay
-    denominatorStruct=obj.applyKernel(numeratorStruct,exponentialKernelStruct);
-    % Apply the compresion and add the semi-saturation constant
-    denominatorStruct.values=(divisiveSigmaVec(ii)^nCompressionVec(ii)) + ...
-        denominatorStruct.values.^nCompressionVec(ii);
-    % Apply the compresion to the numerator
-    numeratorStruct.values=numeratorStruct.values.^nCompressionVec(ii);
-    % Compute the final dCTS values
-    yNeural=stimulusStruct;
-    yNeural.values=numeratorStruct.values./denominatorStruct.values;
-    
+    yNeural.values = yNeural.values.*amplitude_CTSVec(ii);
+        
     %% Implement the subtractive effect of a leaky integrator
-    inhibitoryKernelStruct.values=exp(-1/tauInhibitoryTimeConstantVec(ii)*inhibitoryKernelStruct.timebase);
-    % scale the kernel to preserve area of response after convolution
+    % Create an exponential integrator, normalize the area, and convolve
+    inhibitoryKernelStruct.values=exp(-1/(tauInhibitoryTimeConstant_LEAKVec(ii)*1000)*inhibitoryKernelStruct.timebase);
     inhibitoryKernelStruct=normalizeKernelArea(inhibitoryKernelStruct);
-    % calculate and apply inhibitory component
     inhibitionStruct=obj.applyKernel(yNeural,inhibitoryKernelStruct);
     % raise the inhition temporal profile to vExponent, but preserve area
     inhibitionArea=sum(abs(inhibitionStruct.values));
     inhibitionStruct.values=inhibitionStruct.values.^vExponent;
     inhibitionStruct.values=inhibitionStruct.values/sum(abs(inhibitionStruct.values))*inhibitionArea;
-    yNeural.values=yNeural.values-inhibitionStruct.values*kappaInhibitionAmplitudeVec(ii);
+    % Apply the inhibition, scaled by the kappa value
+    yNeural.values=yNeural.values- (inhibitionStruct.values*kappaInhibitionAmplitude_LEAKVec(ii));
     
     %% Place yNeural into the growing neuralMatrix
     responseMatrix(ii,:)=yNeural.values;
