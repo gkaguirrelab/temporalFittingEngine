@@ -17,8 +17,6 @@ function ValidationFunction(runTimeParams)
     %% Basic validation
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_IAMPFourierBasis *****');
     validationData1 = t_IAMPFourierBasis('generatePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData1',validationData1, ...
-        'UsingTheFollowingVariableTolerancePairs', ...
-         'validationData1.paramMainMatrix',5e-4);
+    UnitTest.validationData('validationData1',validationData1);
     
 end

@@ -1,5 +1,5 @@
-function [ paramsFit ] = t_BTRMBasic(varargin)
-% function [ paramsFit ] = t_BTRMBasic(varargin)
+function validationData = t_BTRMBasic(varargin)
+% validationData = t_BTRMBasic(varargin)
 %
 % Demonstrate function for the Block Temporal Response Model model.
 %
@@ -321,5 +321,11 @@ fprintf('Measured parameters:\n');
 temporalFit.paramPrint(paramsFit.demo4);
 fprintf('\n');
 
+%% Set returned validationData structure
+if (nargout > 0)
+    validationData.params_demo1 = paramsFit.demo1;
+    validationData.params_demo3 = paramsFit.demo3;
+    validationData.params_demo4 = paramsFit.demo4;
+end
 
 end % function

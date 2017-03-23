@@ -1,5 +1,5 @@
-function [ paramsFit ] = t_DEDUBasic(varargin)
-% function [  ] = t_DEDUBasic(varargin)
+function validationData = t_DEDUBasic(varargin)
+% validationData = t_DEDUBasic(varargin)
 %
 % Demonstrate the DElay and DUration model
 %
@@ -99,6 +99,13 @@ fprintf('\n');
 if p.Results.generatePlots
     tfeHandle.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
     legend('show');legend('boxoff');
+end
+
+%% Set returned validationData structure
+if (nargout > 0)
+    validationData.params1 = paramsFit;
+    validationData.modelResponseStruct = modelResponseStruct;
+    validationData.thePacket = thePacket;
 end
 
 end % function

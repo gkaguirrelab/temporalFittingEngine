@@ -1,5 +1,5 @@
-function [ paramsFit ] = t_TPUPBasic(varargin)
-% function [ paramsFit ] = t_TPUPBasic(varargin)
+function validationData = t_TPUPBasic(varargin)
+% validationData = t_TPUPBasic(varargin)
 %
 % Demonstrate the Two Component PUPil response model
 %
@@ -91,6 +91,13 @@ fprintf('\n');
 if p.Results.generatePlots
     temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
     hold off
+end
+
+%% Set returned validationData structure
+if (nargout > 0)
+    validationData.params1 = paramsFit;
+    validationData.modelResponseStruct = modelResponseStruct;
+    validationData.thePacket = thePacket;
 end
 
 end

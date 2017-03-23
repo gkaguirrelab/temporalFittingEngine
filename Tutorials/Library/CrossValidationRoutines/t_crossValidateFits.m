@@ -1,5 +1,5 @@
-function [ xValFitStructure ] = t_crossValidateFits(varargin)
-% function [ xValFitStructure ] = t_crossValidateFits()
+function validationData = t_crossValidateFits(varargin)
+% validationData = t_crossValidateFits()
 %
 % Demonstrate cross-validation of simulated data using the BTRM model
 %
@@ -108,5 +108,10 @@ fprintf(['Modeled noise: ' strtrim(num2str(params0.noiseSd)) '\n']);
 fprintf(['Observed error (train): ' strtrim(num2str(mean(xValFitStructure.trainfVals))) '\n']);
 fprintf(['Observed error (test): ' strtrim(num2str(mean(xValFitStructure.testfVals))) '\n']);
 
+%% Set returned validationData structure
+if (nargout > 0)
+    validationData.xValFitStructure = xValFitStructure;
+    validationData.packetCellArray = packetCellArray;
+end
 
 end % function

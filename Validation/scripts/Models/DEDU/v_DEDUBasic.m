@@ -17,8 +17,6 @@ function ValidationFunction(runTimeParams)
     %% Basic validation
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_DEDUBasic *****');
     validationData1 = t_DEDUBasic('generatePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData1',validationData1, ...
-        'UsingTheFollowingVariableTolerancePairs', ...
-         'validationData1.paramMainMatrix',5e-4);
+    UnitTest.validationData('validationData1',validationData1);
     
 end
