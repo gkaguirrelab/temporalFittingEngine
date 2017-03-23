@@ -18,5 +18,10 @@ function ValidationFunction(runTimeParams)
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_TPUPBasic *****');
     validationData1 = t_TPUPBasic('generatePlots',runTimeParams.generatePlots);
     UnitTest.validationData('validationData1',validationData1);
-    
+   
+    UnitTest.validationData('validationData1',validationData1, ...
+        'UsingTheFollowingVariableTolerancePairs', ...
+         'validationData1.params1.paramMainMatrix',5e-4,...
+         'validationData1.modelResponseStruct.values',5e-4);
+
 end

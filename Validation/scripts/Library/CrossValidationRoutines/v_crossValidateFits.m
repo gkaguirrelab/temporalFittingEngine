@@ -17,6 +17,8 @@ function ValidationFunction(runTimeParams)
     %% Basic validation
     UnitTest.validationRecord('SIMPLE_MESSAGE', '***** v_crossValidateFits *****');
     validationData1 = t_crossValidateFits('generatePlots',runTimeParams.generatePlots);
-    UnitTest.validationData('validationData1',validationData1);
+    UnitTest.validationData('validationData1',validationData1, ...
+        'UsingTheFollowingVariableTolerancePairs', ...
+         'validationData1.xValFitStructure.paramMainMatrix',5e-4);
     
 end
