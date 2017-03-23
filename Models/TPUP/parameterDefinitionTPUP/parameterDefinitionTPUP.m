@@ -1,10 +1,15 @@
-function paramStruct = parameterDefinitionTPUP(nInstances)
+function paramStruct = parameterDefinitionTPUP(nInstances, varargin)
 % paramStruct = paramCreateBDCM(nStimuli)
 %
 % Create a default parameters structure for the two component
 % step-function pupil model.
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
+
+%% Parse vargin for options passed here
+p = inputParser; p.KeepUnmatched = true;
+p.addRequired('nInstances',@isnumeric);
+p.parse(nInstances,varargin{:});
 
 % Parameters:
 % startTime - time (in seconds) that the initial transient pupil response begins

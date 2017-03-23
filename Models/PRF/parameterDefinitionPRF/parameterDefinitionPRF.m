@@ -1,9 +1,14 @@
-function paramStruct = parameterDefinitionPRF(nInstances,paramStructIn)
+function paramStruct = parameterDefinitionPRF(nInstances,varargin)
 % paramStruct = paramCreateBDCM(nInstances)
 %
 % Create a default parameters structure for the pRF fMRI modeling.
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
+
+%% Parse vargin for options passed here
+p = inputParser; p.KeepUnmatched = true;
+p.addRequired('nInstances',@isnumeric);
+p.parse(nInstances,varargin{:});
 
 %% Unpack the params
 % cell for labeling each parameter column

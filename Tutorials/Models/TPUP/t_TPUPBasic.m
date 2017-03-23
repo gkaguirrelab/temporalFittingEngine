@@ -1,10 +1,18 @@
-% tfeTwoComponentPupilResponseModelDemo
+function [ paramsFit ] = t_TPUPBasic(varargin)
+% function [ paramsFit ] = t_TPUPBasic(varargin)
 %
-% Demonstrate function for the TPUP Model.
+% Demonstrate the Two Component PUPil response model
 %
+% Optional key/value pairs
+%  'generatePlots' - true/fale (default true).  Make plots?
 
-%% Clear and close
-clear; close all;
+%% Parse vargin for options passed here
+p = inputParser;
+p.addParameter('generatePlots',true,@islogical);
+p.parse(varargin{:});
+
+%% Set the random number generator to default
+rng('default');
 
 %% Construct the model object
 temporalFit = tfeTPUP('verbosity','none');
@@ -15,13 +23,13 @@ fprintf('Default model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
 
-%% Temporal domain of the stimulus 
+%% Temporal domain of the stimulus
 deltaT = 10; % in msecs
 totalTime = 14000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-%% Specify the stimulus struct. 
+%% Specify the stimulus struct.
 % We create here a step function of neural activity, with half-cosine ramps
 %  on and off
 stepOnset=1000; % msecs
@@ -31,15 +39,15 @@ rampDuration=500; % msecs
 % the square wave step
 stimulusStruct.values=zeros(1,nTimeSamples);
 stimulusStruct.values(round(stepOnset/deltaT): ...
-                      round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)=1;
+    round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)=1;
 % half cosine ramp on
 stimulusStruct.values(round(stepOnset/deltaT): ...
-                      round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
-                      fliplr(cos(linspace(0,pi,round(rampDuration/deltaT))/2));
+    round(stepOnset/deltaT)+round(rampDuration/deltaT)-1)= ...
+    fliplr(cos(linspace(0,pi,round(rampDuration/deltaT))/2));
 % half cosine ramp off
 stimulusStruct.values(round(stepOnset/deltaT)+round(stepDuration/deltaT)-round(rampDuration/deltaT): ...
-                      round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
-                      cos(linspace(0,pi,round(rampDuration/deltaT))/2);
+    round(stepOnset/deltaT)+round(stepDuration/deltaT)-1)= ...
+    cos(linspace(0,pi,round(rampDuration/deltaT))/2);
 
 %% We will not make use of a kernel in this model
 kernelStruct=[];
@@ -51,9 +59,12 @@ temporalFit.paramPrint(params0);
 fprintf('\n');
 
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
-temporalFit.plot(modelResponseStruct);
-hold on
-plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k');
+
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct);
+    hold on
+    plot(stimulusStruct.timebase/1000,stimulusStruct.values(1,:),'-k');
+end
 
 %% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;
@@ -70,15 +81,18 @@ defaultParamsInfo.nInstances = 1;
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
-            temporalFit.fitResponse(thePacket,...
-            'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix);
-        
+    temporalFit.fitResponse(thePacket,...
+    'defaultParamsInfo', defaultParamsInfo, ...
+    'paramLockMatrix',paramLockMatrix);
+
 %% Report the output
 fprintf('Model parameter from fits:\n');
 temporalFit.paramPrint(paramsFit);
 fprintf('\n');
 
-temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
-hold off
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
+    hold off
+end
 
+end

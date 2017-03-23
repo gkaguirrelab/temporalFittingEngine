@@ -1,10 +1,15 @@
-% tfeInstanceAmplitudeDemo
+function [ paramsFit ] = t_IAMPFourierBasis(varargin)
+% function [ paramsFit ] = t_IAMPFourierBasis(varargin)
 %
 % Demonstrate the creation and application of a Fourier basis set analysis.
 %
+% Optional key/value pairs
+%  'generatePlots' - true/fale (default true).  Make plots?
 
-%% Clear and close
-clear; close all;
+%% Parse vargin for options passed here
+p = inputParser;
+p.addParameter('generatePlots',true,@islogical);
+p.parse(varargin{:});
 
 %% Construct the model object
 temporalFit = tfeIAMP('verbosity','none');
@@ -14,7 +19,7 @@ totalTime = 330000; % in msecs. This is a 5:30 duration experiment
 stimulusStruct.timebase = linspace(0,totalTime-1,totalTime);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-%% Specify the stimulus 
+%% Specify the stimulus
 % We will create a set of impulses of various amplitudes in a stimulus
 % matrix. They will be jittered in timing ±5 seconds, uniformly distributed.
 eventTimes=linspace(6000,306000,21);
@@ -54,10 +59,11 @@ modelResponseStruct = temporalFit.resampleTimebase(modelResponseStruct,newTimeba
 modelResponseStruct.values=modelResponseStruct.values-mean(modelResponseStruct.values);
 
 %% Plot the simulated response
-figure;
-temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response','Marker','o');
-hold on
-
+if p.Results.generatePlots
+    figure;
+    temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response','Marker','o');
+    hold on
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Here is where we build the Fourier model and apply it to a modeled
@@ -78,24 +84,22 @@ thePacket.metaData = [];
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
 
-% Define a parameter lock matrix, which in this case is empty
-paramLockMatrix = [];
-
 % We treat each Fourier component as an instance
 defaultParamsInfo.nInstances = 16;
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
-            temporalFit.fitResponse(thePacket,...
-            'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix, ...
-            'searchMethod','linearRegression');
+    temporalFit.fitResponse(thePacket,...
+    'defaultParamsInfo', defaultParamsInfo, ...
+    'searchMethod','linearRegression');
 
 %% Make some plots
 % Plot of the temporal fit results
-temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
-legend('show');legend('boxoff');
-hold off
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
+    legend('show');legend('boxoff');
+    hold off
+end
 
 % Obtain the high-resolution estimate of the kernel
 estimatedKernelStruct.timebase = kernelStruct.timebase;
@@ -108,9 +112,13 @@ estimatedKernelStruct = prepareHRFKernel(estimatedKernelStruct);
 % high-resolution information is available through a finite number of
 % jittered events. Try turning off event jitter to see how the estimate is
 % made worse.
-figure
-plot(estimatedKernelStruct.timebase,estimatedKernelStruct.values,'Color',[0 1 0],'DisplayName','estimate')
-hold on
-plot(kernelStruct.timebase,kernelStruct.values,'Color',[1 0 0],'DisplayName','true')
-legend('show');legend('boxoff');
-hold off
+if p.Results.generatePlots
+    figure
+    plot(estimatedKernelStruct.timebase,estimatedKernelStruct.values,'Color',[0 1 0],'DisplayName','estimate')
+    hold on
+    plot(kernelStruct.timebase,kernelStruct.values,'Color',[1 0 0],'DisplayName','true')
+    legend('show');legend('boxoff');
+    hold off
+end
+
+end

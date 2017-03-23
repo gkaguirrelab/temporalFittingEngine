@@ -1,23 +1,29 @@
-% tfeInstanceAmplitudeDemo
+function [ paramsFit ] = t_IAMPBasic(varargin)
+% function [ paramsFit ] = t_IAMPBasic(varargin)
 %
 % Demonstrate function for the IAMP Model.
 %
+% Optional key/value pairs
+%  'generatePlots' - true/fale (default true).  Make plots?
 
-%% Clear and close
-clear; close all;
+%% Parse vargin for options passed here
+p = inputParser;
+p.addParameter('generatePlots',true,@islogical);
+p.parse(varargin{:});
+
 
 %% Construct the model object
 temporalFit = tfeIAMP('verbosity','none');
 
-%% Temporal domain of the stimulus 
+%% Temporal domain of the stimulus
 deltaT = 100; % in msecs
 totalTime = 330000; % in msecs. This is a 5:30 duration experiment
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
-%% Specify the stimulus struct. 
+%% Specify the stimulus struct.
 % We will create a set of impulses of various amplitudes in a stimulus
-% matrix. There will be an event every 
+% matrix. There will be an event every
 eventTimes=linspace(1000,321000,21);
 nInstances=length(eventTimes);
 eventDuration=50; % pulse duration in msecs
@@ -65,21 +71,25 @@ fprintf('Simulated model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
 
-% Create a figure window
-figure;
-
 % First create and plot the response without noise and without convolution
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,[],'AddNoise',false);
-temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response');
-hold on
 
-% Add the stimulus profile to the plot
-plot(stimulusStruct.timebase,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
+if p.Results.generatePlots
+    % Create a figure window
+    figure;
+    temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','neural response');
+    hold on
+    % Add the stimulus profile to the plot
+    plot(stimulusStruct.timebase/1000,stimulusStruct.values(1,:),'-k','DisplayName','stimulus');
+end
 
 % Now plot the response with convolution and noise, as well as the kernel
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
-temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','noisy BOLD response');
-plot(kernelStruct.timebase,kernelStruct.values/max(kernelStruct.values),'-b','DisplayName','kernel');
+
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct,'NewWindow',false,'DisplayName','noisy BOLD response');
+    plot(kernelStruct.timebase/1000,kernelStruct.values/max(kernelStruct.values),'-b','DisplayName','kernel');
+end
 
 %% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;
@@ -87,19 +97,15 @@ thePacket.response = modelResponseStruct;
 thePacket.kernel = kernelStruct;
 thePacket.metaData = [];
 
-% Define a parameter lock matrix, which in this case is empty
-paramLockMatrix = [];
-
 % We will fit each average response as a single stimulus in a packet, so
 % each packet therefore contains a single stimulus instamce.
 defaultParamsInfo.nInstances = nInstances;
 
 %% Test the fitter
 [paramsFit,fVal,modelResponseStruct] = ...
-            temporalFit.fitResponse(thePacket,...
-            'defaultParamsInfo', defaultParamsInfo, ...
-            'paramLockMatrix',paramLockMatrix, ...
-            'searchMethod','linearRegression');
+    temporalFit.fitResponse(thePacket,...
+    'defaultParamsInfo', defaultParamsInfo, ...
+    'searchMethod','linearRegression');
 
 %% Report the output
 fprintf('Model parameter from fits:\n');
@@ -107,12 +113,18 @@ temporalFit.paramPrint(paramsFit);
 fprintf('\n');
 
 % Plot of the temporal fit results
-temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
-legend('show');legend('boxoff');
-hold off
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
+    legend('show');legend('boxoff');
+    hold off
+end
 
 % Plot of simulated vs. recovered parameter values
-figure
-plot(params0.paramMainMatrix,paramsFit.paramMainMatrix,'or')
-xlabel('simulated instance amplitudes') % x-axis label
-ylabel('estimated instance amplitudes') % y-axis label
+if p.Results.generatePlots
+    figure
+    plot(params0.paramMainMatrix,paramsFit.paramMainMatrix,'or')
+    xlabel('simulated instance amplitudes') % x-axis label
+    ylabel('estimated instance amplitudes') % y-axis label
+end
+
+end

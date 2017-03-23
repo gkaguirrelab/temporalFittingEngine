@@ -1,4 +1,4 @@
-function [  ] = t_DEDUBasic(varargin)
+function [ paramsFit ] = t_DEDUBasic(varargin)
 % function [  ] = t_DEDUBasic(varargin)
 %
 % Demonstrate the DElay and DUration model
@@ -47,7 +47,8 @@ hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
 kernelStruct.values=hrf;
 
 % prepare this kernelStruct for use in convolution as a BOLD HRF
-kernelStruct=prepareHRFKernel(kernelStruct);
+kernelStruct.values=kernelStruct.values-kernelStruct.values(1);
+kernelStruct=normalizeKernelArea(kernelStruct);
 
 % Get the default forward model parameters
 params0 = tfeHandle.defaultParams('defaultParamsInfo', defaultParamsInfo);
@@ -79,7 +80,9 @@ simulatedResponseStruct = tfeHandle.computeResponse(paramsLocal,thePacket.stimul
 % Add the simulated response to this packet
 thePacket.response=simulatedResponseStruct;
 
-tfeHandle.plot(simulatedResponseStruct,'DisplayName','Simulated');
+if p.Results.generatePlots
+    tfeHandle.plot(simulatedResponseStruct,'DisplayName','Simulated');
+end
 
 % Define a parameter lock matrix, which in this case is empty
 paramLockMatrix = [];
@@ -96,8 +99,9 @@ fprintf('Model parameter from fits:\n');
 tfeHandle.paramPrint(paramsFit);
 fprintf('\n');
 
-tfeHandle.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
-legend('show');legend('boxoff');
-hold off;
+if p.Results.generatePlots
+    tfeHandle.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit');
+    legend('show');legend('boxoff');
+end
 
 end % function

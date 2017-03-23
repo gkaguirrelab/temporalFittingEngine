@@ -19,7 +19,7 @@ kernelStructOut.values=kernelStructOut.values/abs((sum(kernelStructOut.values)*k
 % Issue a warning that this function is deprecated, and should be replaced
 % by setting the initial value of the kernel manually in the calling code,
 % and then using normalizeKernelAmplitude() to scale the kernel.
-warning('** prepareHRFKernel is deprecated. Replace with call to normalizeKernelAmplitude, and manual setting of initial kernel value');
+warning('** prepareHRFKernel is deprecated. Replace with call to normalizeKernelArea, and manual setting of initial kernel value');
 
 end
 

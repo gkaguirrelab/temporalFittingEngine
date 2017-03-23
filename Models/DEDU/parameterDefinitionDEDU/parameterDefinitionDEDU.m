@@ -1,9 +1,14 @@
-function paramStruct = parameterDefinitionDEDU(nInstances)
+function paramStruct = parameterDefinitionDEDU(nInstances, varargin)
 % paramStruct = paramCreateBDCM(nInstances)
 %
 % Create a default parameters structure for the DEDU fMRI modeling.
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
+
+%% Parse vargin for options passed here
+p = inputParser; p.KeepUnmatched = true;
+p.addRequired('nInstances',@isnumeric);
+p.parse(nInstances,varargin{:});
 
 %% Unpack the params
 %    These parameters are active for modeling of fMRI time series data:
