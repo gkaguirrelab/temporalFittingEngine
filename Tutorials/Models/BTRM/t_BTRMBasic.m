@@ -152,7 +152,7 @@ if p.Results.generatePlots
 end
 
 %% Demo 3 -- figure 6A of Zhou
-fprintf('Demo 3 -- Figure 6A of Zaidi - Step function stimulus subjected to the dCTS model with params from V1.\n');
+fprintf('Demo 3 -- Figure 6A of Zhou - Step function stimulus subjected to the dCTS model with params from V1.\n');
 fprintf('  In blue is the stimulus, in grey the simulated response, in red the model fit.\n\n');
 
 % Housekeeping and setup
