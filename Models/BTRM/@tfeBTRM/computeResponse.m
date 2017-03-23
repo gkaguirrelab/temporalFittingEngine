@@ -40,7 +40,7 @@ if p.Results.addNoise
         params.noiseInverseFrequencyPower=0;
     end
     cn = dsp.ColoredNoise(params.noiseInverseFrequencyPower,length(modelResponseStruct.timebase),1);
-    noise = cn()';
+    noise = step(cn)';
     noise = noise/std(noise)*params.noiseSd;
     modelResponseStruct.values = modelResponseStruct.values + noise;
 end
