@@ -15,8 +15,6 @@ p = inputParser;
 p.addParameter('generatePlots',true,@islogical);
 p.parse(varargin{:});
 
-rng default % Reset the random number generator for consistent results
-
 %% Demo 1 -- figure 3A of Zaidi
 fprintf('Demo 1 -- Figure 3A of Zaidi - Half-sine stimulus subjected to a inhibitory feedback with 8 second time constant.\n');
 fprintf('  In blue is the stimulus, in grey the simulated response, in red the model fit.\n\n');

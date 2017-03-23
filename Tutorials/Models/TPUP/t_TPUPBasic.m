@@ -11,8 +11,6 @@ p = inputParser;
 p.addParameter('generatePlots',true,@islogical);
 p.parse(varargin{:});
 
-%% Set the random number generator to default
-rng('default');
 
 %% Construct the model object
 temporalFit = tfeTPUP('verbosity','none');

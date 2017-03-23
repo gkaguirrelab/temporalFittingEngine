@@ -13,9 +13,6 @@ p = inputParser;
 p.addParameter('generatePlots',true,@islogical);
 p.parse(varargin{:});
 
-%% Set the random number generator to default
-rng('default');
-
 %% Construct the model object
 tfeHandle = tfeDEDU('verbosity','none');
 
@@ -84,14 +81,14 @@ if p.Results.generatePlots
     tfeHandle.plot(simulatedResponseStruct,'DisplayName','Simulated');
 end
 
-% Define a parameter lock matrix, which in this case is empty
-paramLockMatrix = [];
-
 %% Test the fitter
+% The DEDU model requires a diff min change, as the duration parameter is
+% discretized to have effects in untits of msecs. Failure to do so will
+% lead fmincon to believe that changes in the duration parameter have no
+% effect upon the model fit.
 [paramsFit,fVal,modelResponseStruct] = ...
     tfeHandle.fitResponse(thePacket,...
     'defaultParamsInfo', defaultParamsInfo, ...
-    'paramLockMatrix',paramLockMatrix, ...
     'DiffMinChange',0.001);
 
 %% Report the output
