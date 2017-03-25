@@ -23,7 +23,7 @@ p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
 %% Compute the forward model
-modelResponseStruct = forwardModelTPUP(params,stimulusStruct);
+modelResponseStruct = forwardModelTPUP(obj,params,stimulusStruct);
 
 % report an iteration has completed
 switch (obj.verbosity)

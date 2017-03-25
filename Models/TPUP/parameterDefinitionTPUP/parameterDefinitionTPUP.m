@@ -20,38 +20,43 @@ p.parse(nInstances,varargin{:});
 % persistentT50 - time to half-peak of the super-saturating function (seconds)
 % persistentAlpha - time constant of the decay of the super-saturating function (seconds).
 
+
+
+
 % cell for labeling each parameter column
-paramStruct.paramNameCell = {'startTime','gammaTau', ...
-                             'sustainedAmp', 'sustainedTau', ...
-                             'persistentAmp','persistentT50','persistentAlpha'};
+paramStruct.paramNameCell = {...
+    'delay',...
+    'gammaTau', ...
+    'exponentialTau', ...
+    'amplitudeTransiet', ...
+    'amplitudeSustained', ...
+    'amplitudePersistent', ...
+    };
 
 % initial values
 paramStruct.paramMainMatrix = [];
-paramStruct.paramMainMatrix(:,1) = 0.1.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,2) = 0.2.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,3) = 0.2.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,4) = 0.5.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,5) = 0.2.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,6) = 0.25.*ones([nInstances 1]);
-paramStruct.paramMainMatrix(:,7) = 1.5.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,1) = 100.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,2) = 150.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,3) = 100.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,4) = -100.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,5) = -100.*ones([nInstances 1]);
+paramStruct.paramMainMatrix(:,6) = -100.*ones([nInstances 1]);
 
 % set lower bounds
-paramStruct.vlb(:,1) = repmat(0.1,[nInstances 1]);
-paramStruct.vlb(:,2) = repmat(0.1,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(eps,[nInstances 1]);
-paramStruct.vlb(:,4) = repmat(eps,[nInstances 1]);
-paramStruct.vlb(:,5) = repmat(eps,[nInstances 1]);
-paramStruct.vlb(:,6) = repmat(eps,[nInstances 1]);
-paramStruct.vlb(:,7) = repmat(0.5,[nInstances 1]);
+paramStruct.vlb(:,1) = repmat(0,[nInstances 1]);
+paramStruct.vlb(:,2) = repmat(100,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(10,[nInstances 1]);
+paramStruct.vlb(:,4) = repmat(-2000,[nInstances 1]);
+paramStruct.vlb(:,5) = repmat(-2000,[nInstances 1]);
+paramStruct.vlb(:,6) = repmat(-2000,[nInstances 1]);
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(0.4,[nInstances 1]);
-paramStruct.vub(:,2) = repmat(0.3,[nInstances 1]);
-paramStruct.vub(:,3) = repmat(1,[nInstances 1]);
-paramStruct.vub(:,4) = repmat(2,[nInstances 1]);
-paramStruct.vub(:,5) = repmat(1,[nInstances 1]);
-paramStruct.vub(:,6) = repmat(2,[nInstances 1]);
-paramStruct.vub(:,7) = repmat(6.0,[nInstances 1]);
+paramStruct.vub(:,1) = repmat(300,[nInstances 1]);
+paramStruct.vub(:,2) = repmat(300,[nInstances 1]);
+paramStruct.vub(:,3) = repmat(200,[nInstances 1]);
+paramStruct.vub(:,4) = repmat(0,[nInstances 1]);
+paramStruct.vub(:,5) = repmat(0,[nInstances 1]);
+paramStruct.vub(:,6) = repmat(0,[nInstances 1]);
 
 
 
