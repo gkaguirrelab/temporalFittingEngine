@@ -51,7 +51,7 @@ paramStruct.vlb(:,5) = repmat(-2000,[nInstances 1]);
 paramStruct.vlb(:,6) = repmat(-2000,[nInstances 1]);
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(300,[nInstances 1]);
+paramStruct.vub(:,1) = repmat(500,[nInstances 1]);
 paramStruct.vub(:,2) = repmat(300,[nInstances 1]);
 paramStruct.vub(:,3) = repmat(200,[nInstances 1]);
 paramStruct.vub(:,4) = repmat(0,[nInstances 1]);
