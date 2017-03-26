@@ -10,7 +10,7 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 % Optional key/value pairs
 %  'errorType' - string (default 'rmse') Type of error to compute.
 %    'rmse' - Root mean squared error.
-%    '1-r2' - 1-R2
+%    '1-r2' - 1-r2
 %
 % Outputs: 
 %   fVal: mean value of fit error, mean taken over runs.
@@ -25,7 +25,19 @@ p = inputParser; p.KeepUnmatched = true;
 p.addRequired('paramsVec',@isnumeric);
 p.addRequired('thePacket',@isstruct);
 p.addParameter('errorType','rmse',@ischar);
+p.addParameter('errorWeightVector',[],@(x)(isempty(x) | isnumeric(x)));
 p.parse(paramsVec,thePacket,varargin{:});
+
+%% If passed, perform some errorWeightVector checks
+if ~isempty(p.Results.errorWeightVector)
+    if length(p.Results.errorWeightVector)~=length(thePacket.response.values)
+        error('The errorWeightVector is not the same length as the response');
+    end
+    if ~strcmp(p.Results.errorType,'rmse')
+        error('An errorWeightVector can only be used with an rmse errorType');
+    end
+end
+
 
 %% Convert parameters to vector form
 params = obj.vecToParams(paramsVec);
@@ -37,13 +49,16 @@ modelResponseStruct = obj.computeResponse(params,thePacket.stimulus,thePacket.ke
 modelResponseStruct = obj.resampleTimebase(modelResponseStruct,thePacket.response.timebase,varargin{:});
 
 %% Get fit error measurement
+residuals=thePacket.response.values - modelResponseStruct.values;
 switch (p.Results.errorType)
     case 'rmse'
-        fVal = sqrt(nanmean((modelResponseStruct.values-thePacket.response.values).^2));
+        errorVector=residuals.^2;
+        if ~isempty(p.Results.errorWeightVector)
+            errorVector=errorVector*p.Results.errorWeightVector;
+        end
+        fVal = sqrt(nanmean(errorVector));
     case '1-r2'
-        residuals=thePacket.response.values - modelResponseStruct.values;
-        residuals=residuals-nanmean(residuals);
-        fVal = nansum(residuals.^2)/nansum((thePacket.response.values - mean(thePacket.response.values)).^2);
+        fVal = nansum((residuals-nanmean(residuals)).^2)/nansum((thePacket.response.values - mean(thePacket.response.values)).^2);
     otherwise
         error('Unknown error type passed');
 end

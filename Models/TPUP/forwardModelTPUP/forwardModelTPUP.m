@@ -32,10 +32,10 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 
 delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
 gammaTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'gammaTau'));
-exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*100;
-amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransiet'))./10;
-amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained'))./10;
-amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent'))./10;
+exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*1000;
+amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransiet')).*1000;
+amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained')).*1000;
+amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent')).*1000;
 
 % derive some basic properties of the stimulus values
 numInstances=size(stimulusStruct.values,1);
@@ -55,13 +55,14 @@ exponentialIRF.timebase=stimulusStruct.timebase;
 for ii=1:numInstances
     
     % grab the current stimulus
-    stimulus.values=stimulusStruct.values(ii,:);
+    stimulus.values = stimulusStruct.values(ii,:);
     stimulus.timebase = stimulusStruct.timebase;
-    
-    % Create a stimulus onsets vector.
-    stimulusOnset.values= max( [ [diff(stimulus.values) 0]; zeros(1,length(stimulus.timebase)) ] );
-    stimulusOnset.timebase=stimulus.timebase;
-    
+        
+    % Create a stimulusSlewOn vector. This is the rate of change of the
+    % stimulus at the time of onset.
+    stimulusSlewOn.values= max( [ [diff(stimulus.values) 0]; zeros(1,length(stimulus.timebase)) ] );
+    stimulusSlewOn.timebase=stimulus.timebase;
+
     % Create the gamma kernel
     gammaIRF.values = stimulus.timebase .* exp(-stimulus.timebase./gammaTauVec(ii));
     gammaIRF=normalizeKernelArea(gammaIRF);
@@ -70,21 +71,21 @@ for ii=1:numInstances
     exponentialIRF.values=exp(-1/exponentialTauVec(ii)*stimulus.timebase);
     exponentialIRF=normalizeKernelArea(exponentialIRF);
     
-    transientComponent = obj.applyKernel(obj.applyKernel(stimulusOnset,gammaIRF),gammaIRF);
+    transientComponent = obj.applyKernel(stimulusSlewOn,gammaIRF);
     sustainedComponent = obj.applyKernel(stimulus,gammaIRF);
-    persistentComponent = obj.applyKernel(obj.applyKernel(stimulusOnset,exponentialIRF),gammaIRF);
+    persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn,exponentialIRF),gammaIRF);
     
-    % Scale each component to have unit amplitude
-    transientComponent.values=transientComponent.values/max(transientComponent.values);
-    sustainedComponent.values=sustainedComponent.values/max(sustainedComponent.values);
-    persistentComponent.values=persistentComponent.values/max(persistentComponent.values);
+    % Scale each component to have unit area
+    transientComponent=normalizeKernelArea(transientComponent);
+    sustainedComponent=normalizeKernelArea(sustainedComponent);
+    persistentComponent=normalizeKernelArea(persistentComponent);
     
     yPupil=transientComponent.values * amplitudeTransietVec(ii) + ...
         sustainedComponent.values * amplitudeSustainedVec(ii) + ...
         persistentComponent.values * amplitudePersistentVec(ii);
     
     % apply the temporal delay
-    yPupil=fshift(yPupil,delayVec(ii)/deltaT);
+    yPupil=fshift(yPupil,-1*delayVec(ii)/deltaT);
     yPupil(1:ceil(delayVec(ii)/deltaT))=0;
     
     % Add this stimulus model to the response matrix
