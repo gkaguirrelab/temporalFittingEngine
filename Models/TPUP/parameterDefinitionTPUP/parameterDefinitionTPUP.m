@@ -43,8 +43,8 @@ paramStruct.paramMainMatrix(:,6) = -25.*ones([nInstances 1]);
 
 % set lower bounds
 paramStruct.vlb(:,1) = repmat(0,[nInstances 1]);
-paramStruct.vlb(:,2) = repmat(150,[nInstances 1]);
-paramStruct.vlb(:,3) = repmat(2,[nInstances 1]);
+paramStruct.vlb(:,2) = repmat(100,[nInstances 1]);
+paramStruct.vlb(:,3) = repmat(1,[nInstances 1]);
 paramStruct.vlb(:,4) = repmat(-2000,[nInstances 1]);
 paramStruct.vlb(:,5) = repmat(-2000,[nInstances 1]);
 paramStruct.vlb(:,6) = repmat(-2000,[nInstances 1]);
