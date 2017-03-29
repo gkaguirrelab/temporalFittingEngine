@@ -25,7 +25,7 @@ params0.paramMainMatrix=[151.8345, 183.3596, 3.0000, -5.3529, -31.1735, -40.5347
 
 %% Temporal domain of the stimulus
 deltaT = 1; % in msecs
-totalTime = 12000; % in msecs
+totalTime = 13000; % in msecs
 stimulusStruct.timebase = linspace(0,totalTime-deltaT,totalTime/deltaT);
 nTimeSamples = size(stimulusStruct.timebase,2);
 
@@ -100,8 +100,8 @@ if p.Results.generatePlots
     h=subplot(2,2,1);
     temporalFit.plot(stimulusStruct,'Color',[.5 .5 .5],'NewWindow',false,'DisplayName', 'stimulus');
     pbaspect([1 2 1])
-    xlim([0 12]);
-    set(h,'Xtick',0:2:12)
+    xlim([0 13]);
+    set(h,'Xtick',0:2:13)
     hold on
     tmpParams=params0;
     tmpParams.paramMainMatrix([5,6])=0;
@@ -118,8 +118,8 @@ if p.Results.generatePlots
     modelResponseStruct=temporalFit.computeResponse(tmpParams,makeImpulseStimStruct(stimulusStruct),[]);
     temporalFit.plot(modelResponseStruct,'Color',[1 0 0],'NewWindow',false,'DisplayName', 'gamma');
     pbaspect([1 2 1])
-    xlim([0 12]);
-    set(h,'Xtick',0:2:12)
+    xlim([0 13]);
+    set(h,'Xtick',0:2:13)
     hold on
     tmpParams=params0;
     tmpParams.paramMainMatrix([4,5])=0;
@@ -137,8 +137,8 @@ if p.Results.generatePlots
     modelResponseStruct=temporalFit.computeResponse(tmpParams,stimulusStruct,[]);
     temporalFit.plot(modelResponseStruct,'Color',[1 .25 .25],'NewWindow',false,'DisplayName', 'transient');
     pbaspect([1 2 1])
-    xlim([0 12]);
-    set(h,'Xtick',0:2:12)
+    xlim([0 13]);
+    set(h,'Xtick',0:2:13)
     hold on
     tmpParams=params0;
     tmpParams.paramMainMatrix([4,6])=0;
@@ -159,8 +159,8 @@ if p.Results.generatePlots
     modelResponseStruct=temporalFit.computeResponse(tmpParams,stimulusStruct,[]);
     temporalFit.plot(modelResponseStruct,'Color',[1 .25 .25],'NewWindow',false,'DisplayName', 'transient');
     pbaspect([1 2 1])
-    xlim([0 12]);
-    set(h,'Xtick',0:2:12)
+    xlim([0 13]);
+    set(h,'Xtick',0:2:13)
     hold on
     tmpParams=params0;
     tmpParams.paramMainMatrix([4,6])=0;
@@ -181,7 +181,6 @@ end
 if (nargout > 0)
     validationData.params1 = paramsFit;
     validationData.modelResponseStruct = modelResponseStruct;
-    validationData.thePacket = thePacket;
 end
 
 end
