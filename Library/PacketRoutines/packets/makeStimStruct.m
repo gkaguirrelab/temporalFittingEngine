@@ -3,6 +3,8 @@ function [values timebase metaData] = makeStimStruct(params)
 %
 % Makes a stimulus structure
 
+error('This function is deprecated. Define packets within your project, not using the tfe');
+
 %% Stimulus
 % Load that .mat file produced by the stimulus computer
 stimulus.metaData                           = load(params.stimulusFile);

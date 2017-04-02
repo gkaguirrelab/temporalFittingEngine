@@ -1,5 +1,7 @@
 function packet = makePacket(params)
 
+error('This function is deprecated. Define packets within your project, not using the tfe');
+
 %   Outputs a 'packet' structure with stimulus, response, metaData, and
 %   (optionally) HRF information
 %

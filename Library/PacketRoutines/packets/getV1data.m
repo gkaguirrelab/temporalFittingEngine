@@ -1,5 +1,7 @@
 % Script to load fMRI data from V1 from an example TOME subject
 
+error('This function is deprecated. Define packets within your project, not using the tfe');
+
 %% set defaults
 outDir = '~';
 
