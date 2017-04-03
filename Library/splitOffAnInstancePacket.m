@@ -134,18 +134,18 @@ nNormIndices=round(params.normalizationWindowMsecs/deltaT)-deltaT;
 nonNaNIndices=find(~isnan(theInstancePacket.response.values));
 normStartIndex=nonNaNIndices(1);
 
-% Get the normValue
-normValue = ...
-    nanmean(theInstancePacket.response.values(normStartIndex:normStartIndex+nNormIndices-1));
 
 % Perform the normalization
 switch params.normFlag
     case 1 % make no changes
-        normValue=normValue;
     case 2 % recenter, original units
+        normValue = ...
+            nanmean(theInstancePacket.response.values(normStartIndex:normStartIndex+nNormIndices-1));
         theInstancePacket.response.values = ...
             theInstancePacket.response.values - normValue;
     case 3 % recenter, % change units
+        normValue = ...
+            nanmean(theInstancePacket.response.values(normStartIndex:normStartIndex+nNormIndices-1));
         theInstancePacket.response.values = ...
             (theInstancePacket.response.values - normValue)/normValue;
     otherwise
