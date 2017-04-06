@@ -89,8 +89,35 @@ fprintf('\n');
 
 if p.Results.generatePlots
     temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false);
+end
+
+%% With locked params
+% Now perform a fit, locking the temporal parameters to reasonable values
+% and only allowing the gain parameters on response area to vary
+
+% Set some initial values
+initialValues=[250, 250, 7, -10, -25, -25];
+vlb=[250, 250, 7, -2000, -2000, -2000];
+vub=[250, 250, 7, 0, 0, 0];
+
+% Test the fitter
+[paramsFit,fVal,modelResponseStruct] = ...
+    temporalFit.fitResponse(thePacket,...
+    'defaultParamsInfo', defaultParamsInfo,...
+    'initialValues',initialValues,...
+    'vlb',vlb,...
+    'vub',vub);
+
+% Report the output
+fprintf('Model parameter from fits:\n');
+temporalFit.paramPrint(paramsFit);
+fprintf('\n');
+
+if p.Results.generatePlots
+    temporalFit.plot(modelResponseStruct,'Color',[0 0 1],'NewWindow',false);
     hold off
 end
+
 
 %% Create a figure that illustrates the model components
 if p.Results.generatePlots
