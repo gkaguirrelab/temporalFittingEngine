@@ -30,7 +30,7 @@ end
 %  needed for the fitting engine.
 
 % Call out to the parameter definition routine for this method
-paramStruct = parameterDefinitionIAMP(nInstances);
+paramStruct = parameterDefinitionIAMP(nInstances,varargin{:});
 
 % Assemble the fields of params
 params.paramNameCell = paramStruct.paramNameCell;

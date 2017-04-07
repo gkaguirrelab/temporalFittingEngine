@@ -2,27 +2,55 @@ function paramStruct = parameterDefinitionFCON(nInstances, varargin)
 % paramStruct = paramCreateBDCM(nInstances)
 %
 % Create a default parameters structure for the FCON fMRI modeling.
+%
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
+%
+% If passed, the paramMainMtrix (which are the initial values), vlb,
+%   or vub will be used instead of the default values.
 
 %% Parse vargin for options passed here
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('nInstances',@isnumeric);
+p.addParameter('initialValues',[],@isnumeric);
+p.addParameter('vlb',[],@isnumeric);
+p.addParameter('vub',[],@isnumeric);
 p.parse(nInstances,varargin{:});
 
-%% Unpack the params
+% Parameters:
+% effectiveContrast - a single parameter that is the input to a
+%   second-level model
+
 % cell for labeling each parameter column
 paramStruct.paramNameCell = { ...
     'effectiveContrast',...
     };
 
 % initial values
-paramStruct.paramMainMatrix(:,1) = 0.*ones([nInstances 1]);
+if isempty(p.Results.initialValues)
+    paramStruct.paramMainMatrix(:,1) = 0.*ones([nInstances 1]);
+else % use passed initial values
+    for ii=1:length(paramStruct.paramNameCell)
+        paramStruct.paramMainMatrix(:,ii) = p.Results.initialValues(ii).*ones([nInstances 1]);
+    end
+end
 
 % set lower bounds
-paramStruct.vlb(:,1) = repmat(-1.5051,[nInstances 1]);
+if isempty(p.Results.vlb)
+    paramStruct.vlb(:,1) = repmat(-1.5051,[nInstances 1]);
+else % used passed lower bounds
+    for ii=1:length(paramStruct.paramNameCell)
+        paramStruct.vlb(:,ii) = p.Results.vlb(ii).*ones([nInstances 1]);
+    end
+end
 
 % set upper bounds
-paramStruct.vub(:,1) = repmat(1.5051,[nInstances 1]);
-
+if isempty(p.Results.vub)
+    paramStruct.vub(:,1) = repmat(1.5051,[nInstances 1]);
+else % used passed upper bounds
+    for ii=1:length(paramStruct.paramNameCell)
+        paramStruct.vub(:,ii) = p.Results.vub(ii).*ones([nInstances 1]);
+    end
 end
+
+end % function
