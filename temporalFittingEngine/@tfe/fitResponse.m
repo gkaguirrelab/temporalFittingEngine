@@ -9,10 +9,6 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %
 % Optional key/value pairs
 %  'defaultParamsInfo' - struct (default empty).  This is passed to the defaultParams method.
-%  'paramLockMatrix' - matrix (default empty). If not empty, do parameter locking according
-%    to passed matrix. This matrix has the same number of columns as the
-%    parameter vector, and each row contains a 1 and a -1, which locks the
-%    two corresponding parameters to each other.
 %  'searchMethod - string (default 'fmincon').  Specify search method
 %    'fmincon' - Use fmincon
 %    'global' - Use global search
@@ -34,7 +30,6 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
-p.addParameter('paramLockMatrix',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
 p.addParameter('errorType','rmse',@ischar);
@@ -70,13 +65,13 @@ switch (p.Results.searchMethod)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-            thePacket),paramsFitVec0,[],[],p.Results.paramLockMatrix,zeros([size(p.Results.paramLockMatrix,1) 1]),vlbVec,vubVec,[],options);
+            thePacket),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
     case 'global'
         % Slow but might work better
         opts = optimoptions(@fmincon,'Algorithm','interior-point');
         problem = createOptimProblem('fmincon','objective', ...
             @(modelParamsVec)obj.fitError(modelParamsVec,thePacket.stimulus,thePacket.response,thePacket.kernel),...
-            'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'Aeq',p.Results.paramLockMatrix,'beq',zeros([size(p.Results.paramLockMatrix,1) 1]),'options',opts);
+            'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'options',opts);
         gs = GlobalSearch;
         paramsFitVec = run(gs,problem);
     case 'linearRegression'

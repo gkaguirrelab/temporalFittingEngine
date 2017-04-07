@@ -18,7 +18,6 @@ classdef tfe < handle
 %   defaultParams - Return a default set of parameters
 %   paramsToVec - Convert parameters structure to vector format
 %   vecToParams - Conver parameters vector to structure format
-%   lockMatrix - Construct parameter locking matrix for the model
 %   paramPrint - Print useful things about the parameters
 %
 % The class constructor can take optional key/value pairs as follows.
@@ -82,9 +81,6 @@ classdef tfe < handle
         % Print parameters
         paramPrint(obj,params,varagin);
         
-        % Get parameter locking matrix for this model
-        paramLockMatrix = lockMatrix(obj,params,varargin);
-
         % Convert parameter struct to a vector to be used by search
         % routines.
         x = paramsToVec(obj,params);
