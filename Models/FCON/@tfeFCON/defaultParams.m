@@ -30,7 +30,7 @@ end
 %  needed for the fitting engine.
 
 % Call out to the parameter definition routine for this method
-paramStruct = parameterDefinitionFCON(nInstances);
+paramStruct = parameterDefinitionFCON(nInstances,varargin{:});
 
 % Assemble the fields of params
 params.paramNameCell = paramStruct.paramNameCell;

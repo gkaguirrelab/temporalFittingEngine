@@ -1,14 +1,16 @@
 function paramStruct = parameterDefinitionTPUP(nInstances, varargin)
 % paramStruct = paramCreateBDCM(nStimuli)
 %
-% Create a default parameters structure for the two component
-% step-function pupil model.
+% Create a default parameters structure for the three component, six
+% parameter pupil model.
+%
 % This includes default parameters plus lower and upper bounds,
 % as well as a field with parameter names.
 %
 % If passed, the paramMainMtrix (which are the initial values), vlb,
 %   or vub will be used instead of the default values.
 %
+
 %% Parse vargin for options passed here
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('nInstances',@isnumeric);
@@ -24,8 +26,6 @@ p.parse(nInstances,varargin{:});
 % amplitudeTransiet - scaling of the transient component in (%change*secs)
 % amplitudeSustained - scaling of the transient component in (%change*secs)
 % amplitudePersistent - scaling of the transient component in (%change*secs)
-
-
 
 
 % cell for labeling each parameter column
@@ -46,8 +46,8 @@ if isempty(p.Results.initialValues)
     paramStruct.paramMainMatrix(:,4) = -10.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,5) = -25.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,6) = -25.*ones([nInstances 1]);
-else
-    for ii=1:6
+else % use passed initial values
+    for ii=1:length(paramStruct.paramNameCell)
         paramStruct.paramMainMatrix(:,ii) = p.Results.initialValues(ii).*ones([nInstances 1]);
     end
 end
@@ -60,8 +60,8 @@ if isempty(p.Results.vlb)
     paramStruct.vlb(:,4) = repmat(-2000,[nInstances 1]);
     paramStruct.vlb(:,5) = repmat(-2000,[nInstances 1]);
     paramStruct.vlb(:,6) = repmat(-2000,[nInstances 1]);
-else
-    for ii=1:6
+else % used passed lower bounds
+    for ii=1:length(paramStruct.paramNameCell)
         paramStruct.vlb(:,ii) = p.Results.vlb(ii).*ones([nInstances 1]);
     end
 end
@@ -74,12 +74,10 @@ if isempty(p.Results.vub)
     paramStruct.vub(:,4) = repmat(0,[nInstances 1]);
     paramStruct.vub(:,5) = repmat(0,[nInstances 1]);
     paramStruct.vub(:,6) = repmat(0,[nInstances 1]);
-else
-    for ii=1:6
+else % used passed upper bounds
+    for ii=1:length(paramStruct.paramNameCell)
         paramStruct.vub(:,ii) = p.Results.vub(ii).*ones([nInstances 1]);
     end
 end
 
-
-
-end
+end % function
