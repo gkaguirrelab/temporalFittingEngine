@@ -11,6 +11,8 @@ end
 %% Function implementing the isetbio validation code
 function ValidationFunction(runTimeParams)
     
+which fshift -all
+
     %% Freeze RNG so validations work
     rng(1);
     
