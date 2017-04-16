@@ -1,3 +1,5 @@
+TPUP (three-component pupil) model.
+
 Models an evoked pupil response with a 6-parameter, 3-component model.
 
 The input to the model is the stimulus profile. An additional two input
@@ -16,8 +18,13 @@ The response to be modeled should be in % change units (e.g. 10%
  similar magnitudes of effect upon the modeled response.
 
 delay - time to shift the model to the right (msecs)
+
 gammaTau - time constant of the Gamma function (msecs)
+
 exponentialTau - time constant of the persistent component (seconds)
+
 amplitudeTransiet - scaling of the transient component in (%change*secs)
+
 amplitudeSustained - scaling of the transient component in (%change*secs)
+
 amplitudePersistent - scaling of the transient component in (%change*secs)
