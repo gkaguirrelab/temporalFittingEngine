@@ -2,25 +2,29 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 
 %% forwardModelTPUP
 %
-% Models the pupil temporal response as three, temporally
-% overlapping components, each controlled with an amplitude and one or
-% two time-constant parameters.
+% Models an evoked pupil response with a 6-parameter, 3-component model.
 %
-%  The passed stimulus vector is first differentiated to find the onset.
-%    The convolved with a gamma function,
-%    with one parameter that defines the time constant (shape). This
-%    provides some of the "peakiness" of the initial transient seen in the
-%    response data. There are then two components:
-
-%  Transient -- A gamma function controlled by a shape and gain parameter,
-%     positioned at the time of onset of the events
-%  Sustain -- The stimulus subjected to an exponential decay
-%  Persistent -- The convolved stimulus vector is subjected to
-%     convolution with a super-saturating function
+% The input to the model is the stimulus profile. An additional two input
+%  vectors, representing the rate of stimulus change at onset, are created
+%  by differentiating the stimulus profile and retaining the positive
+%  elements. These three vectors are then subjected to convolution
+%  operations composed of a gamma and exponential decay function, each
+%  under the control of a single time-constant parameter. The resulting
+%  three components (red) were normalized to have unit area, and then
+%  subjected to multiplicative scaling by a gain parameter applied to each
+%  component. The scaled components are summed to produce the modeled
+%  response, which is temporally shifted.
 %
-% An additional parameter allows the entire model to shift forward or back
-% in time relative to the data.
+% The response to be modeled should be in % change units (e.g. 10%
+%  contraction, as opposed to 0.1) so that the various parameters have
+%  similar magnitudes of effect upon the modeled response.
 %
+% delay - time to shift the model to the right (msecs)
+% gammaTau - time constant of the Gamma function (msecs)
+% exponentialTau - time constant of the persistent component (seconds)
+% amplitudeTransiet - scaling of the transient component in (%change*secs)
+% amplitudeSustained - scaling of the transient component in (%change*secs)
+% amplitudePersistent - scaling of the transient component in (%change*secs)
 
 
 
