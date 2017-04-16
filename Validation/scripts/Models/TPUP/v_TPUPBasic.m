@@ -10,10 +10,7 @@ end
 
 %% Function implementing the isetbio validation code
 function ValidationFunction(runTimeParams)
-    
-	s = which('fshift', '-all');
-    UnitTest.validationRecord('SIMPLE_MESSAGE', char(s));
-    
+        
     %% Freeze RNG so validations work
     rng(1);
     
