@@ -89,8 +89,9 @@ for ii=1:numInstances
         persistentComponent.values * amplitudePersistentVec(ii);
     
     % apply the temporal delay
+    initialValue=yPupil(1);
     yPupil=fshift(yPupil,-1*delayVec(ii)/deltaT);
-    yPupil(1:ceil(delayVec(ii)/deltaT))=0;
+    yPupil(1:ceil(-1*delayVec(ii)/deltaT))=initialValue;
     
     % Add this stimulus model to the response matrix
     responseMatrix(ii,:)=yPupil;
