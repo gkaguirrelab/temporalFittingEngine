@@ -57,7 +57,7 @@ thePacket.response.values = BlueAverage - RedAverage;
 thePacket.response.timebase = timebase;
 
 %% now actually do the fit
-initialValues=[200, 200, 12000, -10, -25, -25];
+initialValues=[200, 200, 12, -10, -25, -25];
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 figure;
@@ -70,6 +70,14 @@ xlabel('Time (ms)')
 ylabel('Pupil Diameter (% Change)')
 legend('Blue Response Average', 'Red Response Average', 'PIPR Average', 'Model Fit', 'Location', 'SouthEast')
 title('Fit the PIPR')
+xlims=get(gca,'xlim');
+ylims=get(gca,'ylim');
+xrange = xlims(2)-xlims(1);
+yrange = ylims(2) - ylims(1);
+xpos = xlims(1)+0.55*xrange;
+ypos = ylims(1)+0.40*yrange;
+string = (sprintf(['Recovered Cycle Length = ', sprintf('%.2f', paramsFit.paramMainMatrix(3))]));
+text(xpos, ypos, string, 'fontsize',12)
 
 
 %plot fit with each component
@@ -100,7 +108,8 @@ xlabel('Time (ms)')
 ylabel('Component Amplitude')
 legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
 title('Fit the PIPR')
-paramsFit
+
+
 
 
 %% now try fitting the blue response average
@@ -152,7 +161,7 @@ paramsFit
 
 %% now try fitting the blue response average
 thePacket.response.values = RedAverage;
-initialValues=[200, 200, 12000, -10, -25, -25];
+initialValues=[200, 200, 120, -10, -25, -25];
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 figure;
@@ -195,4 +204,48 @@ xlabel('Time (ms)')
 ylabel('Component Amplitude')
 legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
 title('Fit the Red')
+paramsFit
+
+%% Trying to fit just a half sinusoid of varying cycle durations
+% make the response
+paramsFitTemp.paramMainMatrix(1) = 200;
+paramsFitTemp.paramMainMatrix(2) = 200;
+paramsFitTemp.paramMainMatrix(3) = 12;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(5) = 0;
+paramsFitTemp.paramMainMatrix(6) = -20;
+modelResponseStruct = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+% stick it in a packet
+thePacket.response.values = modelResponseStruct.values;
+
+% do the fit
+initialValues=[200, 200, 6.1, -10, -10, -25];
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+
+% plot to summarize
+figure;
+hold on
+plot(timebase, thePacket.response.values, 'Color', 'k')
+
+
+plot(timebase, modelResponseStruct.values, 'Color', 'r')
+xlabel('Time (ms)')
+ylabel('Pupil Diameter (% Change)')
+legend('Dummy Response', 'Model Fit', 'Location', 'SouthEast')
+title('Dummy Fit')
+
+xlims=get(gca,'xlim');
+ylims=get(gca,'ylim');
+xrange = xlims(2)-xlims(1);
+yrange = ylims(2) - ylims(1);
+xpos = xlims(1)+0.55*xrange;
+ypos = ylims(1)+0.40*yrange;
+string = (sprintf(['Recovered Cycle Length = ', sprintf('%.2f', paramsFit.paramMainMatrix(3))]));
+text(xpos, ypos, string, 'fontsize',12)
+
+xpos = xlims(1)+0.55*xrange;
+ypos = ylims(1)+0.30*yrange;
+string = (sprintf(['Inputted Cycle Length = ', sprintf('%.2f', paramsFitTemp.paramMainMatrix(3))]));
+text(xpos, ypos, string, 'fontsize',12)
+
 paramsFit

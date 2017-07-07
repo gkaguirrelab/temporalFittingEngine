@@ -41,7 +41,9 @@ amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'ampli
 amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained')).*1000;
 amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent')).*1000;
 % new sinusoid parameters
-sinusoidCycleTimeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'sinusoidCycleTime'));
+% sinusoidCycleTimeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'sinusoidCycleTime'));
+sinusoidCycleTimeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'sinusoidCycleTime')).*1000;
+
 %sinusoidCycleTimeVec=12000; %12,000 ms being a reasonable estimate from looking at the group average
 
 % derive some basic properties of the stimulus values

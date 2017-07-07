@@ -56,7 +56,7 @@ end
 if isempty(p.Results.vlb)
     paramStruct.vlb(:,1) = repmat(0,[nInstances 1]);
     paramStruct.vlb(:,2) = repmat(100,[nInstances 1]);
-    paramStruct.vlb(:,3) = repmat(600,[nInstances 1]);
+    paramStruct.vlb(:,3) = repmat(6,[nInstances 1]);
     paramStruct.vlb(:,4) = repmat(-2000,[nInstances 1]);
     paramStruct.vlb(:,5) = repmat(-2000,[nInstances 1]);
     paramStruct.vlb(:,6) = repmat(-2000,[nInstances 1]);
@@ -70,7 +70,7 @@ end
 if isempty(p.Results.vub)
     paramStruct.vub(:,1) = repmat(500,[nInstances 1]);
     paramStruct.vub(:,2) = repmat(350,[nInstances 1]);
-    paramStruct.vub(:,3) = repmat(20000,[nInstances 1]);
+    paramStruct.vub(:,3) = repmat(20,[nInstances 1]);
     paramStruct.vub(:,4) = repmat(0,[nInstances 1]);
     paramStruct.vub(:,5) = repmat(0,[nInstances 1]);
     paramStruct.vub(:,6) = repmat(0,[nInstances 1]);
