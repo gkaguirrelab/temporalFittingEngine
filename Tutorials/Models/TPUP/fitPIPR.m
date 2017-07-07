@@ -69,6 +69,7 @@ plot(timebase, modelResponseStruct.values, 'Color', 'c')
 xlabel('Time (ms)')
 ylabel('Pupil Diameter (% Change)')
 legend('Blue Response Average', 'Red Response Average', 'PIPR Average', 'Model Fit', 'Location', 'SouthEast')
+title('Fit the PIPR')
 
 
 %plot fit with each component
@@ -98,3 +99,100 @@ plot(timebase, tmp3.values)
 xlabel('Time (ms)')
 ylabel('Component Amplitude')
 legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
+title('Fit the PIPR')
+paramsFit
+
+
+%% now try fitting the blue response average
+thePacket.response.values = BlueAverage;
+initialValues=[200, 200, 12000, -10, -25, -25];
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+
+figure;
+hold on
+plot(timebase, BlueAverage, 'Color', 'b')
+
+
+plot(timebase, modelResponseStruct.values, 'Color', 'c')
+xlabel('Time (ms)')
+ylabel('Pupil Diameter (% Change)')
+legend('Blue Response Average', 'Model Fit', 'Location', 'SouthEast')
+title('Fit the Blue')
+
+
+%plot fit with each component
+% 1st component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(5) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp1 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 2nd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp2 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 3rd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(5) = 0;
+tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+figure;
+hold on
+plot(timebase, tmp1.values)
+plot(timebase, tmp2.values)
+plot(timebase, tmp3.values)
+xlabel('Time (ms)')
+ylabel('Component Amplitude')
+legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
+title('Fit the Blue')
+paramsFit
+
+%% now try fitting the blue response average
+thePacket.response.values = RedAverage;
+initialValues=[200, 200, 12000, -10, -25, -25];
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+
+figure;
+hold on
+plot(timebase, RedAverage, 'Color', 'r')
+
+
+plot(timebase, modelResponseStruct.values, 'Color', 'c')
+xlabel('Time (ms)')
+ylabel('Pupil Diameter (% Change)')
+legend('Blue Response Average', 'Model Fit', 'Location', 'SouthEast')
+title('Fit the Red')
+
+
+%plot fit with each component
+% 1st component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(5) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp1 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 2nd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp2 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 3rd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(5) = 0;
+tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+figure;
+hold on
+plot(timebase, tmp1.values)
+plot(timebase, tmp2.values)
+plot(timebase, tmp3.values)
+xlabel('Time (ms)')
+ylabel('Component Amplitude')
+legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
+title('Fit the Red')
+paramsFit
