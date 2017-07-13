@@ -36,7 +36,7 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 
 delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
 gammaTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'gammaTau'));
-%exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*1000;
+exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*1000;
 amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransiet')).*1000;
 amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained')).*1000;
 amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent')).*1000;
@@ -79,8 +79,8 @@ for ii=1:numInstances
     gammaIRF=normalizeKernelArea(gammaIRF);
     
     % Create the exponential kernel
-%    exponentialIRF.values=exp(-1/exponentialTauVec(ii)*stimulus.timebase);
- %   exponentialIRF=normalizeKernelArea(exponentialIRF);
+    exponentialIRF.values=exp(-1/exponentialTauVec(ii)*stimulus.timebase);
+    exponentialIRF=normalizeKernelArea(exponentialIRF);
     
     % Create sinusoid kernel
     sinusoidIRF.values=sin(stimulus.timebase/sinusoidCycleTimeVec(ii)*2*pi);
@@ -90,8 +90,10 @@ for ii=1:numInstances
     transientComponent = obj.applyKernel(stimulusSlewOn,gammaIRF);
     sustainedComponent = obj.applyKernel(stimulus,gammaIRF);
     %persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn,exponentialIRF),gammaIRF);
-    persistentComponent = obj.applyKernel(stimulusSlewOn,sinusoidIRF);
+    persistentComponent = obj.applyKernel(stimulus,sinusoidIRF);
     
+    %playing with the sustained component was well
+    %sustainedComponent = obj.applyKernel(obj.applyKernel(stimulus,exponentialIRF),gammaIRF);
     
     % Scale each component to have unit area
     transientComponent=normalizeKernelArea(transientComponent);

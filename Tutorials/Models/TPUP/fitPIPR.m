@@ -57,10 +57,11 @@ thePacket.response.values = BlueAverage - RedAverage;
 thePacket.response.timebase = timebase;
 
 %% now actually do the fit
-initialValues=[200, 200, 12, -10, -25, -25];
+initialValues=[200, 200, 20, -10, -25, -25, 10];
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 figure;
+subplot(1,2,1)
 hold on
 plot(timebase, BlueAverage, 'Color', 'b')
 plot(timebase, RedAverage, 'Color', 'r')
@@ -99,7 +100,7 @@ paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
 
-figure;
+subplot(1,2,2);
 hold on
 plot(timebase, tmp1.values)
 plot(timebase, tmp2.values)
@@ -114,10 +115,18 @@ title('Fit the PIPR')
 
 %% now try fitting the blue response average
 thePacket.response.values = BlueAverage;
-initialValues=[200, 200, 12000, -10, -25, -25];
+initialValues=[200, 200, 20, -10, -25, -25, 10];
+
+% play with boundaries
+%vlb=[-500, 150, 1, -2000, -2000, -0];
+%vub=[0, 750, 30, 0, 0, 0];
+
+
+
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 figure;
+subplot(1,2,1);
 hold on
 plot(timebase, BlueAverage, 'Color', 'b')
 
@@ -148,7 +157,7 @@ paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
 
-figure;
+subplot(1,2,2);
 hold on
 plot(timebase, tmp1.values)
 plot(timebase, tmp2.values)
@@ -159,12 +168,13 @@ legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
 title('Fit the Blue')
 paramsFit
 
-%% now try fitting the blue response average
+%% now try fitting the red response average
 thePacket.response.values = RedAverage;
-initialValues=[200, 200, 120, -10, -25, -25];
+initialValues=[200, 200, 20, -10, -25, -25, 10];
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 figure;
+subplot(1,2,1);
 hold on
 plot(timebase, RedAverage, 'Color', 'r')
 
@@ -195,7 +205,7 @@ paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
 
-figure;
+subplot(1,2,2);
 hold on
 plot(timebase, tmp1.values)
 plot(timebase, tmp2.values)
@@ -210,16 +220,18 @@ paramsFit
 % make the response
 paramsFitTemp.paramMainMatrix(1) = 200;
 paramsFitTemp.paramMainMatrix(2) = 200;
-paramsFitTemp.paramMainMatrix(3) = 12;
+paramsFitTemp.paramMainMatrix(3) = 13;
 paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 paramsFitTemp.paramMainMatrix(6) = -20;
+paramsFitTemp.paramMainMatrix(7) = 10;
+
 modelResponseStruct = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
 % stick it in a packet
 thePacket.response.values = modelResponseStruct.values;
 
 % do the fit
-initialValues=[200, 200, 6.1, -10, -10, -25];
+initialValues=[200, 200, 20, -10, -10, -25, 10];
 [paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
 
 % plot to summarize
