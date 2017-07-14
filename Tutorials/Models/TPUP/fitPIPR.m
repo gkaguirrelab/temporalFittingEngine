@@ -57,8 +57,8 @@ thePacket.response.values = BlueAverage - RedAverage;
 thePacket.response.timebase = timebase;
 
 %% now actually do the fit
-initialValues=[200, 200, 20, -10, -25, -25, 10];
-[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+initialValues=[200, 200, 0.5, -10, -25, -25, 10];
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo);
 
 figure;
 subplot(1,2,1)
@@ -123,7 +123,7 @@ initialValues=[200, 200, 20, -10, -25, -25, 10];
 
 
 
-[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo);
 
 figure;
 subplot(1,2,1);
@@ -171,7 +171,7 @@ paramsFit
 %% now try fitting the red response average
 thePacket.response.values = RedAverage;
 initialValues=[200, 200, 20, -10, -25, -25, 10];
-[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo);
 
 figure;
 subplot(1,2,1);
@@ -218,24 +218,29 @@ paramsFit
 
 %% Trying to fit just a half sinusoid of varying cycle durations
 % make the response
+[paramsFitTemp] = parameterDefinitionTPUP(1);
 paramsFitTemp.paramMainMatrix(1) = 200;
 paramsFitTemp.paramMainMatrix(2) = 200;
-paramsFitTemp.paramMainMatrix(3) = 13;
+paramsFitTemp.paramMainMatrix(3) = 5;
 paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 paramsFitTemp.paramMainMatrix(6) = -20;
-paramsFitTemp.paramMainMatrix(7) = 10;
+%paramsFitTemp.paramMainMatrix(7) = 10;
 
 modelResponseStruct = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
 % stick it in a packet
 thePacket.response.values = modelResponseStruct.values;
 
 % do the fit
-initialValues=[200, 200, 20, -10, -10, -25, 10];
-[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues);
+initialValues=  [200, 200,  4,     0,      0,      25];
+vub =           [300, 200,  10,      0,      0,      0];
+vlb =           [120, 200,  0,      0,      0,      -200];
+
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues, 'vub', vub, 'vlb', vlb, 'verbosity', 'full');
 
 % plot to summarize
 figure;
+subplot(1,2,1)
 hold on
 plot(timebase, thePacket.response.values, 'Color', 'k')
 
@@ -259,5 +264,34 @@ xpos = xlims(1)+0.55*xrange;
 ypos = ylims(1)+0.30*yrange;
 string = (sprintf(['Inputted Cycle Length = ', sprintf('%.2f', paramsFitTemp.paramMainMatrix(3))]));
 text(xpos, ypos, string, 'fontsize',12)
+
+%plot fit with each component
+% 1st component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(5) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp1 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 2nd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(6) = 0;
+tmp2 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+% 3rd component
+paramsFitTemp = paramsFit;
+paramsFitTemp.paramMainMatrix(4) = 0;
+paramsFitTemp.paramMainMatrix(5) = 0;
+tmp3 = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,thePacket.kernel,'AddNoise',false);
+
+subplot(1,2,2);
+hold on
+plot(timebase, tmp1.values)
+plot(timebase, tmp2.values)
+plot(timebase, tmp3.values)
+xlabel('Time (ms)')
+ylabel('Component Amplitude')
+legend('Transient', 'Sustained', 'Persistent', 'Location', 'SouthEast')
+title('Fit the Red')
 
 paramsFit

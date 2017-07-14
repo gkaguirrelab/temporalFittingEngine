@@ -36,13 +36,11 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 
 delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
 gammaTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'gammaTau'));
-exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*1000;
 amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransiet')).*1000;
 amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained')).*1000;
 amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent')).*1000;
-% new sinusoid parameters
-% sinusoidCycleTimeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'sinusoidCycleTime'));
-sinusoidCycleTimeVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'sinusoidCycleTime')).*1000;
+% new step duration parameters
+stepDurationVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'stepDuration')).*1000;
 
 %sinusoidCycleTimeVec=12000; %12,000 ms being a reasonable estimate from looking at the group average
 
@@ -58,8 +56,8 @@ gammaIRF.values = stimulusStruct.timebase .* 0;
 gammaIRF.timebase = stimulusStruct.timebase;
 exponentialIRF.values=stimulusStruct.timebase .* 0;
 exponentialIRF.timebase=stimulusStruct.timebase;
-sinusoidIRF.values=stimulusStruct.timebase .* 0;
-sinusoidIRF.timebase=stimulusStruct.timebase;
+stepPulseIRF.values=stimulusStruct.timebase .* 0;
+stepPulseIRF.timebase=stimulusStruct.timebase;
 
 
 %% We loop through each row of the stimulus matrix
@@ -78,19 +76,22 @@ for ii=1:numInstances
     gammaIRF.values = stimulus.timebase .* exp(-stimulus.timebase./gammaTauVec(ii));
     gammaIRF=normalizeKernelArea(gammaIRF);
     
-    % Create the exponential kernel
-    exponentialIRF.values=exp(-1/exponentialTauVec(ii)*stimulus.timebase);
-    exponentialIRF=normalizeKernelArea(exponentialIRF);
     
-    % Create sinusoid kernel
-    sinusoidIRF.values=sin(stimulus.timebase/sinusoidCycleTimeVec(ii)*2*pi);
-    sinusoidIRF.values(round(sinusoidCycleTimeVec(ii)/2/deltaT):length(sinusoidIRF.values)) = 0;
-    sinusoidIRF=normalizeKernelArea(sinusoidIRF);
+    
+    % Create step pulse kernel
+    if round((stepDurationVec(ii)/deltaT))+1 > length(stepPulseIRF.values)
+        stepPulseIRF.values(1:length(stepPulseIRF.values)) = 1;
+    else
+        stepPulseIRF.values(1:((round(stepDurationVec(ii)/deltaT))+1)) = 1;
+    end
+    stepPulseIRF = normalizeKernelArea(stepPulseIRF);
+    
     
     transientComponent = obj.applyKernel(stimulusSlewOn,gammaIRF);
     sustainedComponent = obj.applyKernel(stimulus,gammaIRF);
-    %persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn,exponentialIRF),gammaIRF);
-    persistentComponent = obj.applyKernel(stimulus,sinusoidIRF);
+    persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn, stepPulseIRF), gammaIRF);
+    %persistentComponent = obj.applyKernel(stimulusSlewOn, stepPulseIRF);
+
     
     %playing with the sustained component was well
     %sustainedComponent = obj.applyKernel(obj.applyKernel(stimulus,exponentialIRF),gammaIRF);
