@@ -32,6 +32,7 @@ p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
+p.addParameter('FinDiffRelStep',[],@isnumeric);
 p.addParameter('errorType','rmse',@ischar);
 p.parse(thePacket,varargin{:});
 
@@ -63,6 +64,9 @@ switch (p.Results.searchMethod)
         options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
+        end
+        if ~isempty(p.Results.FinDiffRelStep)
+            options = optimset(options,'FinDiffRelStep',p.Results.FinDiffRelStep);
         end
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
             thePacket),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);

@@ -221,7 +221,7 @@ paramsFit
 [paramsFitTemp] = parameterDefinitionTPUP(1);
 paramsFitTemp.paramMainMatrix(1) = 200;
 paramsFitTemp.paramMainMatrix(2) = 200;
-paramsFitTemp.paramMainMatrix(3) = 5;
+paramsFitTemp.paramMainMatrix(3) = 14;
 paramsFitTemp.paramMainMatrix(4) = 0;
 paramsFitTemp.paramMainMatrix(5) = 0;
 paramsFitTemp.paramMainMatrix(6) = -20;
@@ -232,11 +232,11 @@ modelResponseStruct = temporalFit.computeResponse(paramsFitTemp,stimulusStruct,t
 thePacket.response.values = modelResponseStruct.values;
 
 % do the fit
-initialValues=  [200, 200,  4,     0,      0,      25];
-vub =           [300, 200,  10,      0,      0,      0];
-vlb =           [120, 200,  0,      0,      0,      -200];
+initialValues=  [200, 200,  6,     0,      0,      -20];
+vub =           [300, 200,  20,      0,      0,      0];
+vlb =           [120, 200,  6,      0,      0,      -200];
 
-[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues, 'vub', vub, 'vlb', vlb, 'verbosity', 'full');
+[paramsFit,fVal,modelResponseStruct] = temporalFit.fitResponse(thePacket, 'defaultParamsInfo', defaultParamsInfo, 'initialValues', initialValues, 'vub', vub, 'vlb', vlb, 'verbosity', 'full', 'FinDiffRelStep', 1);
 
 % plot to summarize
 figure;
