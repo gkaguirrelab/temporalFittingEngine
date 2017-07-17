@@ -42,7 +42,7 @@ paramStruct.paramNameCell = {...
 if isempty(p.Results.initialValues)
     paramStruct.paramMainMatrix(:,1) = 200.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,2) = 200.*ones([nInstances 1]);
-    paramStruct.paramMainMatrix(:,3) = 5.*ones([nInstances 1]);
+    paramStruct.paramMainMatrix(:,3) = 6.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,4) = -10.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,5) = -25.*ones([nInstances 1]);
     paramStruct.paramMainMatrix(:,6) = -25.*ones([nInstances 1]);

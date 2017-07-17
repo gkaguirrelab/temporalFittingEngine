@@ -79,18 +79,24 @@ for ii=1:numInstances
     
     
     % Create step pulse kernel
-    if round((stepDurationVec(ii)/deltaT))+1 > length(stepPulseIRF.values)
-        stepPulseIRF.values(1:length(stepPulseIRF.values)) = 1;
-    else
+    %if round((stepDurationVec(ii)/deltaT))+1 > length(stepPulseIRF.values)
+     %   stepPulseIRF.values(1:length(stepPulseIRF.values)) = 1;
+    %else
         stepPulseIRF.values(1:((round(stepDurationVec(ii)/deltaT))+1)) = 1;
-    end
-    stepPulseIRF = normalizeKernelArea(stepPulseIRF);
+    %end
+    %stepPulseIRF = normalizeKernelArea(stepPulseIRF);
     
     
     transientComponent = obj.applyKernel(stimulusSlewOn,gammaIRF);
     sustainedComponent = obj.applyKernel(stimulus,gammaIRF);
-    persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn, stepPulseIRF), gammaIRF);
+    %persistentComponent = obj.applyKernel(obj.applyKernel(stimulusSlewOn, stepPulseIRF), gammaIRF);
     %persistentComponent = obj.applyKernel(stimulusSlewOn, stepPulseIRF);
+    
+    
+    deltaFunction.values = zeros(1,length(stepPulseIRF.timebase));
+    deltaFunction.values(50) = 1;
+    deltaFunction.timebase = stimulusStruct.timebase;
+    persistentComponent = obj.applyKernel(deltaFunction, stepPulseIRF);
 
     
     %playing with the sustained component was well
@@ -99,16 +105,18 @@ for ii=1:numInstances
     % Scale each component to have unit area
     transientComponent=normalizeKernelArea(transientComponent);
     sustainedComponent=normalizeKernelArea(sustainedComponent);
-    persistentComponent=normalizeKernelArea(persistentComponent);
+    %persistentComponent=normalizeKernelArea(persistentComponent);
     
-    yPupil=transientComponent.values * amplitudeTransietVec(ii) + ...
+    %yPupil=transientComponent.values * amplitudeTransietVec(ii) + ...
         sustainedComponent.values * amplitudeSustainedVec(ii) + ...
         persistentComponent.values * amplitudePersistentVec(ii);
     
+    yPupil = persistentComponent.values * amplitudePersistentVec(ii);
+    
     % apply the temporal delay
-    initialValue=yPupil(1);
-    yPupil=fshift(yPupil,-1*delayVec(ii)/deltaT);
-    yPupil(1:ceil(-1*delayVec(ii)/deltaT))=initialValue;
+    %initialValue=yPupil(1);
+    %yPupil=fshift(yPupil,-1*delayVec(ii)/deltaT);
+    %yPupil(1:ceil(-1*delayVec(ii)/deltaT))=initialValue;
     
     % Add this stimulus model to the response matrix
     responseMatrix(ii,:)=yPupil;
