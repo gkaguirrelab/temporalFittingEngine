@@ -8,6 +8,13 @@ function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelS
 % Optional key/value pairs
 %   'AddNoise' - true/false (default false).  Add noise to computed
 %     response? Useful for simulations.
+%   'noiseInverseFrequencyPower' - Noise is generated using the Matlab
+%     dsp.ColoredNoise System object. This parameter determines alpha, the
+%     exponent of the noise generation property, following the formula:
+%     noise = 1/|f|^alpha. The default value of zero produces white noise.
+%     A value of 1 produces 'pink' noise, and a value of 2 'brown'(ian)
+%     noise. Functional MRI data have autocorrelated noise, with an
+%     alpha value on the order of 1 or less.
 
 %% Parse vargin for options passed here
 %
@@ -20,6 +27,7 @@ p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('errorType','rmse',@ischar);
 p.addParameter('addNoise',false,@islogical);
+p.addParameter('noiseInverseFrequencyPower',0,@isnumeric);
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
@@ -36,8 +44,12 @@ end
 modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
 %% Optional add noise
-if (p.Results.addNoise)
-    modelResponseStruct.values = modelResponseStruct.values + normrnd(0,params.noiseSd,size(modelResponseStruct.values));
+% If 
+if p.Results.addNoise
+    cn = dsp.ColoredNoise(params.noiseInverseFrequencyPower,length(modelResponseStruct.timebase),1);
+    noise = step(cn)';
+    noise = noise/std(noise)*params.noiseSd;
+    modelResponseStruct.values = modelResponseStruct.values + noise;
 end
 
 end % function
