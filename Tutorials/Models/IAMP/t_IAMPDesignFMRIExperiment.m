@@ -13,7 +13,6 @@ function [ fitParamsMean, fitParamsSD ] = t_IAMPDesignFMRIExperiment(varargin)
 %   stimResponseVec - a column vector of amplitudes of neural response to
 %       be modeled for each stimulus type. As we will use linear regression
 %       to derive the model fits, only include non-zero values.
-%   stimLabels - cell array of labels for each stimulus
 %   hrfParams - a vector of params that define the double gamma HRF model,
 %       corresponding to gamma1, gamma2, and gammaScale
 %   hrfGammaNoiseSD - the standard deviation of the noise to be applied
@@ -32,7 +31,6 @@ p.addParameter('deltaT',100,@isnumeric);
 p.addParameter('totalTime',330000,@isnumeric);
 p.addParameter('trialTime',12000,@isnumeric);
 p.addParameter('stimResponseVec',[0.001; .25; .5; .75; 1],@isnumeric);
-p.addParameter('stimLabels',{'0%' '25%' '50%' '100%' '200%'},@iscell);
 p.addParameter('hrfParams',[6,12,10],@isnumeric);
 p.addParameter('hrfGammaNoiseSD',1,@isnumeric);
 p.addParameter('noiseSd',0.4,@isnumeric);
@@ -42,11 +40,7 @@ p.parse(varargin{:});
 
 %% Derive values from and sanity check the input
 
-if length(p.Results.stimResponseVec) ~= length(p.Results.stimLabels)
-    error('The length of the response vec and the stimulus labels is not the same');
-end
 nStimTypes = length(p.Results.stimResponseVec);
-
 nTrials = floor(p.Results.totalTime / p.Results.trialTime);
 if nTrials < nStimTypes
     error('The design does not allow enough time to present all stimulus types');
@@ -97,7 +91,6 @@ for ss = 1:p.Results.nSimulations
         end
     end
     
-    stimulusStruct.meta.stimLabels = p.Results.stimLabels;
     stimulusStruct.meta.stimTypes = stimTypes;
     
     for ii=1:nStimTypes
