@@ -48,8 +48,8 @@ hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
 kernelStruct.values=hrf;
 
-% prepare this kernelStruct for use in convolution as a BOLD HRF
-kernelStruct=prepareHRFKernel(kernelStruct);
+% Normalize the kernel to have unit amplitude
+[ kernelStruct ] = normalizeKernelArea( kernelStruct );
 
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
