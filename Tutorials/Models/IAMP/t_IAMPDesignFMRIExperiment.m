@@ -16,6 +16,8 @@ function [ fitParamsMean, fitParamsSD ] = t_IAMPDesignFMRIExperiment(varargin)
 %   stimLabels - cell array of labels for each stimulus
 %   hrfParams - a vector of params that define the double gamma HRF model,
 %       corresponding to gamma1, gamma2, and gammaScale
+%   hrfGammaNoiseSD - the standard deviation of the noise to be applied
+%       to parameters of the HRF model used for fitting the simulated data
 %   noiseSd - the standard deviation of the noise
 %   noiseInverseFrequencyPower - the exponent alpha that defines the
 %       autocorrelated noise present in the fMRI data, following the
@@ -32,6 +34,7 @@ p.addParameter('trialTime',12000,@isnumeric);
 p.addParameter('stimResponseVec',[0.001; .25; .5; .75; 1],@isnumeric);
 p.addParameter('stimLabels',{'0%' '25%' '50%' '100%' '200%'},@iscell);
 p.addParameter('hrfParams',[6,12,10],@isnumeric);
+p.addParameter('hrfGammaNoiseSD',1,@isnumeric);
 p.addParameter('noiseSd',0.4,@isnumeric);
 p.addParameter('noiseInverseFrequencyPower',1.0,@isnumeric);
 p.addParameter('nSimulations',100,@isnumeric);
@@ -63,13 +66,13 @@ hrfParams.gammaScale = p.Results.hrfParams(3); % scaling factor between the posi
 
 % The timebase is converted to seconds within the function, as the gamma
 % parameters are defined in seconds.
-kernelStruct.timebase=linspace(0,15999,16000);
-hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
-    gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
-kernelStruct.values=hrf;
+simulatedKernelStruct.timebase=linspace(0,15999,16000);
+hrf = gampdf(simulatedKernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
+    gampdf(simulatedKernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
+simulatedKernelStruct.values=hrf;
 
 % Normalize the kernel to have unit amplitude
-[ kernelStruct ] = normalizeKernelArea( kernelStruct );
+[ simulatedKernelStruct ] = normalizeKernelArea( simulatedKernelStruct );
 
 %% Set up the simulated response parameters
 defaultParamsInfo.nInstances = nStimTypes;
@@ -106,12 +109,25 @@ for ss = 1:p.Results.nSimulations
     end
 
     % Create the simulated response
-    simulatedResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
+    simulatedResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,simulatedKernelStruct,'AddNoise',true);
+    
+    % Create a modeled kernel struct that may include noisy variation in
+    % the gamma parameters
+    hrfParams.gamma1 = p.Results.hrfParams(1)+normrnd(0,p.Results.hrfGammaNoiseSD,1);
+    hrfParams.gamma2 = p.Results.hrfParams(2)+normrnd(0,p.Results.hrfGammaNoiseSD,1);
+    hrfParams.gammaScale = p.Results.hrfParams(3)+normrnd(0,p.Results.hrfGammaNoiseSD,1);
+    modeledKernelStruct.timebase=linspace(0,15999,16000);
+    hrf = gampdf(modeledKernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
+        gampdf(modeledKernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
+    modeledKernelStruct.values=hrf;
+    
+    % Normalize the kernel to have unit amplitude
+    [ modeledKernelStruct ] = normalizeKernelArea( modeledKernelStruct );
     
     % Construct a packet and model params
     thePacket.stimulus = stimulusStruct;
     thePacket.response = simulatedResponseStruct;
-    thePacket.kernel = kernelStruct;
+    thePacket.kernel = modeledKernelStruct;
     thePacket.metaData = [];
     
     % Obtain the fit params
@@ -120,6 +136,7 @@ for ss = 1:p.Results.nSimulations
         'defaultParamsInfo', defaultParamsInfo, ...
         'searchMethod','linearRegression');
     
+    % store the parameter values across loops
     paramValsAcrossSimulations(ss,:) = paramsFit.paramMainMatrix';
     
 end % loop over simulations
@@ -140,6 +157,7 @@ end
 if p.Results.generatePlots
     figure
     errorbar(params0.paramMainMatrix,fitParamsMean,fitParamsSD,'.r','markerfacecolor',[1 0 0])
+    refline(1,0);
     xlabel('simulated stimulus neural amplitudes') % x-axis label
     ylabel('estimated stimulus neural amplitudes') % y-axis label
     ylim([ (min(fitParamsMean) - max(fitParamsSD)) (max(fitParamsMean) + max(fitParamsSD)) ]);
