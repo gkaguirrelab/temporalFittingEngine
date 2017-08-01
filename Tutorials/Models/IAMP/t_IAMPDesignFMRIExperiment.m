@@ -11,7 +11,8 @@ function [ fitParamsMean, fitParamsSD ] = t_IAMPDesignFMRIExperiment(varargin)
 %   totalTime - total duration of the simulation (in msecs)
 %   trialTime - duration of each stimulus presentation (in msecs)
 %   stimResponseVec - a column vector of amplitudes of neural response to
-%       be modeled for each stimulus type
+%       be modeled for each stimulus type. As we will use linear regression
+%       to derive the model fits, only include non-zero values.
 %   stimLabels - cell array of labels for each stimulus
 %   hrfParams - a vector of params that define the double gamma HRF model,
 %       corresponding to gamma1, gamma2, and gammaScale
