@@ -32,6 +32,7 @@ p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
+p.addParameter('fminconAlgorithm','active-set',@ischar);
 p.addParameter('errorType','rmse',@ischar);
 p.parse(thePacket,varargin{:});
 
@@ -60,7 +61,7 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm','active-set');
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
