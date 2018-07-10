@@ -23,7 +23,7 @@ gammaTau - time constant of the Gamma function (msecs)
 
 exponentialTau - time constant of the persistent component (seconds)
 
-amplitudeTransiet - scaling of the transient component in (%change*secs)
+amplitudeTransient - scaling of the transient component in (%change*secs)
 
 amplitudeSustained - scaling of the transient component in (%change*secs)
 

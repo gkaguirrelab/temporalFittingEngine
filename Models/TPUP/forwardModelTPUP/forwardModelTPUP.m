@@ -22,9 +22,9 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 % delay - time to shift the model to the right (msecs)
 % gammaTau - time constant of the Gamma function (msecs)
 % exponentialTau - time constant of the persistent component (seconds)
-% amplitudeTransiet - scaling of the transient component in (%change*secs)
-% amplitudeSustained - scaling of the transient component in (%change*secs)
-% amplitudePersistent - scaling of the transient component in (%change*secs)
+% amplitudeTransient - scaling of the transient component in (%change*secs)
+% amplitudeSustained - scaling of the sustained component in (%change*secs)
+% amplitudePersistent - scaling of the persistent component in (%change*secs)
 
 
 
@@ -37,7 +37,7 @@ function [modelResponseStruct] = forwardModelTPUP(obj,params,stimulusStruct)
 delayVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'delay'));
 gammaTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'gammaTau'));
 exponentialTauVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'exponentialTau')).*1000;
-amplitudeTransietVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransiet')).*1000;
+amplitudeTransientVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeTransient')).*1000;
 amplitudeSustainedVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudeSustained')).*1000;
 amplitudePersistentVec=params.paramMainMatrix(:,strcmp(params.paramNameCell,'amplitudePersistent')).*1000;
 
@@ -84,7 +84,7 @@ for ii=1:numInstances
     sustainedComponent=normalizeKernelArea(sustainedComponent);
     persistentComponent=normalizeKernelArea(persistentComponent);
     
-    yPupil=transientComponent.values * amplitudeTransietVec(ii) + ...
+    yPupil=transientComponent.values * amplitudeTransientVec(ii) + ...
         sustainedComponent.values * amplitudeSustainedVec(ii) + ...
         persistentComponent.values * amplitudePersistentVec(ii);
     
