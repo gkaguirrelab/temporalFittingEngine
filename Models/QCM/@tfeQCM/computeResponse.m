@@ -30,11 +30,14 @@ params = p.Results.params;
 theLengths = diag(sqrt(stimulusStruct.values'*Q*stimulusStruct.values))';
 
 %% Push the quadratic response through a Naka-Rushton non-linearity
-neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths);
+neuralResponse = ComputeNakaRushton([params.crfAmp,params.crfSemi,params.crfExponent],theLengths) + params.offset;
 
 %% Make the neural response structure
 modelResponseStruct.timebase = stimulusStruct.timebase;
 modelResponseStruct.values = neuralResponse;
+
+% % Mean center
+% modelResponseStruct.values=modelResponseStruct.values - mean(modelResponseStruct.values);
 
 %% Optionally, convolve with a passed kernel
 modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});

@@ -20,10 +20,10 @@ params.crfAmp = x(6);
 params.crfExponent = x(7);
 params.crfSemi = x(8);
 params.expFalloff = x(9);
-
+params.offset = x(10);
 % Optional inclusion of noise
 if (p.Results.UseNoiseParam)
-    params.noiseSd = x(10);
+    params.noiseSd = x(11);
 end
 
 end
