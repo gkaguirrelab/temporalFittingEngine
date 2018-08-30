@@ -14,7 +14,7 @@ function [params,paramsLb,paramsUb] = defaultParams(obj,varargin)
 
 %% Parse vargin for options passed here
 p = inputParser; p.KeepUnmatched = true;
-p.addParameter('defaultParamsInfo',[],@isstruct);
+p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.parse(varargin{:});
 
 %% Handle default number of stimuli
