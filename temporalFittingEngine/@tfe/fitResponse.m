@@ -9,13 +9,15 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %
 % Optional key/value pairs
 %  'defaultParamsInfo' - struct (default empty).  This is passed to the defaultParams method.
-%  'searchMethod - string (default 'fmincon').  Specify search method
-%    'fmincon' - Use fmincon
-%    'global' - Use global search
-%    'linearRegression' - rapid estimation of simplified models with only
-%                         an amplitude parameter
-%  'DiffMinChange' - Double. If set, changes the default value of this in
-%                    the fmincon optionset.
+%  'defaultParams'     - struct (default empty). Params values for
+%                        defaultParams to return. In turn determines starting value for search.
+%  'searchMethod       - string (default 'fmincon').  Specify search method
+%                         'fmincon' - Use fmincon
+%                         'global' - Use global search
+%                         'linearRegression' - rapid estimation of simplified models with only
+%                          an amplitude parameter
+%  'DiffMinChange'     - Double. If set, changes the default value of this in
+%                        the fmincon optionset.
 %
 % Outputs:
 %   paramsFit: fit parameters
@@ -30,6 +32,7 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 p = inputParser; p.KeepUnmatched = true;
 p.addRequired('thePacket',@isstruct);
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
+p.addParameter('defaultParams',[],@(x)(isempty(x) | isstruct(x)));
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
 p.addParameter('fminconAlgorithm','active-set',@ischar);
@@ -47,7 +50,7 @@ else
 end
 
 %% Set initial values and reasonable bounds on parameters
-[paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo,varargin{:});
+[paramsFit0,vlb,vub] = obj.defaultParams('defaultParamsInfo',p.Results.defaultParamsInfo,'defaultParams',p.Results.defaultParams,varargin{:});
 paramsFitVec0 = obj.paramsToVec(paramsFit0);
 vlbVec = obj.paramsToVec(vlb);
 vubVec = obj.paramsToVec(vub);
@@ -61,7 +64,7 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
+        options = optimset(options,'Diagnostics','off','Display','iter','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
