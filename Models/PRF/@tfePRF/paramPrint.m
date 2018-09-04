@@ -10,7 +10,7 @@ function paramPrint(obj,params,varargin)
 % Parse input. At the moment this does type checking on the params input
 % and has an optional key value pair that does nothing, but is here for us
 % as a template.
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addRequired('params',@isstruct);
 p.addParameter('PrintType','parameters',@ischar);
 p.parse(params,varargin{:});

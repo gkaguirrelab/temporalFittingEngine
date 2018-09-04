@@ -10,7 +10,7 @@ function paramStruct = parameterDefinitionFCON(nInstances, varargin)
 %   or vub will be used instead of the default values.
 
 %% Parse vargin for options passed here
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('nInstances',@isnumeric);
 p.addParameter('initialValues',[],@isnumeric);
 p.addParameter('vlb',[],@isnumeric);

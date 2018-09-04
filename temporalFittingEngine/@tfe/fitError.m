@@ -21,7 +21,7 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 % Setting 'KeepUmatched' to true means that we can pass the varargin{:})
 % along from a calling routine without an error here, if the key/value
 % pairs recognized by the calling routine are not needed here.
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('paramsVec',@isnumeric);
 p.addRequired('thePacket',@isstruct);
 p.addParameter('errorType','rmse',@ischar);

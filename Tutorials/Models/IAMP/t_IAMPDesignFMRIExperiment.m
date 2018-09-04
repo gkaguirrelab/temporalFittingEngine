@@ -25,7 +25,7 @@ function [ fitParamsMean, fitParamsSD ] = t_IAMPDesignFMRIExperiment(varargin)
 %       confidence intervals on the fit params
 
 %% Parse vargin for options passed here
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addParameter('generatePlots',true,@islogical);
 p.addParameter('deltaT',100,@isnumeric);
 p.addParameter('totalTime',330000,@isnumeric);

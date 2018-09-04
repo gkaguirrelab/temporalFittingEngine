@@ -11,7 +11,7 @@ function validationData = t_BTRMBasic(varargin)
 %  'generatePlots' - true/fale (default true).  Make plots?
 
 %% Parse vargin for options passed here
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addParameter('generatePlots',true,@islogical);
 p.parse(varargin{:});
 

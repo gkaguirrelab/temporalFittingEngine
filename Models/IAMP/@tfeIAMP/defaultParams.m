@@ -13,7 +13,7 @@ function [params,paramsLb,paramsUb] = defaultParams(obj,varargin)
 %  routine.  If this struct is not passed, nStimuli is set to 1.
 
 %% Parse vargin for options passed here
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addParameter('defaultParamsInfo',[],@(x)(isempty(x) | isstruct(x)));
 p.parse(varargin{:});
 

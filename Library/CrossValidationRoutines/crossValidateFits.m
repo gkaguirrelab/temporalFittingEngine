@@ -44,7 +44,7 @@ function [ xValFitStructure, averageResponseStruct, modelResponseStruct ] = cros
 % Setting 'KeepUmatched' to true means that we can pass the varargin{:})
 % along from a calling routine without an error here, if the key/value
 % pairs recognized by the calling routine are not needed here.
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('packetCellArray',@iscell);
 p.addRequired('tfeHandle',@(x)(~isempty(x)));
 p.addParameter('partitionMethod','loo',@ischar);

@@ -8,7 +8,7 @@ function x = paramsToVec(obj,params,varargin)
 %     true or false (default) 
 
 % Parse input
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addRequired('params',@isstruct);
 p.addParameter('UseNoiseParam',false,@islogical);
 p.parse(params,varargin{:});
