@@ -9,7 +9,7 @@ function paramStruct = parameterDefinitionBTRM(nInstances, varargin)
 %
 
 %% Parse vargin for options passed here
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('nInstances',@isnumeric);
 p.addParameter('use_dCTS',false,@islogical);
 p.addParameter('initialValues',[],@isnumeric);

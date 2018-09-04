@@ -8,7 +8,7 @@ function params = vecToParams(obj,x,varargin)
 %     true or false (default)
 
 % Parse input
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addRequired('x',@isnumeric);
 p.addParameter('UseNoiseParam',false,@islogical);
 p.parse(x,varargin{:});

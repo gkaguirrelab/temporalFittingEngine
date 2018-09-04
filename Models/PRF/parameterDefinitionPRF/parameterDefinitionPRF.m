@@ -6,7 +6,7 @@ function paramStruct = parameterDefinitionPRF(nInstances,varargin)
 % as well as a field with parameter names.
 
 %% Parse vargin for options passed here
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('nInstances',@isnumeric);
 p.parse(nInstances,varargin{:});
 

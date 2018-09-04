@@ -16,7 +16,7 @@ function validationData = t_tfeApplyKernel(varargin)
 %  'generatePlots' - true/fale (default true).  Make plots?
 
 %% Parse vargin for options passed here
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addParameter('responseDeltaT',1,@isnumeric);
 p.addParameter('responseDuration',100,@isnumeric);
 p.addParameter('kernelDeltaT',1,@isnumeric);

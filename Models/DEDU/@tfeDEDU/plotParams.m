@@ -16,7 +16,7 @@ function [h, meanParamValues,stdErrorParamValues] = plotParams(obj,params,stimul
 %                    of parameter types and n is the number of stimuli.
 %                    Essentially stores the data to plot.
 
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addRequired('params',@isstruct);
 p.addRequired('stimulusStruct',@isstruct);
 p.addParameter('bFitZero',false,@islogical);

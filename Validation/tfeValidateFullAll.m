@@ -22,7 +22,7 @@ function tfeValidateFullAll(varargin)
 %   tfeValidateFullAll('generate plots',true);
 
 %% Parse input and set settable prefs
-p = inputParser;
+p = inputParser; p.PartialMatching = false;
 p.addParameter('verbosity','low',@ischar);
 p.addParameter('generatePlots',false,@islogical);
 p.addParameter('graphMismatchedData',false,@islogical);

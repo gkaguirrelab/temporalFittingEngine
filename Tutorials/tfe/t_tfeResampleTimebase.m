@@ -11,7 +11,7 @@ function validationData = t_tfeResampleTimebase(varargin)
 %  'method' - Resampling method that is passed on to resampleTimebase
 
 %% Parse vargin for options passed here
-p = inputParser; p.KeepUnmatched = true;
+p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addParameter('originalDeltaT',1,@isnumeric);
 p.addParameter('originalDuration',100,@isnumeric);
 p.addParameter('newDeltaT',4,@isnumeric);

@@ -64,7 +64,7 @@ classdef tfe < handle
         function obj = tfe(varargin)
                      
             %% Parse vargin for options passed here
-            p = inputParser;
+            p = inputParser; p.PartialMatching = false;
             p.addParameter('verbosity','none',@ischar);
             p.parse(varargin{:});
             obj.verbosity = p.Results.verbosity;
