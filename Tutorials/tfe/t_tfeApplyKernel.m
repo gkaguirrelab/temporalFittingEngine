@@ -30,8 +30,8 @@ p.parse(varargin{:});
 %
 % We can't instantiate the parent class, so we pick one of the
 % subclasses. It shouldn't matter which one, as we are not going
-% to use an
-tfe = tfeQCM('verbosity','none');
+% to use any of the model specific functions.
+tfe = tfeIAMP('verbosity','none');
 
 %% Create a response structure to convolve with
 %
