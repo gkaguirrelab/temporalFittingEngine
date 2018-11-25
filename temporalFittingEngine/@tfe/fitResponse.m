@@ -64,7 +64,7 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','iter','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
