@@ -8,21 +8,32 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %   thePacket: a valid packet
 %
 % Optional key/value pairs
-%  'defaultParamsInfo' - struct (default empty).  This is passed to the defaultParams method.
-%  'defaultParams'     - struct (default empty). Params values for
+%  'defaultParamsInfo' - Struct (default empty).  This is passed to the defaultParams method.
+%  'defaultParams'     - Struct (default empty). Params values for
 %                        defaultParams to return. In turn determines starting value for search.
-%  'searchMethod       - string (default 'fmincon').  Specify search method
+%  'searchMethod       - String (default 'fmincon').  Specify search method
 %                         'fmincon' - Use fmincon
 %                         'global' - Use global search
 %                         'linearRegression' - rapid estimation of simplified models with only
 %                          an amplitude parameter
-%  'DiffMinChange'     - Double. If set, changes the default value of this in
-%                        the fmincon optionset.
+%  'DiffMinChange'     - Double (default empty). If not empty, changes the default value
+%                        of this in the fmincon optionset.
+%  'fminconAlgorithm'  - String (default 'active-set'). Passed on as
+%                        algorithm in options to fmincon.
+%  'errorType'         - String (default 'rmse'). Determines what error is
+%                        minimized, passed as an option to fitError method.
+%                        [NOTE: This does not seem to be passed during
+%                        minimization, only for final computation of error.
+%                        Whoever added this should take a look.
 %
 % Outputs:
 %   paramsFit: fit parameters
 %   fVal: mean value of fit error, mean taken over runs.
 %   predictedResponse: big vector containing the fit response
+
+% History:
+%   11/26/18  dhb       Added comments about key/value pairs that were not
+%                       previously commented.
 
 %% Parse vargin for options passed here
 %
@@ -64,7 +75,7 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','iter','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
