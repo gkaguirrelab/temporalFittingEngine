@@ -32,6 +32,7 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) | isstruct(x)));
+p.addParameter('convolveMethod', 'conv', @ischar);
 p.parse(inputStruct,kernelStruct,varargin{:});
 
 %% Propagate all fields forward
@@ -77,20 +78,29 @@ for ii=1:nRows
     % explicitly include the factor of responseDeltaT.
     
     % old method
-    valuesRowConv = conv(inputStruct.values(ii,:),kernelStruct.values, 'full')*responseDeltaT;
+    if strcmp(p.Results.convolveMethod, 'conv')
+        valuesRowConv = conv(inputStruct.values(ii,:),kernelStruct.values, 'full')*responseDeltaT;
+        % Cut off extra conv values
+        outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));
+    end
     
     % new nan-safe method
-    valuesRowConv = nanconv_local(inputStruct.values(ii,:),kernelStruct.values, '1d')*responseDeltaT;
+    if strcmp(p.Results.convolveMethod, 'nanconv')
+        outputStruct.values(ii,:) = nanconv_local(inputStruct.values(ii,:),kernelStruct.values, '1d')*responseDeltaT;
+        % note that this function already cuts off the extra convolve
+        % values, so we don't need to do it after
+    end
     
     
-    % Cut off extra conv values
-    outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));
+   
 end
 
 %% Local function nanconv
 % from matlab central, with a few modifications to force the shape of the
 % convolution be 'full', rather than 'same' which is all the built-in
-% capacity the initial function has
+% capacity the initial function has. This was made a local function so the
+% edits to the matlab central function don't get overwritten on each
+% tbUse call
     function c = nanconv_local(a, k, varargin)
         % NANCONV Convolution in 1D or 2D ignoring NaNs.
         %   C = NANCONV(A, K) convolves A and K, correcting for any NaN values
