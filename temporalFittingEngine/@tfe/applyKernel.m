@@ -163,7 +163,7 @@ end
         elseif(~strcmp(shape,'same'))
             error([mfilename ':NotImplemented'],'Shape ''%s'' not implemented',shape);
         end
-        shape = 'full'
+        shape = 'full';
         
         % Get the size of 'a' for use later.
         sza = size(a);
