@@ -143,6 +143,9 @@ end
         % $Id: nanconv.m 4861 2013-05-27 03:16:22Z bkraus $
         
         % Process input arguments
+
+        
+        
         for arg = 1:nargin-2
             switch lower(varargin{arg})
                 case 'edge'; edge = true; % Apply edge correction
@@ -214,7 +217,23 @@ end
         % Do the actual convolution
         c = conv2(a,k,shape);
         c = c(1:length(a));
+        
+        makePlots = true;
+        if (makePlots)
+            plotFig = figure;
+            hold on
+            plot(c)
+            plot(flat)
+        end
+        
+        
+        
         c = c./flat;
+        if (makePlots)
+            plot(c)
+            legend('First Convolution: NaNs set to 0', 'Second Convolution: NaNs set to 0, everyting else at 1', 'Final Output (First/Second Convolution)')
+            title('Debug nanconv')
+        end
         
         % If requested, replace output values with NaNs corresponding to input.
         if(nanout); c(n) = NaN; end
