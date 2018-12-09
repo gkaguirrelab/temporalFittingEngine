@@ -7,6 +7,11 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 % Inputs:
 %   thePacket: a valid packet
 %
+% Outputs:
+%   paramsFit          - Fit parameters
+%   fVal               - Fit error
+%   predictedResponse  - Response predicted from fit
+%
 % Optional key/value pairs
 %  'defaultParamsInfo' - Struct (default empty).  This is passed to the defaultParams method.
 %  'defaultParams'     - Struct (default empty). Params values for
@@ -26,14 +31,11 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                        minimization, only for final computation of error.
 %                        Whoever added this should take a look.
 %
-% Outputs:
-%   paramsFit: fit parameters
-%   fVal: mean value of fit error, mean taken over runs.
-%   predictedResponse: big vector containing the fit response
 
 % History:
 %   11/26/18  dhb       Added comments about key/value pairs that were not
 %                       previously commented.
+%   12/09/18  dhb       Comment improvements.
 
 %% Parse vargin for options passed here
 %

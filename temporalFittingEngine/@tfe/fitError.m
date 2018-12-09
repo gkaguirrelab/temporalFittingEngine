@@ -4,17 +4,18 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 % Compute the error measure for passed model parameters, for the tfe class.
 %
 % Inputs:
-%   paramsVec - model parameters in their vector form.  Just one of these
-%   thePacket - standard packet containing stimulus, timebase, and metadata
-%
-% Optional key/value pairs
-%  'errorType' - string (default 'rmse') Type of error to compute.
-%    'rmse' - Root mean squared error.
-%    '1-r2' - 1-r2
+%   paramsVec           - Model parameters in their vector form.  Just one of these
+%   thePacket           - Standard packet containing stimulus, timebase, and metadata
 %
 % Outputs: 
-%   fVal: mean value of fit error, mean taken over runs.
-%   modelResponseStruct: predicted response, standard structure form
+%   fVal                - Fit error
+%   modelResponseStruct - Predicted response, standard structure form
+%
+% Optional key/value pairs
+%  'errorType'         - String (default 'rmse') Type of error to compute.
+%                         'rmse' - Root mean squared error.
+%                         '1-r2' - 1-r2
+%
 
 %% Parse vargin for options passed here
 %
@@ -37,7 +38,6 @@ if ~isempty(p.Results.errorWeightVector)
         error('An errorWeightVector can only be used with an rmse errorType');
     end
 end
-
 
 %% Convert parameters to vector form
 params = obj.vecToParams(paramsVec);
