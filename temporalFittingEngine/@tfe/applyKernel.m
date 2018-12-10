@@ -56,6 +56,36 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     cachedHash = '41d0741a71e625ecc91c67f227017425';
     computedHash = DataHash(convResponseStruct);
     assert(strcmp(computedHash, cachedHash));
+
+    % A convolution containing varying amounts of NaNs
+    responseStruct.timebase = 0:1:25999;
+    % create a sine wave responseStruct
+    sinFunc = @sin;
+    responseStruct.values = sinFunc(responseStruct.timebase/1000);
+    % add some NaN values
+    responseStruct.values(10:20) = NaN;
+    responseStruct.values(50:620) = NaN;
+    % note the chunk that follows will be longer than the specified
+    % 'durationMsecsOfNansToCensor' and will ultimately be censored
+    responseStruct.values(10000:16000) = NaN; 
+    % create standard HRF
+    kernelStruct.timebase=linspace(0,15999,16000);
+    hrf = gampdf(kernelStruct.timebase/1000, 6, 1) -  gampdf(kernelStruct.timebase/1000, 12, 1)/10;
+    kernelStruct.values=hrf;
+    [ kernelStruct ] = normalizeKernelArea( kernelStruct );
+    % Instantiate the tfe and perform the convolution
+    temporalFit = tfeIAMP('verbosity','none');
+    convResponseStruct = temporalFit.applyKernel(responseStruct,kernelStruct, 'durationMsecsOfNansToCensor', 5000);
+    figure; hold on;
+    plot(responseStruct.timebase, responseStruct.values);
+    plot(convResponseStruct.timebase, convResponseStruct.values);
+    legend('Original Response', 'Convolved Response')
+    xlabel('Time')
+    ylabel('Response')
+    % on this plot, notice that the first couple of NaN runs have been interpolated
+    and their corresponding values are present in the final convolution
+    product. The longer NaN run, however, is ultimately censored in the
+    final output, after introducing the proper timeshift.
 %}
 
 
@@ -67,7 +97,7 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('inputStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) | isstruct(x)));
-p.addRequired('durationMsecsOfNansToCensor',5000,@isscalar);
+p.addParameter('durationMsecsOfNansToCensor',5000,@isscalar);
 p.parse(inputStruct,kernelStruct,varargin{:});
 
 %% Propagate all fields forward
@@ -108,7 +138,7 @@ end
 
 %% Find the time of the absolute maximum of the kernel
 % This may be used if we are handling nan values in the input below
-% DO THIS HERE
+[lagToPeakValue, lagToPeakIndex] = max(abs(kernelStruct.values));
 
 
 %% Loop over rows for the convolution
@@ -137,46 +167,39 @@ for ii=1:nRows
     % nans that are longer than the passed threshold and set the output
     % vector to have nans in the corresponding, temporally shifted
     % location.
-    if ~isempty(nanIdx)
+    nanRuns = [];
+    if ~isempty(find(nanIdx))
         % Find the stretches
-        % nan the outputStruct.values at the corresponding delayed
-        % locations
-    end
+        % get vector that contains the indices for each NaN value within
+        % inputStruct.values
+        nanIndices = find(nanIdx);
+        
+        % figure out the first index, from this vector nanIndices, that
+        % describes the beginning of a run of consecutive NaN values. The
+        % first item in nanIdx will always be the beginning of a run but
+        % will not have a diff value of 1 there.
+        firstIndicesOfRun = [1, (find(diff(nanIndices) ~= 1)+1)]; 
+        % figure out the last index, from this vector nanIndices, that
+        % describes the end of a run of consecutive NaN values. The last
+        % item of nanIdx will always be the end of a run, btu will also no
+        % thave a diff value of 1 there.
+        lastIndicesOfRun = [(find(diff(nanIndices) ~= 1)-1), length(nanIndices)]; 
+        
+        % loop over each run of NaNs
+        for ff = 1:length(firstIndicesOfRun)
+                
+                % identify indices corresponding to the entire runs of
+                % NaNs. These indices are relative to inputStruct.
+                nanRuns{ff} = nanIndices(firstIndicesOfRun(ff)):nanIndices(lastIndicesOfRun(ff));
+                
+                % if the length of the NaN run is too long, then censor
+                % output after introducing appropriate lag
+                if inputStruct.timebase(nanRuns{ff}(end)) - inputStruct.timebase(nanRuns{ff}(1)) > p.Results.durationMsecsOfNansToCensor
+                    outputStruct.values(ii,nanRuns{ff}(1)+lagToPeakIndex:nanRuns{ff}(end)+lagToPeakIndex) = NaN;
+                end
+        end
 
-    %     % new nan-safe method
-    %     if strcmp(p.Results.convolveMethod, 'nanconv')
-    %         outputStruct.values(ii,:) = nanconv_local(inputStruct.values(ii,:),kernelStruct.values, '1d')*responseDeltaT;
-    %         % note that this function already cuts off the extra convolve
-    %         % values, so we don't need to do it after
-    %     end
-    %
-    %     % principled method: If the missle values are within the temporal
-    %     % domain of the kernel (the length of time that the kernel spans), we
-    %     % will interpolate the missing values and continue with the convolution
-    %     % as normal. If, however, the length of the stretch of NaN values is
-    %     % greater than the domain of the kernel, we will assign the
-    %     % corresponding region of the output vector to be NaN as well.
-    %
-    %     if strcmp(p.Results.convolveMethod, 'principled')
-    %         % identify any NaN values
-    %         NaNIndices = find(isnan(inputStruct.values(ii,:)));
-    %
-    %         % determine the length of each NaN segment
-    %
-    %         % interpolate over NaN segments that are short enough in duration,
-    %         % relative to kernel temporal domain
-    %
-    %         % lingering question: how to handle the convolution when we will
-    %         % not be interpolating
-    %         % 1st option: interpolate, then convolve, then replace these indices
-    %         % with NaN
-    %         % 2nd option: keep NaN, use nanconv, then replace these indices
-    %         % with NaN.
-    %         % These two options will produce different results for values along
-    %         % the edges of these NaN segments
-    %
-    %     end
-    
+    end
     
     
 end
