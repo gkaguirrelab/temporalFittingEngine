@@ -149,7 +149,7 @@ for ii=1:nRows
 
     % Detect if nans are present in this row of values
     nanIdx = isnan(inputRow);
-    if ~isempty(nanIdx)
+    if ~isempty(find(nanIdx))
         % There are nans present. Spline interpolate over the missing
         % values
         inputRow=spline(inputStruct.timebase(~nanIdx), inputRow(~nanIdx), inputStruct.timebase);
