@@ -25,8 +25,8 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 %   the same, but each must be regularly sampled.
 %
 % Inputs
-%   inputStruct           - F
-%   kernelStruct          - F
+%   inputStruct           - Structure with the fields timebase and values
+%   kernelStruct          - Structure with the fields timebase and values
 %
 % Optional key/value pairs
 %  'method'               - String (default 'interp1_linear').  How to
@@ -35,8 +35,8 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 %  'interp1_linear'       - Use Matlab's interp1, linear method.
 %
 % Outputs
-%   outputStruct          - F
-%   kernelStruct          - F
+%   outputStruct          - Structure with the fields timebase and values
+%   kernelStruct          - Structure with the fields timebase and values
 %
 % Examples:
 %{
@@ -56,18 +56,18 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     cachedHash = '41d0741a71e625ecc91c67f227017425';
     computedHash = DataHash(convResponseStruct);
     assert(strcmp(computedHash, cachedHash));
-
+%}
+%{
     % A convolution containing varying amounts of NaNs
     responseStruct.timebase = 0:1:25999;
     % create a sine wave responseStruct
     sinFunc = @sin;
     responseStruct.values = sinFunc(responseStruct.timebase/1000);
     % add some NaN values
-    responseStruct.values(10:20) = NaN;
-    responseStruct.values(50:620) = NaN;
+    responseStruct.values(2000:2500) = NaN;
     % note the chunk that follows will be longer than the specified
     % 'durationMsecsOfNansToCensor' and will ultimately be censored
-    responseStruct.values(10000:16000) = NaN; 
+    responseStruct.values(10000:16000) = NaN;
     % create standard HRF
     kernelStruct.timebase=linspace(0,15999,16000);
     hrf = gampdf(kernelStruct.timebase/1000, 6, 1) -  gampdf(kernelStruct.timebase/1000, 12, 1)/10;
@@ -76,20 +76,20 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     % Instantiate the tfe and perform the convolution
     temporalFit = tfeIAMP('verbosity','none');
     convResponseStruct = temporalFit.applyKernel(responseStruct,kernelStruct, 'durationMsecsOfNansToCensor', 5000);
+    % Plot results. Note that the first couple of NaN runs have been
+    % interpolated and their corresponding values are present in the final
+    % convolution product. The longer NaN run, however, is ultimately
+    % censored in the final output, after introducing the proper timeshift.
     figure; hold on;
     plot(responseStruct.timebase, responseStruct.values);
     plot(convResponseStruct.timebase, convResponseStruct.values);
     legend('Original Response', 'Convolved Response')
     xlabel('Time')
     ylabel('Response')
-    % on this plot, notice that the first couple of NaN runs have been interpolated
-    and their corresponding values are present in the final convolution
-    product. The longer NaN run, however, is ultimately censored in the
-    final output, after introducing the proper timeshift.
 %}
 
 
-%% Parse vargin for options passed here
+%% Parse vargin
 %
 % Setting 'KeepUmatched' to true means that we can pass the varargin{:})
 % along from a calling routine without an error here, if the key/value
@@ -138,28 +138,28 @@ end
 
 %% Find the time of the absolute maximum of the kernel
 % This may be used if we are handling nan values in the input below
-[lagToPeakValue, lagToPeakIndex] = max(abs(kernelStruct.values));
+[~, lagToPeakIndex] = max(abs(kernelStruct.values));
 
 
 %% Loop over rows for the convolution
 for ii=1:nRows
-
+    
     % Grab this row of the input structure
     inputRow = inputStruct.values(ii,:);
-
+    
     % Detect if nans are present in this row of values
     nanIdx = isnan(inputRow);
-    if ~isempty(find(nanIdx))
+    if ~isempty(find(nanIdx,1))
         % There are nans present. Spline interpolate over the missing
         % values
         inputRow=spline(inputStruct.timebase(~nanIdx), inputRow(~nanIdx), inputStruct.timebase);
     end
-
+    
     % Convolve with the kernel.  The convolution is a discrete
     % approximation to an intergral, so we explicitly include the factor of
     % responseDeltaT.
     valuesRowConv = conv(inputRow,kernelStruct.values, 'full')*responseDeltaT;
-
+    
     % Cut off extra conv values
     outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));
     
@@ -167,8 +167,7 @@ for ii=1:nRows
     % nans that are longer than the passed threshold and set the output
     % vector to have nans in the corresponding, temporally shifted
     % location.
-    nanRuns = [];
-    if ~isempty(find(nanIdx))
+    if ~isempty(find(nanIdx,1))
         % Find the stretches
         % get vector that contains the indices for each NaN value within
         % inputStruct.values
@@ -178,27 +177,27 @@ for ii=1:nRows
         % describes the beginning of a run of consecutive NaN values. The
         % first item in nanIdx will always be the beginning of a run but
         % will not have a diff value of 1 there.
-        firstIndicesOfRun = [1, (find(diff(nanIndices) ~= 1)+1)]; 
+        firstIndicesOfRun = [1, (find(diff(nanIndices) ~= 1)+1)];
         % figure out the last index, from this vector nanIndices, that
         % describes the end of a run of consecutive NaN values. The last
         % item of nanIdx will always be the end of a run, btu will also no
         % thave a diff value of 1 there.
-        lastIndicesOfRun = [(find(diff(nanIndices) ~= 1)-1), length(nanIndices)]; 
+        lastIndicesOfRun = [(find(diff(nanIndices) ~= 1)-1), length(nanIndices)];
         
         % loop over each run of NaNs
         for ff = 1:length(firstIndicesOfRun)
-                
-                % identify indices corresponding to the entire runs of
-                % NaNs. These indices are relative to inputStruct.
-                nanRuns{ff} = nanIndices(firstIndicesOfRun(ff)):nanIndices(lastIndicesOfRun(ff));
-                
-                % if the length of the NaN run is too long, then censor
-                % output after introducing appropriate lag
-                if inputStruct.timebase(nanRuns{ff}(end)) - inputStruct.timebase(nanRuns{ff}(1)) > p.Results.durationMsecsOfNansToCensor
-                    outputStruct.values(ii,nanRuns{ff}(1)+lagToPeakIndex:nanRuns{ff}(end)+lagToPeakIndex) = NaN;
-                end
+            
+            % identify indices corresponding to the entire runs of
+            % NaNs. These indices are relative to inputStruct.
+            nanRuns = nanIndices(firstIndicesOfRun(ff)):nanIndices(lastIndicesOfRun(ff));
+            
+            % if the length of the NaN run is too long, then censor
+            % output after introducing appropriate lag
+            if inputStruct.timebase(nanRuns(end)) - inputStruct.timebase(nanRuns(1)) > p.Results.durationMsecsOfNansToCensor
+                outputStruct.values(ii,nanRuns(1)+lagToPeakIndex:nanRuns(end)+lagToPeakIndex) = NaN;
+            end
         end
-
+        
     end
     
     
