@@ -91,6 +91,33 @@ for ii=1:nRows
         % values, so we don't need to do it after
     end
     
+    % principled method: If the missle values are within the temporal
+    % domain of the kernel (the length of time that the kernel spans), we
+    % will interpolate the missing values and continue with the convolution
+    % as normal. If, however, the length of the stretch of NaN values is
+    % greater than the domain of the kernel, we will assign the
+    % corresponding region of the output vector to be NaN as well.
+    
+    if strcmp(p.Results.convolveMethod, 'principled')
+        % identify any NaN values
+        NaNIndices = find(isnan(inputStruct.values(ii,:)));
+        
+        % determine the length of each NaN segment
+        
+        % interpolate over NaN segments that are short enough in duration,
+        % relative to kernel temporal domain
+        
+        % lingering question: how to handle the convolution when we will
+        % not be interpolating
+        % 1st option: interpolate, then convolve, then replace these indices
+        % with NaN
+        % 2nd option: keep NaN, use nanconv, then replace these indices
+        % with NaN.
+        % These two options will produce different results for values along
+        % the edges of these NaN segments
+        
+    end
+    
     
    
 end
