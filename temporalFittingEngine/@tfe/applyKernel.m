@@ -24,6 +24,14 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 %   containing timebase and values fields.  The timebases do not need to be
 %   the same, but each must be regularly sampled.
 %
+%   The routine handles nans in the inputStruct.values vector. Spline
+%   interpolation is used to replace the nan values and convolution then
+%   proceeds as usual. If any sequential run of nan values is longer than
+%   the scalar provided by 'durationMsecsOfNansToCensor', then the output
+%   vector has a corresponding portion also set to nan, with the
+%   correspondence determined by shifting the block of nan values by the
+%   time the kernel takes to reach its absolute maximum value.
+%
 % Inputs
 %   inputStruct           - Structure with the fields timebase and values
 %   kernelStruct          - Structure with the fields timebase and values
@@ -32,7 +40,11 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 %  'method'               - String (default 'interp1_linear').  How to
 %                           resample kernel timebase, if needed. This is
 %                           passed onto method resampleTimebase.
-%  'interp1_linear'       - Use Matlab's interp1, linear method.
+%  'durationMsecsOfNansToCensor' - Scalar. Defines the duration (in msecs)
+%                           of the length of a set of nan values in the
+%                           inputStruct.values vector that prompts the
+%                           routine to censor the corresponding portion of
+%                           the output vector.
 %
 % Outputs
 %   outputStruct          - Structure with the fields timebase and values
@@ -53,12 +65,12 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     temporalFit = tfeIAMP('verbosity','none');
     convResponseStruct = temporalFit.applyKernel(responseStruct,kernelStruct);
     % Compare the output to a cached hash of the output
-    cachedHash = '41d0741a71e625ecc91c67f227017425';
+    cachedHash = '010d649c861c48ab4f250b788ef251d4';
     computedHash = DataHash(convResponseStruct);
     assert(strcmp(computedHash, cachedHash));
 %}
 %{
-    % A convolution containing varying amounts of NaNs
+    % Demonstrate convolution in a vector that contains nan values
     responseStruct.timebase = 0:1:25999;
     % create a sine wave responseStruct
     sinFunc = @sin;
