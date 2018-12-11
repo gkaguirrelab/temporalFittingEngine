@@ -172,8 +172,7 @@ for ii=1:nRows
     % responseDeltaT.
     valuesRowConv = conv(inputRow,kernelStruct.values, 'full')*responseDeltaT;
     
-    % Cut off extra conv values
-    outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));
+
     
     % If nans were present in the input vector, find those stretches of
     % nans that are longer than the passed threshold and set the output
@@ -194,7 +193,7 @@ for ii=1:nRows
         % describes the end of a run of consecutive NaN values. The last
         % item of nanIdx will always be the end of a run, btu will also no
         % thave a diff value of 1 there.
-        lastIndicesOfRun = [(find(diff(nanIndices) ~= 1)-1), length(nanIndices)];
+        lastIndicesOfRun = [(find(diff(nanIndices) ~= 1)), length(nanIndices)];
         
         % loop over each run of NaNs
         for ff = 1:length(firstIndicesOfRun)
@@ -206,11 +205,15 @@ for ii=1:nRows
             % if the length of the NaN run is too long, then censor
             % output after introducing appropriate lag
             if inputStruct.timebase(nanRuns(end)) - inputStruct.timebase(nanRuns(1)) > p.Results.durationMsecsOfNansToCensor
-                outputStruct.values(ii,nanRuns(1)+lagToPeakIndex:nanRuns(end)+lagToPeakIndex) = NaN;
+                valuesRowConv(ii,nanRuns(1)+lagToPeakIndex:nanRuns(end)+lagToPeakIndex) = NaN;
+                
             end
         end
         
     end
+    
+        % Cut off extra conv values
+    outputStruct.values(ii,:) = valuesRowConv(1:length(inputStruct.timebase));
     
     
 end
