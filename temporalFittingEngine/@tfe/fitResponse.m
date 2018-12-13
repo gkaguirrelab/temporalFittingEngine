@@ -1,41 +1,48 @@
 function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,varargin)
 % [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,varargin)
 %
-% Fit method for the tfe class.  This is meant to be model independent, so
-% that we only have to write it once.
+% Syntax:
+%  [paramsFit,fVal,modelResponseStruct] = obj.fitResponse(thePacket)
+%
+% Description:
+%   Fit method for the tfe class.  This is meant to be model independent,
+%   so that we only have to write it once.
 %
 % Inputs:
-%   thePacket: a valid packet
-%
-% Outputs:
-%   paramsFit          - Fit parameters
-%   fVal               - Fit error
-%   predictedResponse  - Response predicted from fit
+%   thePacket             - Structure. A valid packet
 %
 % Optional key/value pairs
-%  'defaultParamsInfo' - Struct (default empty).  This is passed to the defaultParams method.
-%  'defaultParams'     - Struct (default empty). Params values for
-%                        defaultParams to return. In turn determines starting value for search.
-%  'searchMethod       - String (default 'fmincon').  Specify search method
-%                         'fmincon' - Use fmincon
-%                         'global' - Use global search
-%                         'linearRegression' - rapid estimation of simplified models with only
-%                          an amplitude parameter
-%  'DiffMinChange'     - Double (default empty). If not empty, changes the default value
-%                        of this in the fmincon optionset.
-%  'fminconAlgorithm'  - String (default 'active-set'). Passed on as
-%                        algorithm in options to fmincon.
-%  'errorType'         - String (default 'rmse'). Determines what error is
-%                        minimized, passed as an option to fitError method.
-%                        [NOTE: This does not seem to be passed during
-%                        minimization, only for final computation of error.
-%                        Whoever added this should take a look.
+%  'defaultParamsInfo'    - Struct (default empty).  This is passed to the
+%                           defaultParams method.
+%  'defaultParams'        - Struct (default empty). Params values for
+%                           defaultParams to return. In turn determines
+%                           starting value for search.
+%  'searchMethod          - String (default 'fmincon').  Specify search
+%                           method:
+%                              'fmincon' - Use fmincon
+%                              'global' - Use global search
+%                              'linearRegression' - rapid estimation of
+%                                   simplified models with only an
+%                                   amplitude parameter
+%  'DiffMinChange'        - Double (default empty). If not empty, changes
+%                           the default value of this in the fmincon
+%                           optionset.
+%  'fminconAlgorithm'     - String (default 'active-set'). Passed on as
+%                           algorithm in options to fmincon.
+%  'errorType'            - String (default 'rmse'). Determines what error 
+%                           is minimized, passed as an option to fitError
+%                           method.
 %
-
+% Outputs:
+%   paramsFit             - Structure. Fit parameters.
+%   fVal                  - Scalar. Fit error
+%   predictedResponse     - Structure. Response predicted from fit.
+%
 % History:
 %   11/26/18  dhb       Added comments about key/value pairs that were not
 %                       previously commented.
 %   12/09/18  dhb       Comment improvements.
+%   12/13/18  gka       Notes placed in git commit comments.
 
 %% Parse vargin for options passed here
 %
@@ -83,23 +90,15 @@ switch (p.Results.searchMethod)
         end
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
             thePacket, varargin{:}),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
-    case 'global'
-        % Slow but might work better
-        opts = optimoptions(@fmincon,'Algorithm','interior-point');
-        problem = createOptimProblem('fmincon','objective', ...
-            @(modelParamsVec)obj.fitError(modelParamsVec,thePacket.stimulus,thePacket.response,thePacket.kernel),...
-            'x0',paramsFitVec0,'lb',vlbVec,'ub',vubVec,'options',opts);
-        gs = GlobalSearch;
-        paramsFitVec = run(gs,problem);
     case 'linearRegression'
         % linear regression can be used only when the paramsFit0 has only
         % a single parameter.
         if length(paramsFit0.paramNameCell)~=1
-            error('Linear regression can only be applied in the case of a single model parameter')
+            error('fitResponse:invalidLinearRegression','Linear regression can only be applied in the case of a single model parameter')
         end
         %  Warn if the parameter is not called "amplitude".
         if ~(min(paramsFit0.paramNameCell{1}=='amplitude')==1)
-            warning('Only amplitude parameters are suitable for linear regression')
+            warning('fitResponse:invalidLinearRegression','Only amplitude parameters are suitable for linear regression')
         end
         % Take the stimulus.values as the regression matrix
         regressionMatrixStruct=thePacket.stimulus;
@@ -112,7 +111,7 @@ switch (p.Results.searchMethod)
         y=thePacket.response.values';
         paramsFitVec=X\y;
     otherwise
-        error('Do not know how to fit that sucker with specified method');
+        error('fitResponse:invalidSearchMethod','Do not know how to fit that sucker with specified method');
 end
 
 % Get error and predicted response for final parameters
