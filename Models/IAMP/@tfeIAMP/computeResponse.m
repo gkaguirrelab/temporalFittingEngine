@@ -29,11 +29,13 @@ p.addRequired('stimulusStruct',@isstruct);
 p.addRequired('kernelStruct',@(x)(isempty(x) || isstruct(x)));
 p.addParameter('errorType','rmse',@ischar);
 p.addParameter('addNoise',false,@islogical);
+p.addParameter('forwardModelHandle',@forwardModelIAMP,@(x)(isa(x,'function_handle')));
+
 p.parse(params,stimulusStruct,kernelStruct,varargin{:});
 params = p.Results.params;
 
 %% Compute the forward model
-modelResponseStruct = forwardModelIAMP(params,stimulusStruct);
+modelResponseStruct = p.Results.forwardModelHandle(params,stimulusStruct);
 
 % report an iteration has completed
 switch (obj.verbosity)
