@@ -82,7 +82,7 @@ switch (p.Results.searchMethod)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec, ...
-            thePacket),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
+            thePacket, varargin{:}),paramsFitVec0,[],[],[],[],vlbVec,vubVec,[],options);
     case 'global'
         % Slow but might work better
         opts = optimoptions(@fmincon,'Algorithm','interior-point');
