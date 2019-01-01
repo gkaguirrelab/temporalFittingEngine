@@ -15,6 +15,9 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 %  'errorType'         - String (default 'rmse') Type of error to compute.
 %                         'rmse' - Root mean squared error.
 %                         '1-r2' - 1-r2
+%  'errorWeightVector' - Vector of weights to use on error for each
+%                        response value. Only valid if error type is 'rmse'.
+%                        Default empty.
 %
 
 %% Parse vargin for options passed here
