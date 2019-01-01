@@ -64,7 +64,12 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                           fitError method.
 %  'errorWeightVector'    - Vector of weights to use on error for each
 %                           response value. Only valid if error type is
-%                           'rmse'. Default empty. Passed along as an
+%                           'rmse'. Passed along as an option to the
+%                           fitError method.
+%  'fitErrorScalar'       - Computed fit error is multiplied by this before
+%                           return.  Sometimes getting the objective
+%                           function onto the right scale makes all the
+%                           difference in fitting. Passed along as an
 %                           option to the fitError method.
 %
 % Outputs:
@@ -103,7 +108,6 @@ p.addParameter('beq',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
 p.addParameter('fminconAlgorithm','active-set',@ischar);
-p.addParameter('errorType','rmse',@ischar);
 p.parse(thePacket,varargin{:});
 
 % Check packet validity
