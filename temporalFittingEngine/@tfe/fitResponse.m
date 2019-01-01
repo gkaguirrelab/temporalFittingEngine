@@ -129,10 +129,10 @@ if (~isempty(p.Results.initialParams))
     initialParams = p.Results.initialParams;
 end
 if (~isempty(p.Results.vlbParams))
-    initialParams = p.Results.vlbParams;
+    vlbParams = p.Results.vlbParams;
 end
 if (~isempty(p.Results.vubParams))
-    initialParams = p.Results.vubParams;
+    vubParams = p.Results.vubParams;
 end
 
 %% Convert initial params and bounds to vector form
