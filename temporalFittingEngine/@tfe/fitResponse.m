@@ -57,8 +57,9 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %  'DiffMinChange'        - Double (default empty). If not empty, changes
 %                           the default value of this in the fmincon
 %                           optionset.
-%  'fminconAlgorithm'     - String (default 'active-set'). Passed on as
-%                           algorithm in options to fmincon.
+%  'fminconAlgorithm'     - String (default empty). If set to a string,
+%                           passed on as algorithm in options to fmincon.
+%                           Leaving empty gets fmincon's default algorithm.
 %  'errorType'            - String (default 'rmse'). Determines what error
 %                           is minimized, passed along as an option to the
 %                           fitError method.
@@ -88,6 +89,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                      searchMethod value, because it doesn't exist in the code.
 %           dhb        Final computation of error was not using
 %                      errorWeightVector.  Now passed on.
+%          dhb         Use default fmincon algorithm, rather than
+%                      defaulting to 'active-set'
 
 %% Parse vargin for options passed here
 %
@@ -107,7 +110,7 @@ p.addParameter('Aeq',[],@isnumeric);
 p.addParameter('beq',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
-p.addParameter('fminconAlgorithm','active-set',@ischar);
+p.addParameter('fminconAlgorithm',[]',@(x) (isempty(x) | ischar(x)));
 p.parse(thePacket,varargin{:});
 
 % Check packet validity
@@ -149,7 +152,10 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off','Algorithm',p.Results.fminconAlgorithm);
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off');
+        if (~isempty(p.Results.fminconAlgorithm))
+            options = optimset(options,'fminconAlgorithm',p.Results.fminconAlgorithm);
+        end
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
