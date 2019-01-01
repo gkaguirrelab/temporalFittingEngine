@@ -60,6 +60,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %  'fminconAlgorithm'     - String (default empty). If set to a string,
 %                           passed on as algorithm in options to fmincon.
 %                           Leaving empty gets fmincon's default algorithm.
+%                           For some cases, using 'active-set' here may be
+%                           a good idea.
 %  'errorType'            - String (default 'rmse'). Determines what error
 %                           is minimized, passed along as an option to the
 %                           fitError method.
