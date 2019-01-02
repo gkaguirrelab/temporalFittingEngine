@@ -57,11 +57,13 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %  'DiffMinChange'        - Double (default empty). If not empty, changes
 %                           the default value of this in the fmincon
 %                           optionset.
-%  'fminconAlgorithm'     - String (default empty). If set to a string,
+%  'fminconAlgorithm'     - String (default 'active-set'). If set to a string,
 %                           passed on as algorithm in options to fmincon.
-%                           Leaving empty gets fmincon's default algorithm.
-%                           For some cases, using 'active-set' here may be
-%                           a good idea.
+%                           Can be empty or any algorithm string understood
+%                           by fmincon.
+%                              [] - Use fmincon's current default algorithm
+%                              'active-set' - Active set algorithm
+%                              'interior-point' - Interior point algorithm.
 %  'errorType'            - String (default 'rmse'). Determines what error
 %                           is minimized, passed along as an option to the
 %                           fitError method.
@@ -89,10 +91,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                      bounds, and search constraints.
 %            dhb       Code cleaning. Remove comment about 'global'
 %                      searchMethod value, because it doesn't exist in the code.
-%           dhb        Final computation of error was not using
+%            dhb       Final computation of error was not using
 %                      errorWeightVector.  Now passed on.
-%          dhb         Use default fmincon algorithm, rather than
-%                      defaulting to 'active-set'
 
 %% Parse vargin for options passed here
 %
@@ -112,7 +112,7 @@ p.addParameter('Aeq',[],@isnumeric);
 p.addParameter('beq',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
-p.addParameter('fminconAlgorithm',[]',@(x) (isempty(x) | ischar(x)));
+p.addParameter('fminconAlgorithm','active-set',@(x) (isempty(x) | ischar(x)));
 p.parse(thePacket,varargin{:});
 
 % Check packet validity
@@ -156,7 +156,7 @@ switch (p.Results.searchMethod)
         options = optimset('fmincon');
         options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off');
         if (~isempty(p.Results.fminconAlgorithm))
-            options = optimset(options,'fminconAlgorithm',p.Results.fminconAlgorithm);
+            options = optimset(options,'Algorithm',p.Results.fminconAlgorithm);
         end
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
