@@ -15,6 +15,13 @@ function [fVal,modelResponseStruct] = fitError(obj,paramsVec,thePacket,varargin)
 %  'errorType'         - String (default 'rmse') Type of error to compute.
 %                         'rmse' - Root mean squared error.
 %                         '1-r2' - 1-r2
+%  'errorWeightVector' - Vector of weights to use on error for each
+%                        response value. Only valid if error type is 'rmse'.
+%                        Default empty.
+%  'fitErrorScalar'    - Computed fit error is multiplied by this before
+%                        return.  Sometimes getting the objective function
+%                        onto the right scale makes all the difference in
+%                        fitting. Default 1.
 %
 
 %% Parse vargin for options passed here
@@ -27,6 +34,7 @@ p.addRequired('paramsVec',@isnumeric);
 p.addRequired('thePacket',@isstruct);
 p.addParameter('errorType','rmse',@ischar);
 p.addParameter('errorWeightVector',[],@(x)(isempty(x) | isnumeric(x)));
+p.addParameter('fitErrorScalar',1,@isnumeric);
 p.parse(paramsVec,thePacket,varargin{:});
 
 %% If passed, perform some errorWeightVector checks
@@ -67,5 +75,8 @@ end
 if isnan(fVal)
     error('the model has returned an undefined error measurement');
 end
+
+%% Multiply by fitErrorScalar
+fVal = p.Results.fitErrorScalar*fVal;
 
 end
