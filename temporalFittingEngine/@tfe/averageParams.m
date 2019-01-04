@@ -28,3 +28,19 @@ p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('paramsCellArray',@iscell);
 p.parse
 
+% Loop over all params to make a matrix of all params
+for ii = 1:length(paramsCellArray)
+    allParams(:,ii) = obj.paramsToVec(paramsCellArray{ii})
+end
+
+% Take the mean across params
+meanVec = mean(allParams,2);
+
+% Get the SEM
+semVec = std(allParams,0,2)/sqrt(length(meanVec);
+
+% Return params
+meanParams = obj.vecToParams(meanVec);
+semParams  = obj.vecToParams(semVec);
+
+end
