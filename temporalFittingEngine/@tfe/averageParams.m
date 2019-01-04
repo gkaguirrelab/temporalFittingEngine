@@ -26,18 +26,18 @@ function [meanParams,semParams] = averageParams(obj,paramsCellArray,varargin)
 % pairs recognized by the calling routine are not needed here.
 p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('paramsCellArray',@iscell);
-p.parse
+p.parse(paramsCellArray,varargin{:});
 
 % Loop over all params to make a matrix of all params
 for ii = 1:length(paramsCellArray)
-    allParams(:,ii) = obj.paramsToVec(paramsCellArray{ii})
+    allParams(:,ii) = obj.paramsToVec(paramsCellArray{ii});
 end
 
 % Take the mean across params
 meanVec = mean(allParams,2);
 
 % Get the SEM
-semVec = std(allParams,0,2)/sqrt(length(meanVec);
+semVec = std(allParams,0,2)./sqrt(length(meanVec));
 
 % Return params
 meanParams = obj.vecToParams(meanVec);
