@@ -65,8 +65,9 @@ fprintf('Default model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
 
-% Check on averageParams method
-[meanParams,semParams] = temporalFit.averageParams({params0 ; params0 ; params0});
+% Check on averageParams method and also show how to pass an object
+% into a function and call methods of the object from that function.
+[meanParams,semParams] =  testPassingObj(temporalFit,params0);
 fprintf('Mean of params0 three times\n\n:');
 temporalFit.paramPrint(meanParams);
 fprintf('\n');
@@ -146,3 +147,9 @@ if p.Results.generatePlots
 end
 
 end
+
+% This function demonstrates how to pass and call an object
+function [meanParams,semParams] = testPassingObj(theObj,theParams)
+    [meanParams,semParams] = theObj.averageParams({theParams ; theParams ; theParams});
+end
+    
