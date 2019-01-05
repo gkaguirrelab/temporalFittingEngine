@@ -6,6 +6,9 @@ function [ paramsFit ] = t_IAMPBasic(varargin)
 % Optional key/value pairs
 %  'generatePlots' - true/fale (default true).  Make plots?
 
+% History:
+%   01/05/19  dhb  Add basic test of averageParams method.
+
 %% Parse vargin for options passed here
 p = inputParser; p.PartialMatching = false;
 p.addParameter('generatePlots',true,@islogical);
@@ -62,6 +65,21 @@ fprintf('Default model parameters:\n');
 temporalFit.paramPrint(params0);
 fprintf('\n');
 
+% Check on averageParams method
+[meanParams,semParams] = temporalFit.averageParams({params0 ; params0 ; params0});
+fprintf('Mean of params0 three times\n\n:');
+temporalFit.paramPrint(meanParams);
+fprintf('\n');
+if (max(abs(meanParams.paramMainMatrix(:) - params0.paramMainMatrix(:))) > 1e-10)
+    error('Something wrong with averaging parameters method');
+end
+
+fprintf('SEM of params0 three times\n\n:');
+temporalFit.paramPrint(semParams);
+fprintf('\n');
+if (max(abs(semParams.paramMainMatrix(:))) > 1e-10)
+    error('Something wrong with sem of parameters method');
+end
 
 %% Create and plot modeled responses
 

@@ -19,6 +19,10 @@ function [meanParams,semParams] = averageParams(obj,paramsCellArray,varargin)
 %    None.
 %
 
+% History:
+%   01/05/19  dhb   Fix denominator of SEM calc. Should be sqrt of number
+%                   of parameter sets averaged, not length of parameter vector.
+
 %% Parse vargin for options passed here
 %
 % Setting 'KeepUmatched' to true means that we can pass the varargin{:})
@@ -27,6 +31,12 @@ function [meanParams,semParams] = averageParams(obj,paramsCellArray,varargin)
 p = inputParser; p.KeepUnmatched = true; p.PartialMatching = false;
 p.addRequired('paramsCellArray',@iscell);
 p.parse(paramsCellArray,varargin{:});
+
+% Check that paramsToVec method returns a column vector
+checkVec = obj.paramsToVec(paramsCellArray{1});
+if (~isvector(checkVec) | size(checkVec,2) > 1)
+    error('paramsToVec method does not return a column vector');
+end
 
 % Loop over all params to make a matrix of all params
 for ii = 1:length(paramsCellArray)
@@ -37,7 +47,7 @@ end
 meanVec = mean(allParams,2);
 
 % Get the SEM
-semVec = std(allParams,0,2)./sqrt(length(meanVec));
+semVec = std(allParams,0,2)./sqrt(length(paramsCellArray));
 
 % Return params
 meanParams = obj.vecToParams(meanVec);
