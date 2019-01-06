@@ -81,7 +81,7 @@ end
 %% And examples
 exampleStatus = tfeRunExamplesAll;
 if (p.Results.asAssertion)
-    assert(tutorialStatus, 'One or more examples failed.');
+    assert(exampleStatus, 'One or more examples failed.');
 end
         
 
