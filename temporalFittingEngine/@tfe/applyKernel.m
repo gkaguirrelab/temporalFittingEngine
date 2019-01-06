@@ -61,13 +61,27 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     hrf = gampdf(kernelStruct.timebase/1000, 6, 1) -  gampdf(kernelStruct.timebase/1000, 12, 1)/10;
     kernelStruct.values=hrf;
     [ kernelStruct ] = normalizeKernelArea( kernelStruct );
+
     % Instantiate the tfe and perform the convolution
     temporalFit = tfeIAMP('verbosity','none');
     convResponseStruct = temporalFit.applyKernel(responseStruct,kernelStruct);
-    % Compare the output to a cached hash of the output
-    cachedHash = '010d649c861c48ab4f250b788ef251d4';
-    computedHash = DataHash(convResponseStruct);
-    assert(strcmp(computedHash, cachedHash));
+
+    % Check that we still get the same answer we used to, to 5 decimal
+    % places.
+    cachedSumOfResponseValues = 0.96887;
+    currentSumOfResponseValues = round(sum(convResponseStruct.values(:)),5);
+    if (currentSumOfResponseValues - cachedSumOfResponseValues ~= 0)
+        error('No longer get cached response values');
+    end
+
+    % This was previously here as the check.  The problem with using the hash is that
+    % it is brittle to even the smallest change in numerical output, and
+    % thus breaks across Matlab versions or differences in computer
+    % hardware.  They type of check above, with an explicit tolerance,
+    % tends to work better.
+    % cachedHash = '41d0741a71e625ecc91c67f227017425';
+    % computedHash = DataHash(convResponseStruct);
+    % assert(strcmp(computedHash, cachedHash));
 %}
 %{
     % Demonstrate convolution in a vector that contains nan values
