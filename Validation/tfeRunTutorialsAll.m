@@ -1,5 +1,5 @@
 function status = tfeRunTutorialsAll
-% Run all iset3d tutorials and collect up status
+% Run all tfe tutorials and collect up status
 %
 % Syntax
 %    status = tfeRunTutorialsAll
