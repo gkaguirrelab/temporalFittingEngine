@@ -1,11 +1,11 @@
 function status = tfeRunExamplesAll
-%% Run all the examples in the isetbio tree
+%% Run all the examples in the tfe tree
 %
 % Syntax:
-%     ieRunExamplesAll
+%     tfeRunExamplesAll
 %
 % Description:
-%     Run all the examples in the isetbio tree,
+%     Run all the examples in the tfe tree,
 %     excepthose that contain a line of the form
 %     "% ETTBSkip"
 %
