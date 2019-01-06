@@ -68,8 +68,8 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
 
     % Check that we still get the same answer we used to, to 5 decimal
     % places.
-    cachedSumOfResponseValues = 0.96887;
-    currentSumOfResponseValues = round(sum(convResponseStruct.values(:)),5);
+    cachedSumOfResponseValues = round(0.96887,4);
+    currentSumOfResponseValues = round(sum(convResponseStruct.values(:)),4);
     if (currentSumOfResponseValues - cachedSumOfResponseValues ~= 0)
         error('No longer get cached response values');
     end
