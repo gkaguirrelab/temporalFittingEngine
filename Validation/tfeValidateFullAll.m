@@ -72,4 +72,11 @@ if (p.Results.asAssertion)
     assert(success, 'One or more validations failed.');
 end
 
+%% Now check tutorials
+tutorialStatus = tfeRunTutorialsAll;
+if (p.Results.asAssertion)
+    assert(tutorialStatus, 'One or more validations failed.');
+end
+        
+
 end
