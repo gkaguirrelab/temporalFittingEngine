@@ -16,7 +16,7 @@ function status = tfeRunTutorialsAll
 % Outputs:
 %    status    - Set to true if all tutorials ran OK, false otherwise.
 % 
-% See also: piValidateFullAll
+% See also:
 %
 
 % History:
