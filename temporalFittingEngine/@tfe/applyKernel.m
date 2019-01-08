@@ -73,15 +73,6 @@ function [outputStruct,kernelStruct] = applyKernel(obj,inputStruct,kernelStruct,
     if (currentSumOfResponseValues - cachedSumOfResponseValues ~= 0)
         error('No longer get cached response values');
     end
-
-    % This was previously here as the check.  The problem with using the hash is that
-    % it is brittle to even the smallest change in numerical output, and
-    % thus breaks across Matlab versions or differences in computer
-    % hardware.  They type of check above, with an explicit tolerance,
-    % tends to work better.
-    % cachedHash = '41d0741a71e625ecc91c67f227017425';
-    % computedHash = DataHash(convResponseStruct);
-    % assert(strcmp(computedHash, cachedHash));
 %}
 %{
     % Demonstrate convolution in a vector that contains nan values
@@ -178,7 +169,8 @@ for ii=1:nRows
     if ~isempty(find(nanIdx,1))
         % There are nans present. Spline interpolate over the missing
         % values
-        inputRow=spline(inputStruct.timebase(~nanIdx), inputRow(~nanIdx), inputStruct.timebase);
+        myFit = fit(inputStruct.timebase(~nanIdx)',inputRow(~nanIdx)','linearinterp');
+        inputRow=myFit(inputStruct.timebase)';
     end
     
     % Convolve with the kernel.  The convolution is a discrete
