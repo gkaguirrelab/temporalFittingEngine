@@ -46,10 +46,20 @@ hrfParams.gammaScale = 10; % scaling factor between the positive and negative ga
 kernelStruct.timebase=linspace(0,15999,16000);
 
 % The timebase is converted to seconds within the function, as the gamma
-% parameters are defined in seconds.
+% parameters are defined in seconds.  It's defined on 1 msec sampling
+% timebase.
 hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
 kernelStruct.values=hrf;
+
+% When the IAMP model computes the response, it resamples the kernal to the
+% same timebase as the response, if they differ.  That's slow.  So we can
+% speed things up by doing it once here.
+if (deltaT ~= 1)
+    nSamples = ceil((kernelStruct.timebase(end)-kernelStruct.timebase(1))/deltaT);
+    newKernelTimebase = kernelStruct.timebase(1):deltaT:(kernelStruct.timebase(1)+nSamples*deltaT);
+    kernelStruct = temporalFit.resampleTimebase(kernelStruct,newKernelTimebase);
+end
 
 % Normalize the kernel to have unit amplitude
 [ kernelStruct ] = normalizeKernelArea( kernelStruct );
