@@ -37,7 +37,6 @@ for ii=1:nInstances
     stimulusStruct.values(ii,eventTimes(ii)/deltaT:eventTimes(ii)/deltaT+eventDuration)=1;
 end
 
-
 %% Define a kernelStruct. In this case, a double gamma HRF
 hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
@@ -52,6 +51,9 @@ hrf = gampdf(kernelStruct.timebase/1000, hrfParams.gamma1, 1) - ...
     gampdf(kernelStruct.timebase/1000, hrfParams.gamma2, 1)/hrfParams.gammaScale;
 kernelStruct.values=hrf;
 
+% Normalize the kernel to have unit amplitude
+[ kernelStruct ] = normalizeKernelArea( kernelStruct );
+
 % When the IAMP model computes the response, it resamples the kernal to the
 % same timebase as the response, if they differ.  That's slow.  So we can
 % speed things up by doing it once here.
@@ -60,9 +62,6 @@ if (deltaT ~= 1)
     newKernelTimebase = kernelStruct.timebase(1):deltaT:(kernelStruct.timebase(1)+nSamples*deltaT);
     kernelStruct = temporalFit.resampleTimebase(kernelStruct,newKernelTimebase);
 end
-
-% Normalize the kernel to have unit amplitude
-[ kernelStruct ] = normalizeKernelArea( kernelStruct );
 
 %% Get the default forward model parameters
 params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
