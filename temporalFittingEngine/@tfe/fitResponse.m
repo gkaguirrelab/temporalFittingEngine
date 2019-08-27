@@ -186,9 +186,22 @@ switch (p.Results.searchMethod)
         % Downsample regressionMatrixStruct to the timebase of the response
         regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase,varargin{:});
         
-        % Perform the regression
-        X=regressionMatrixStruct.values';
+        % Pull out the response from the packet
         y=thePacket.response.values';
+        
+        % Assign the regression matrix to X
+        X=regressionMatrixStruct.values';
+                
+        % Detect if nans are present in the response. If so, remove these
+        % timepoints from the response and corresponding locations in the
+        % regression matrix
+        if any(isnan(y))
+            validIdx = ~isnan(y);
+            y = y(validIdx);
+            X = X(validIdx,:);
+        end
+        
+        % Perform the regression
         paramsFitVec=X\y;
         
     otherwise
