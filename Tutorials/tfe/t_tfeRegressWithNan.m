@@ -2,7 +2,7 @@ function validationData = t_tfeRegressWithNan(varargin)
 % validationData = t_tfeRegressWithNan(varargin)
 %
 % Demonstrate the performance of the linear regression operation when the
-% response vector contains nan values
+% response vector contains nan values.
 %
 
 
@@ -13,6 +13,8 @@ p.parse(varargin{:});
 
 
 %% Construct the model object
+% We need to have a particular model to demonstrate, but this should work
+% for any model that makes use of linear regression
 temporalFit = tfeIAMP('verbosity','none');
 
 %% Temporal domain of the stimulus
@@ -32,12 +34,10 @@ for ii=1:length(eventTimes)
 end
 defaultParamsInfo.nInstances = nInstances;
 
-
 %% Define a kernelStruct. In this case, a double gamma HRF
 hrfParams.gamma1 = 6;   % positive gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gamma2 = 12;  % negative gamma parameter (roughly, time-to-peak in secs)
 hrfParams.gammaScale = 10; % scaling factor between the positive and negative gamma componenets
-
 kernelStruct.timebase=linspace(0,15999,16000);
 
 % The timebase is converted to seconds within the function, as the gamma
@@ -64,9 +64,8 @@ params0 = temporalFit.defaultParams('defaultParamsInfo', defaultParamsInfo);
 
 %% Create a modeled response with noise
 % Set the noise level and report the params
-params0.noiseSd = 0.02;
+params0.noiseSd = 0.05;
 modelResponseStruct = temporalFit.computeResponse(params0,stimulusStruct,kernelStruct,'AddNoise',true);
-
 
 %% Construct a packet and model params
 thePacket.stimulus = stimulusStruct;
@@ -84,6 +83,15 @@ defaultParamsInfo.nInstances = nInstances;
     'defaultParamsInfo', defaultParamsInfo, ...
     'searchMethod','linearRegression');
 
+% Report the param fit value
+fprintf('Beta value, intact response vector: %f \n',paramsFit.paramMainMatrix),
+
+% Plot the response and fit
+if p.Results.generatePlots
+    temporalFit.plot(thePacket.response,'Color',[1 0 0],'NewWindow',true,'DisplayName','response');
+    temporalFit.plot(modelResponseStruct,'Color',[0 0 1],'NewWindow',false,'DisplayName','fit');
+end
+
 %% Add nans to 10% of the response values at random locations
 nanIdx = randsample(length(thePacket.response.values),floor(length(thePacket.response.values)*0.1));
 thePacket.response.values(nanIdx) = nan;
@@ -94,14 +102,14 @@ thePacket.response.values(nanIdx) = nan;
     'defaultParamsInfo', defaultParamsInfo, ...
     'searchMethod','linearRegression');
 
+% Report the param fit value
+fprintf('Beta value, response vector with nans: %f \n',paramsFitNan.paramMainMatrix),
 
-% Plot of the temporal fit results
+% Plot the response and fit
 if p.Results.generatePlots
-    temporalFit.plot(thePacket.response,'Color',[0 0 1],'NewWindow',true,'DisplayName','response');
-    temporalFit.plot(modelResponseStruct,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit without nans');
-    temporalFit.plot(modelResponseStructNan,'Color',[0 1 0],'NewWindow',false,'DisplayName','model fit with nans');
-    legend('show');legend('boxoff');
-    hold off
+    temporalFit.plot(thePacket.response,'Color',[0 0 0],'NewWindow',false,'DisplayName','response with nan');
+    temporalFit.plot(modelResponseStructNan,'Color',[0 1 1],'NewWindow',false,'DisplayName','fit with nan');
+    legend
 end
 
 %% Set validation data for return
