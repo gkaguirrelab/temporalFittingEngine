@@ -44,10 +44,10 @@ for ii = 1:length(paramsCellArray)
 end
 
 % Take the mean across params
-meanVec = mean(allParams,2);
+meanVec = nanmean(allParams,2);
 
 % Get the SEM
-semVec = std(allParams,0,2)./sqrt(length(paramsCellArray));
+semVec = nanstd(allParams,0,2)./sqrt(length(paramsCellArray));
 
 % Return params
 meanParams = obj.vecToParams(meanVec);

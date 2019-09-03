@@ -83,7 +83,7 @@ end
 baselineShift = zeros(length(paramsCellArray),1);
 switch (p.Results.baselineMethod)
     case 'averageBaseline'
-        baseline = mean(allParams(end,:));
+        baseline = nanmean(allParams(end,:));
         allParams(end,:) = [];
     case 'makeBaselineZero'
         baseline = 0;
