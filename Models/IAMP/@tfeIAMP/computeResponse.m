@@ -6,7 +6,7 @@ function modelResponseStruct = computeResponse(obj,params,stimulusStruct,kernelS
 % Operates by calling forwardModelIAMP and then the applyKernel tfe method.
 %
 % Optional key/value pairs
-%   'AddNoise' - true/false (default false).  Add noise to computed
+%   'addNoise' - true/false (default false).  Add noise to computed
 %     response? Useful for simulations.
 %
 % The field 'noiseInverseFrequencyPower' can be set in the parameters, and
@@ -46,8 +46,6 @@ end
 %% Optionally, convolve with a passed kernel
 modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{:});
 
-%% Optional add noise
-% If 
 %% Optional add noise
 if p.Results.addNoise
     if ~isfield(params, 'noiseInverseFrequencyPower')
