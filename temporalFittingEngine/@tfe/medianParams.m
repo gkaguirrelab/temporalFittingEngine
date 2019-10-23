@@ -1,8 +1,8 @@
-function [meanParams,semParams] = averageParams(obj,paramsCellArray,varargin)
-% Average tfe model parameters from multiple fits.
+function [medianParams] = medianParams(obj,paramsCellArray,varargin)
+% Take the median of tfe model parameters from multiple fits.
 %
 % Syntax:
-%     [meanParams,semParams] = averageParams(obj,paramsCellArray);
+%     [meanParams,semParams] = medianParams(obj,paramsCellArray);
 %
 % Description:
 %
@@ -11,16 +11,11 @@ function [meanParams,semParams] = averageParams(obj,paramsCellArray,varargin)
 %                      the native format of the object.
 %
 % Outputs:
-%    meanParams       - Mean params in the native format of the object.
-%    semParams        - SEM of the parameters, also in the native format.
+%    medianParams     - Median params in the native format of the object.
 %
 % Optional key/value pairs:
 %    None.
 %
-
-% History:
-%   01/05/19  dhb   Fix denominator of SEM calc. Should be sqrt of number
-%                   of parameter sets averaged, not length of parameter vector.
 
 %% Parse vargin for options passed here
 %
@@ -43,13 +38,9 @@ for ii = 1:length(paramsCellArray)
 end
 
 % Take the mean across params
-meanVec = nanmean(allParams,2);
-
-% Get the SEM
-semVec = nanstd(allParams,0,2)./sqrt(length(paramsCellArray));
+meanVec = nanmedian(allParams,2);
 
 % Return params
-meanParams = obj.vecToParams(meanVec);
-semParams  = obj.vecToParams(semVec);
+medianParams = obj.vecToParams(meanVec);
 
 end
