@@ -161,6 +161,15 @@ switch (p.Results.searchMethod)
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
+        
+        % Uncomment to call a function so that parameter values are printed
+        % out on each displayed iteration.  Only for deep debugging.
+        % You'll probably want to set 'Display' to 'iter' above when using
+        % this.
+        %
+        % options = optimset('OutputFcn',@outputFunction);
+
+        % Do the actual fit        
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec,thePacket,varargin{:}), ...
             initialParamsVec,p.Results.A,p.Results.b,p.Results.Aeq,p.Results.beq,vlbVec,vubVec,[],options);
     
@@ -223,5 +232,14 @@ paramsFit = obj.vecToParams(paramsFitVec);
 
 end
 
+%% You can use this code to get the parameter values printed on each display iteration.
+function stop = outputFunction(x, optimValues, state)
+
+if (strcmp(state,'iter'))
+    x'
+end
+stop = false;
+
+end
 
 
