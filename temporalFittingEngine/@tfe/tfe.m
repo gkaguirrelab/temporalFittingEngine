@@ -90,11 +90,7 @@ classdef tfe < handle
         params = vecToParams(obj,x)
         
         % Compute forward simulation of the implemented model, given the parameters
-        response = computeResponse(obj,params,timebase,stimulus,varargin);
-        
-        % Test packets for validity for the model subclass
-        packetValidity = isPacket(obj,thePacket)
-                
+        response = computeResponse(obj,params,timebase,stimulus,varargin);               
     end
     
     % Methods may be called by the subclasses, but are otherwise private 
