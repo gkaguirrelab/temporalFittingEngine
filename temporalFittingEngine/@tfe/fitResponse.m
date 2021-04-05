@@ -46,6 +46,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                           constraint matrix.
 %  'beq'                  - Vector (default empty). Linear equality
 %                           constraint vector.
+%  'nlcon'                - Handle to nonlinear constraint function
+%                           (default empty)
 %  'searchMethod          - String (default 'fmincon').  Specify search
 %                           method:
 %                              'fmincon' - Use fmincon
@@ -76,6 +78,10 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                           function onto the right scale makes all the
 %                           difference in fitting. Passed along as an
 %                           option to the fitError method.
+%  'maxIter'              - If not empty, use this as the maximum number of
+%                           interations in the search.
+%  'maxFunEval'           - If not empty, use this as the maximum number of
+%                           function evaluations in the search.
 %
 % Outputs:
 %   paramsFit             - Structure. Fit parameters.
@@ -93,6 +99,8 @@ function [paramsFit,fVal,modelResponseStruct] = fitResponse(obj,thePacket,vararg
 %                      searchMethod value, because it doesn't exist in the code.
 %            dhb       Final computation of error was not using
 %                      errorWeightVector.  Now passed on.
+%  04/03/21  dhb       Allow passing of nlcon handle to fmincon with
+%                      key/value pair.
 
 %% Parse vargin for options passed here
 %
@@ -110,6 +118,9 @@ p.addParameter('A',[],@isnumeric);
 p.addParameter('b',[],@isnumeric);
 p.addParameter('Aeq',[],@isnumeric);
 p.addParameter('beq',[],@isnumeric);
+p.addParameter('nlcon',[]);
+p.addParameter('maxIter',[],@isnumeric);
+p.addParameter('maxFunEval',[],@isnumeric);
 p.addParameter('searchMethod','fmincon',@ischar);
 p.addParameter('DiffMinChange',[],@isnumeric);
 p.addParameter('fminconAlgorithm','active-set',@(x) (isempty(x) | ischar(x)));
@@ -161,6 +172,12 @@ switch (p.Results.searchMethod)
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
+         if (~isempty(p.Results.maxIter))
+            options = optimset(options,'MaxIter',p.Results.maxIter);
+        end
+        if (~isempty(p.Results.maxFunEval))
+            options = optimset(options,'MaxFunEval',p.Results.maxFunEval);
+        end
         
         % Uncomment to call a function so that parameter values are printed
         % out on each displayed iteration.  Only for deep debugging.
@@ -171,7 +188,7 @@ switch (p.Results.searchMethod)
 
         % Do the actual fit        
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec,thePacket,varargin{:}), ...
-            initialParamsVec,p.Results.A,p.Results.b,p.Results.Aeq,p.Results.beq,vlbVec,vubVec,[],options);
+            initialParamsVec,p.Results.A,p.Results.b,p.Results.Aeq,p.Results.beq,vlbVec,vubVec,p.Results.nlcon,options);
     
     case 'linearRegression'
         % Linear regression can be used only when the paramsFit0 has only a
