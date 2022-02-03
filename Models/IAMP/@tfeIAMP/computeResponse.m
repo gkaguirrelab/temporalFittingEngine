@@ -48,13 +48,27 @@ modelResponseStruct = obj.applyKernel(modelResponseStruct,kernelStruct,varargin{
 
 %% Optional add noise
 if p.Results.addNoise
+
+    % If the power of the noise has not been defined, make it white
     if ~isfield(params, 'noiseInverseFrequencyPower')
         params.noiseInverseFrequencyPower=0;
     end
+
+    % Create the noise using the DSP signal processing toolbox
     cn = dsp.ColoredNoise(params.noiseInverseFrequencyPower,length(modelResponseStruct.timebase),1);
     noise = step(cn)';
+
+    % The noise vector can have a non-zero mean. This can be problematic
+    % for some simulations that depend upon the model response having a
+    % zero mean.
+    noise = noise - mean(noise);
+
+    % Scale the noise to establish the desired noiseSD
     noise = noise/std(noise)*params.noiseSd;
+
+    % Add the noise to the model
     modelResponseStruct.values = modelResponseStruct.values + noise;
+
 end
 
 end % function
