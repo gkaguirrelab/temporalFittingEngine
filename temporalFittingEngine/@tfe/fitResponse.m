@@ -165,20 +165,20 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off');
+        options = optimset(options,'Diagnostics','off','Display','iter','LargeScale','off');
         if (~isempty(p.Results.fminconAlgorithm))
             options = optimset(options,'Algorithm',p.Results.fminconAlgorithm);
         end
         if ~isempty(p.Results.DiffMinChange)
             options = optimset(options,'DiffMinChange',p.Results.DiffMinChange);
         end
-         if (~isempty(p.Results.maxIter))
+        if (~isempty(p.Results.maxIter))
             options = optimset(options,'MaxIter',p.Results.maxIter);
         end
         if (~isempty(p.Results.maxFunEval))
             options = optimset(options,'MaxFunEval',p.Results.maxFunEval);
         end
-        
+
         % Uncomment to call a function so that parameter values are printed
         % out on each displayed iteration.  Only for deep debugging.
         % You'll probably want to set 'Display' to 'iter' above when using
@@ -186,10 +186,10 @@ switch (p.Results.searchMethod)
         %
         % options = optimset('OutputFcn',@outputFunction);
 
-        % Do the actual fit        
+        % Do the actual fit
         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec,thePacket,varargin{:}), ...
             initialParamsVec,p.Results.A,p.Results.b,p.Results.Aeq,p.Results.beq,vlbVec,vubVec,p.Results.nlcon,options);
-    
+
     case 'linearRegression'
         % Linear regression can be used only when the paramsFit0 has only a
         % single parameter.  In addition, constraints,bounds,errorType and
@@ -197,27 +197,27 @@ switch (p.Results.searchMethod)
         if length(initialParams.paramNameCell)~=1
             error('fitResponse:invalidLinearRegression','Linear regression can only be applied in the case of a single model parameter')
         end
-        
+
         %  Warn if the parameter is not called "amplitude".
         if ~(min(initialParams.paramNameCell{1}=='amplitude')==1)
             warning('fitResponse:invalidLinearRegression','Only amplitude parameters are suitable for linear regression')
         end
-        
+
         % Take the stimulus.values as the regression matrix
         regressionMatrixStruct=thePacket.stimulus;
-        
+
         % Convolve the rows of stimulus values by the kernel
         regressionMatrixStruct = obj.applyKernel(regressionMatrixStruct,thePacket.kernel,varargin{:});
-        
+
         % Downsample regressionMatrixStruct to the timebase of the response
         regressionMatrixStruct = obj.resampleTimebase(regressionMatrixStruct,thePacket.response.timebase,varargin{:});
-        
+
         % Pull out the response from the packet
         y=thePacket.response.values';
-        
+
         % Assign the regression matrix to X
         X=regressionMatrixStruct.values';
-                
+
         % Detect if nans are present in the response. If so, remove these
         % timepoints from the response and corresponding locations in the
         % regression matrix
@@ -226,10 +226,15 @@ switch (p.Results.searchMethod)
             y = y(validIdx);
             X = X(validIdx,:);
         end
-        
+
         % Perform the regression
         paramsFitVec=X\y;
-        
+    case 'bads'
+        % Do the actual fit
+%         paramsFitVec = fmincon(@(modelParamsVec)obj.fitError(modelParamsVec,thePacket,varargin{:}), ...
+%             initialParamsVec,p.Results.A,p.Results.b,p.Results.Aeq,p.Results.beq,vlbVec,vubVec,p.Results.nlcon,options);
+    [paramsFitVec,fval] = bads(@(modelParamsVec)obj.fitError(modelParamsVec,thePacket,varargin{:}),...
+                     initialParamsVec',vlbVec',vubVec',[],[])
     otherwise
         error('fitResponse:invalidSearchMethod','Do not know how to fit that sucker with specified method');
 end
