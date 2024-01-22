@@ -165,7 +165,7 @@ end
 switch (p.Results.searchMethod)
     case 'fmincon'
         options = optimset('fmincon');
-        options = optimset(options,'Diagnostics','off','Display','iter','LargeScale','off');
+        options = optimset(options,'Diagnostics','off','Display','off','LargeScale','off');
         if (~isempty(p.Results.fminconAlgorithm))
             options = optimset(options,'Algorithm',p.Results.fminconAlgorithm);
         end
